@@ -36,14 +36,27 @@ if config.DB_MODE == "mysql":
         },
         pool_size=20,
     )
-elif config.DB_MODE == "sqlite":
-    engine = create_engine("sqlite:///db/" + config.DB_NAME + ".sqlite")
+# elif config.DB_MODE == "sqlite":
+#     engine = create_engine("sqlite:///db/" + config.DB_NAME + ".sqlite")
 else:
     exit("Invalid DB_MODE")
 
 
 class DatabaseConnector:
-    def __init__(self, init=False, reset=False) -> None:
+    # START SINGLETON
+    _instance = None
+
+    def __new__(cls, init=False, reset=False):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+            cls._instance.init = init
+            cls._instance.reset = reset
+            cls._instance.init_db(init=False, reset=False)
+            # cls._instance.session = sessionmaker(bind=engine)()
+        return cls._instance
+
+    def init_db(self, init=False, reset=False) -> None:
+        logger.info("Connecting DB...")
         Session = sessionmaker(bind=engine)
         self.session = Session()
         with self.session.begin():
@@ -73,6 +86,40 @@ class DatabaseConnector:
                 )
             Base.metadata.create_all(engine)
         self.set_achievements_list()
+
+    # END SINGLETON
+
+    # Remove the above code and uncomment the follow if there is any problem reading DB updates
+    # def __init__(self, init=False, reset=False) -> None:
+    #     Session = sessionmaker(bind=engine)
+    #     self.session = Session()
+    #     with self.session.begin():
+    #         if init:
+    #             logger.info("Init DB")
+    #             # Base.metadata.drop_all(engine)
+    #             Base.metadata.drop_all(
+    #                 engine,
+    #                 tables=[
+    #                     GamesInfo.__table__,
+    #                     UsersGames.__table__,
+    #                     UserAchievements.__table__,
+    #                     Achievement.__table__,
+    #                     # TimeEntries.__table__,
+    #                 ],
+    #             )
+    #         if reset:
+    #             logger.info("Reset DB")
+    #             Base.metadata.drop_all(
+    #                 engine,
+    #                 tables=[
+    #                     UsersGames.__table__,
+    #                     UserAchievements.__table__,
+    #                     Achievement.__table__,
+    #                     # TimeEntries.__table__,
+    #                 ],
+    #             )
+    #         Base.metadata.create_all(engine)
+    #     self.set_achievements_list()
 
     ##################
     ###### INIT ######
@@ -124,6 +171,8 @@ class DatabaseConnector:
         if telegram_id is not None:
             stmt = select(User).where(User.telegram_id == telegram_id)
             user = session.execute(stmt).first()
+            if user is not None:
+                return user
             if user is None and telegram_username is not None:
                 stmt = (
                     update(User)
@@ -135,6 +184,7 @@ class DatabaseConnector:
                 user = session.execute(stmt).first()
                 session.commit()
                 session.close()
+                return user
             else:
                 return None
         elif telegram_username is not None:

@@ -2,12 +2,23 @@ version: '3.1'
 
 services:
 
-  laviciacion_bot:
+  laviciacion-bot:
     build: 
-      context: .
+      context: ./bot
       dockerfile: Dockerfile
-    container_name: la-viciacion
-    image: la-viciacion
-    env_file: .env
+    container_name: laviciacion-bot
+    image: laviciacion-bot
+    env_file: bot/.env
     volumes:
-      - ./:/app
+     - ./bot:/app
+  
+  laviciacion-api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: laviciacion-api
+    image: laviciacion-api
+    ports:
+      - 5000:5000
+    volumes:
+      - ./api:/app

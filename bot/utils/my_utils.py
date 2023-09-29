@@ -144,20 +144,10 @@ class MyUtils:
         username = update.message.from_user.username
         user_id = update.message.from_user.id
         chat_id = update.message.chat_id
-        logger.info(
-            "Checking permissions for "
-            + str(username)
-            + " | "
-            + str(user_id)
-            + " | "
-            + str(chat_id)
-        )
         if chat_id < 0:
             if chat_id != config.TELEGRAM_CHAT_ID:
-                logger.info("ChatID is different from chat group")
                 return False
             else:
-                logger.info("")
                 return True
         user = self.db.get_user(telegram_id=user_id, telegram_username=username)
         if not user:

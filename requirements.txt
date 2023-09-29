@@ -1,0 +1,11 @@
+python_telegram_bot==20.1
+python-dotenv
+requests
+pandas
+openpyxl
+howlongtobeatpy
+rawg
+gspread
+mysql-connector-python
+pymysql
+SQLAlchemy

@@ -1,0 +1,15 @@
+.env
+__pycache__/
+data/
+tmp/
+db/
+allowed_users.py
+laviciacion.sh
+docker-compose.yml
+update.sh
+logs.log
+.scannerwork
+*.crt
+la-viciacion-bot-google.json
+update_template.sh
+.gitlab-ci.yml

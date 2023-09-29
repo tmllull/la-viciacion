@@ -1,0 +1,13 @@
+version: '3.1'
+
+services:
+
+  laviciacion_bot:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: la-viciacion
+    image: la-viciacion
+    env_file: .env
+    volumes:
+      - ./:/app

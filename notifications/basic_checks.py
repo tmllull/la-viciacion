@@ -40,7 +40,7 @@ class BasicChecks:
                     minutes,
                 ) = self.utils.calculate_total_time(row, player, game)
                 await self.utils.add_or_update_game_user(
-                    game, player, score, platform, i, formatted_time, seconds
+                    game, player, score, platform, i, seconds
                 )
                 if completed:
                     already_completed = db.game_completed(player, game)

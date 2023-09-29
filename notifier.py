@@ -59,7 +59,7 @@ async def main():
                 continue
             logger.info("--- " + player + " ---")
             # if INIT:
-            db.add_user(player)
+            # db.add_user(player)
             # Check if played today
             # if not bc.played_today(player, DATA_PATH):
             #     logger.info("Not played today")

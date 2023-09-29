@@ -235,7 +235,6 @@ class ExcelRoutes:
                     context.user_data[PLATFORM],
                     last_row + 1,
                     0,
-                    0,
                 )
                 await update.message.reply_text(
                     "Juego añadido", reply_markup=ReplyKeyboardRemove()

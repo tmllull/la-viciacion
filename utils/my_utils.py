@@ -142,13 +142,26 @@ class MyUtils:
 
     def check_valid_chat(self, update: Update) -> bool:
         username = update.message.from_user.username
+        user_id = update.message.from_user.id
         chat_id = update.message.chat_id
+        logger.info(
+            "Checking permissions for "
+            + str(username)
+            + " | "
+            + str(user_id)
+            + " | "
+            + str(chat_id)
+        )
         if chat_id < 0:
             if chat_id != config.TELEGRAM_CHAT_ID:
+                logger.info("ChatID is different from chat group")
                 return False
             else:
+                logger.info("")
                 return True
-        if username is None or username not in config.ALLOWED_USERS:
+        user = self.db.get_user(telegram_id=user_id, telegram_username=username)
+        if not user:
+            logger.info(user)
             return False
         return True
 
@@ -237,11 +250,9 @@ class MyUtils:
         )
         return text
 
-    async def add_or_update_game_user(
-        self, game, player, score, platform, i, formatted_time, seconds
-    ):
+    async def add_or_update_game_user(self, game, player, score, platform, i, seconds):
         new_game = self.db.add_or_update_game_user(
-            game, player, score, platform, i, formatted_time, seconds
+            game, player, score, platform, i, seconds
         )
         if new_game:
             logger.info(player + " has started new game: " + game)

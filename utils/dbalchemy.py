@@ -16,18 +16,17 @@ config = Config()
 clockify = ClockifyApi()
 
 if config.DB_MODE == "mysql":
-    engine = create_engine(
-        f"mysql+pymysql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}",
-        connect_args={
-            "ssl": {
-                "ca": None,
-            }
-        },
-        pool_size=20,
-    )
-    with engine.connect() as conn:
-        # Do not substitute user-supplied database names here.
-        conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {config.DB_NAME}"))
+    # engine = create_engine(
+    #     f"mysql+pymysql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}",
+    #     connect_args={
+    #         "ssl": {
+    #             "ca": None,
+    #         }
+    #     },
+    #     pool_size=20,
+    # )
+    # with engine.connect() as conn:
+    #     conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {config.DB_NAME}"))
     engine = create_engine(
         f"mysql+pymysql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_NAME}",
         connect_args={
@@ -41,20 +40,9 @@ elif config.DB_MODE == "sqlite":
     engine = create_engine("sqlite:///db/" + config.DB_NAME + ".sqlite")
 else:
     exit("Invalid DB_MODE")
-# Session = sessionmaker(bind=engine)
 
 
 class DatabaseConnector:
-    # _instance = None
-
-    # def __new__(cls, init=False, reset=False):
-    #     # if not cls._instance:
-    #     cls._instance = super().__new__(cls)
-    #     cls._instance.init = init
-    #     cls._instance.reset = reset
-    #     cls._instance.session = Session()
-    #     return cls._instance
-
     def __init__(self, init=False, reset=False) -> None:
         Session = sessionmaker(bind=engine)
         self.session = Session()
@@ -106,6 +94,11 @@ class DatabaseConnector:
     #############################
 
     def get_users(self):
+        """Get all users
+
+        Returns:
+            list: A list of users
+        """
         try:
             logger.info("Getting user")
             session = sessionmaker(bind=engine)()
@@ -115,6 +108,61 @@ class DatabaseConnector:
             return session.execute(stmt).fetchall()
         except Exception as e:
             logger.info(e)
+
+    def get_user(self, telegram_id=None, telegram_username=None, name=None):
+        """Check if user is allowed to use the bot. At least 1 param must be passed
+
+        Args:
+            telegram_id (int/string, optional): Telegram ID. Defaults to None.
+            telegram_username (string, optional): Telegram username. Defaults to None.
+            name (string, optional): User name. Defaults to None.
+
+        Returns:
+            Row: If user exists, return User info as SQL row. Else, returns None
+        """
+        session = sessionmaker(bind=engine)()
+        if telegram_id is not None:
+            stmt = select(User).where(User.telegram_id == telegram_id)
+            user = session.execute(stmt).first()
+            if user is None and telegram_username is not None:
+                stmt = (
+                    update(User)
+                    .where(User.telegram_username == telegram_username)
+                    .values(telegram_id=telegram_id)
+                )
+                session.execute(stmt)
+                stmt = select(User).where(User.telegram_username == telegram_username)
+                user = session.execute(stmt).first()
+                session.commit()
+                session.close()
+            else:
+                return None
+        elif telegram_username is not None:
+            stmt = select(User).where(User.telegram_username == telegram_username)
+            user = session.execute(stmt).first()
+            if user is None and telegram_id is not None:
+                stmt = (
+                    update(User)
+                    .where(User.telegram_id == telegram_id)
+                    .values(telegram_username=telegram_username)
+                )
+                session.execute(stmt)
+                stmt = select(User).where(User.telegram_username == telegram_username)
+                user = session.execute(stmt).first()
+                session.commit()
+                session.close()
+            else:
+                return False
+            session.commit()
+            session.close()
+        elif name is not None:
+            stmt = select(User).where(User.name == name)
+            user = session.execute(stmt).first()
+            session.commit()
+            session.close()
+        else:
+            return False
+        return user
 
     def convert_clockify_duration(self, duration):
         match = re.match(r"PT(\d+H)?(\d+M)?", duration)
@@ -181,123 +229,166 @@ class DatabaseConnector:
             # exit()
         return
 
-    def add_time_entry_from_excel(self, player, game, day, time):
-        user = self.get_user(name=player)
-        try:
-            session = sessionmaker(bind=engine)()
-            # print("Adding excel time")
-            start_date = datetime.datetime(2023, 1, 1)
-            start_date = start_date + datetime.timedelta(days=day - 9)
-            end_date = start_date + datetime.timedelta(
-                seconds=int(time.total_seconds())
-            )
-            start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-            end_date = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-            excel_id = (
-                "excel"
-                + "-"
-                + player
-                + "-"
-                + game.replace(" ", "")
-                + "-"
-                + str(day - 8)
-            )
-            project_id = clockify.get_project_id_by_strict_name(
-                game, config.CLOCKIFY_ADMIN_API_KEY
-            )
-            # project_name = clockify.get_project(entry["projectId"])["name"]
-            stmt = select(TimeEntries).where(TimeEntries.id == excel_id)
-            exists = session.execute(stmt).first()
-            # print(start_date)
-            # print(end_date)
-            # print(int(time.total_seconds()))
-            # print(excel_id)
-            # print(exists)
-            # exit()
-            if not exists:
-                new_entry = TimeEntries(
-                    id=excel_id,
-                    user=player,
-                    user_id=user[0].id,
-                    user_clockify_id=user[0].clockify_id,
-                    project=game,
-                    project_id=project_id,
-                    start=start_date,
-                    end=end_date,
-                    duration=int(time.total_seconds()),
-                )
-                session.add(new_entry)
-                # session.commit()
-            # else:
-            #     stmt = (
-            #         update(TimeEntries)
-            #         .where(TimeEntries.id == excel_id)
-            #         .values(
-            #             user=player,
-            #             user_id=user[0].id,
-            #             user_clockify_id=user[0].clockify_id,
-            #             project=game,
-            #             project_id=project_id,
-            #             start=start_date,
-            #             end=end_date,
-            #             duration=int(time.total_seconds()),
-            #         )
-            #     )
-            #     session.execute(stmt)
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            logger.info(
-                "Error adding new entry from Excel: "
-                + player
-                + "-"
-                + game
-                + "-"
-                + str(e)
-            )
-        finally:
-            session.close()
-        return
+    # def add_time_entry_from_excel(self, player, game, day, time):
+    #     user = self.get_user(name=player)
+    #     try:
+    #         session = sessionmaker(bind=engine)()
+    #         # print("Adding excel time")
+    #         start_date = datetime.datetime(2023, 1, 1)
+    #         start_date = start_date + datetime.timedelta(days=day - 9)
+    #         end_date = start_date + datetime.timedelta(
+    #             seconds=int(time.total_seconds())
+    #         )
+    #         start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+    #         end_date = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+    #         excel_id = (
+    #             "excel"
+    #             + "-"
+    #             + player
+    #             + "-"
+    #             + game.replace(" ", "")
+    #             + "-"
+    #             + str(day - 8)
+    #         )
+    #         project_id = clockify.get_project_id_by_strict_name(
+    #             game, config.CLOCKIFY_ADMIN_API_KEY
+    #         )
+    #         # project_name = clockify.get_project(entry["projectId"])["name"]
+    #         stmt = select(TimeEntries).where(TimeEntries.id == excel_id)
+    #         exists = session.execute(stmt).first()
+    #         # print(start_date)
+    #         # print(end_date)
+    #         # print(int(time.total_seconds()))
+    #         # print(excel_id)
+    #         # print(exists)
+    #         # exit()
+    #         if not exists:
+    #             new_entry = TimeEntries(
+    #                 id=excel_id,
+    #                 user=player,
+    #                 user_id=user[0].id,
+    #                 user_clockify_id=user[0].clockify_id,
+    #                 project=game,
+    #                 project_id=project_id,
+    #                 start=start_date,
+    #                 end=end_date,
+    #                 duration=int(time.total_seconds()),
+    #             )
+    #             session.add(new_entry)
+    #             # session.commit()
+    #         # else:
+    #         #     stmt = (
+    #         #         update(TimeEntries)
+    #         #         .where(TimeEntries.id == excel_id)
+    #         #         .values(
+    #         #             user=player,
+    #         #             user_id=user[0].id,
+    #         #             user_clockify_id=user[0].clockify_id,
+    #         #             project=game,
+    #         #             project_id=project_id,
+    #         #             start=start_date,
+    #         #             end=end_date,
+    #         #             duration=int(time.total_seconds()),
+    #         #         )
+    #         #     )
+    #         #     session.execute(stmt)
+    #         session.commit()
+    #     except Exception as e:
+    #         session.rollback()
+    #         logger.info(
+    #             "Error adding new entry from Excel: "
+    #             + player
+    #             + "-"
+    #             + game
+    #             + "-"
+    #             + str(e)
+    #         )
+    #     finally:
+    #         session.close()
+    #     return
 
-    def get_user(self, name=None, telegram_username=None, telegram_id=None):
-        session = sessionmaker(bind=engine)()
-        if name is not None:
-            stmt = select(User).where(User.name == name)
-        elif telegram_username is not None:
-            stmt = select(User).where(User.telegram_username == telegram_username)
-        elif telegram_id is not None:
-            stmt = select(User).where(User.telegram_id == telegram_id)
-        else:
-            return None
-        return session.execute(stmt).first()
+    # def get_user(self, telegram_id=None, telegram_username=None, name=None):
+    #     """Check if user is allowed to use the bot. At least 1 param must be passed
 
-    def add_user_bot(self, username, name, user_id):
-        session = sessionmaker(bind=engine)()
-        stmt = select(User).where(User.name == name)
-        user = session.execute(stmt).first()
-        if not user:
-            new_user = User(name=name, telegram_username=username, telegram_id=user_id)
-            session.add(new_user)
-            # session.commit()
-        else:
-            stmt = (
-                update(User)
-                .where(User.telegram_id == user_id)
-                .values(name=user, telegram_username=username)
-            )
-            session.execute(stmt)
-        session.commit()
-        session.close()
+    #     Args:
+    #         telegram_id (int/string, optional): Telegram ID. Defaults to None.
+    #         telegram_username (string, optional): Telegram username. Defaults to None.
+    #         name (string, optional): User name. Defaults to None.
 
-    def add_user(self, name):
-        session = sessionmaker(bind=engine)()
-        stmt = select(User).where(User.name == name)
-        user = session.execute(stmt).first()
-        if not user:
-            new_user = User(name=name)
-            session.add(new_user)
-            session.commit()
-            session.close()
+    #     Returns:
+    #         Row: If user exists, return User info as SQL row. Else, returns None
+    #     """
+    #     session = sessionmaker(bind=engine)()
+    #     if telegram_id is not None:
+    #         stmt = select(User).where(User.telegram_id == telegram_id)
+    #         user = session.execute(stmt).first()
+    #         if user is None and telegram_username is not None:
+    #             stmt = (
+    #                 update(User)
+    #                 .where(User.telegram_username == telegram_username)
+    #                 .values(telegram_id=telegram_id)
+    #             )
+    #             session.execute(stmt)
+    #             stmt = select(User).where(User.telegram_username == telegram_username)
+    #             user = session.execute(stmt).first()
+    #             session.commit()
+    #             session.close()
+    #         else:
+    #             return None
+    #     elif telegram_username is not None:
+    #         stmt = select(User).where(User.telegram_username == telegram_username)
+    #         user = session.execute(stmt).first()
+    #         if user is None and telegram_id is not None:
+    #             stmt = (
+    #                 update(User)
+    #                 .where(User.telegram_id == telegram_id)
+    #                 .values(telegram_username=telegram_username)
+    #             )
+    #             session.execute(stmt)
+    #             stmt = select(User).where(User.telegram_username == telegram_username)
+    #             user = session.execute(stmt).first()
+    #             session.commit()
+    #             session.close()
+    #         else:
+    #             return False
+    #         session.commit()
+    #         session.close()
+    #     elif name is not None:
+    #         stmt = select(User).where(User.name == name)
+    #         user = session.execute(stmt).first()
+    #         session.commit()
+    #         session.close()
+    #     else:
+    #         return False
+    #     return user
+
+    # def add_user_bot(self, username, name, user_id):
+    #     session = sessionmaker(bind=engine)()
+    #     stmt = select(User).where(User.name == name)
+    #     user = session.execute(stmt).first()
+    #     if not user:
+    #         new_user = User(name=name, telegram_username=username, telegram_id=user_id)
+    #         session.add(new_user)
+    #         # session.commit()
+    #     else:
+    #         stmt = (
+    #             update(User)
+    #             .where(User.telegram_id == user_id)
+    #             .values(name=user, telegram_username=username)
+    #         )
+    #         session.execute(stmt)
+    #     session.commit()
+    #     session.close()
+
+    # def add_user(self, name):
+    #     session = sessionmaker(bind=engine)()
+    #     stmt = select(User).where(User.name == name)
+    #     user = session.execute(stmt).first()
+    #     if not user:
+    #         new_user = User(name=name)
+    #         session.add(new_user)
+    #         session.commit()
+    #         session.close()
 
     def game_exists(self, game_name):
         session = sessionmaker(bind=engine)()
@@ -470,9 +561,7 @@ class DatabaseConnector:
         finally:
             session.close()
 
-    def add_or_update_game_user(
-        self, game_name, player, score, platform, i, formatted_time, seconds
-    ):
+    def add_or_update_game_user(self, game_name, player, score, platform, i, seconds):
         session = sessionmaker(bind=engine)()
         try:
             stmt = select(UsersGames).where(

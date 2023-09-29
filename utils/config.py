@@ -24,7 +24,6 @@ class Config:
             self.CLOCKIFY_USERS_API = json.loads(os.environ["CLOCKIFY_USERS_API"])
             self.CLOCKIFY_WORKSPACE = os.environ["CLOCKIFY_WORKSPACE"]
             self.DB_MODE = os.environ["DB_MODE"]
-            self.GID_SHEETS = json.loads(os.environ["GID_SHEETS"])
             self.N8N_BASE_URL = os.environ["N8N_BASE_URL"]
             self.N8N_WH_ADD_GAME = os.environ["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = os.environ["HEALTHCHECKS"]
@@ -49,7 +48,6 @@ class Config:
             self.CLOCKIFY_USERS_API = json.loads(config["CLOCKIFY_USERS_API"])
             self.CLOCKIFY_WORKSPACE = config["CLOCKIFY_WORKSPACE"]
             self.DB_MODE = config["DB_MODE"]
-            self.GID_SHEETS = json.loads(config["GID_SHEETS"])
             self.N8N_BASE_URL = config["N8N_BASE_URL"]
             self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = config["HEALTHCHECKS"]

@@ -18,6 +18,7 @@ services:
       dockerfile: Dockerfile
     container_name: laviciacion-api
     image: laviciacion-api
+    env_file: api/app/.env
     ports:
       - 5000:5000
     volumes:

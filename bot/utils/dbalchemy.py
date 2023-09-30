@@ -140,79 +140,79 @@ class DatabaseConnector:
     ####### BASIC METHODS #######
     #############################
 
-    def get_users(self):
-        """Get all users
+    # def get_users(self):
+    #     """Get all users
 
-        Returns:
-            list: A list of users
-        """
-        try:
-            logger.info("Getting user")
-            session = sessionmaker(bind=engine)()
-            stmt = select(
-                User.telegram_username, User.name, User.telegram_id, User.clockify_id
-            )
-            return session.execute(stmt).fetchall()
-        except Exception as e:
-            logger.info(e)
+    #     Returns:
+    #         list: A list of users
+    #     """
+    #     try:
+    #         logger.info("Getting user")
+    #         session = sessionmaker(bind=engine)()
+    #         stmt = select(
+    #             User.telegram_username, User.name, User.telegram_id, User.clockify_id
+    #         )
+    #         return session.execute(stmt).fetchall()
+    #     except Exception as e:
+    #         logger.info(e)
 
-    def get_user(self, telegram_id=None, telegram_username=None, name=None):
-        """Check if user is allowed to use the bot. At least 1 param must be passed
+    # def get_user(self, telegram_id=None, telegram_username=None, name=None):
+    #     """Check if user is allowed to use the bot. At least 1 param must be passed
 
-        Args:
-            telegram_id (int/string, optional): Telegram ID. Defaults to None.
-            telegram_username (string, optional): Telegram username. Defaults to None.
-            name (string, optional): User name. Defaults to None.
+    #     Args:
+    #         telegram_id (int/string, optional): Telegram ID. Defaults to None.
+    #         telegram_username (string, optional): Telegram username. Defaults to None.
+    #         name (string, optional): User name. Defaults to None.
 
-        Returns:
-            Row: If user exists, return User info as SQL row. Else, returns None
-        """
-        session = sessionmaker(bind=engine)()
-        if telegram_id is not None:
-            stmt = select(User).where(User.telegram_id == telegram_id)
-            user = session.execute(stmt).first()
-            if user is not None:
-                return user
-            if user is None and telegram_username is not None:
-                stmt = (
-                    update(User)
-                    .where(User.telegram_username == telegram_username)
-                    .values(telegram_id=telegram_id)
-                )
-                session.execute(stmt)
-                stmt = select(User).where(User.telegram_username == telegram_username)
-                user = session.execute(stmt).first()
-                session.commit()
-                session.close()
-                return user
-            else:
-                return None
-        elif telegram_username is not None:
-            stmt = select(User).where(User.telegram_username == telegram_username)
-            user = session.execute(stmt).first()
-            if user is None and telegram_id is not None:
-                stmt = (
-                    update(User)
-                    .where(User.telegram_id == telegram_id)
-                    .values(telegram_username=telegram_username)
-                )
-                session.execute(stmt)
-                stmt = select(User).where(User.telegram_username == telegram_username)
-                user = session.execute(stmt).first()
-                session.commit()
-                session.close()
-            else:
-                return False
-            session.commit()
-            session.close()
-        elif name is not None:
-            stmt = select(User).where(User.name == name)
-            user = session.execute(stmt).first()
-            session.commit()
-            session.close()
-        else:
-            return False
-        return user
+    #     Returns:
+    #         Row: If user exists, return User info as SQL row. Else, returns None
+    #     """
+    #     session = sessionmaker(bind=engine)()
+    #     if telegram_id is not None:
+    #         stmt = select(User).where(User.telegram_id == telegram_id)
+    #         user = session.execute(stmt).first()
+    #         if user is not None:
+    #             return user
+    #         if user is None and telegram_username is not None:
+    #             stmt = (
+    #                 update(User)
+    #                 .where(User.telegram_username == telegram_username)
+    #                 .values(telegram_id=telegram_id)
+    #             )
+    #             session.execute(stmt)
+    #             stmt = select(User).where(User.telegram_username == telegram_username)
+    #             user = session.execute(stmt).first()
+    #             session.commit()
+    #             session.close()
+    #             return user
+    #         else:
+    #             return None
+    #     elif telegram_username is not None:
+    #         stmt = select(User).where(User.telegram_username == telegram_username)
+    #         user = session.execute(stmt).first()
+    #         if user is None and telegram_id is not None:
+    #             stmt = (
+    #                 update(User)
+    #                 .where(User.telegram_id == telegram_id)
+    #                 .values(telegram_username=telegram_username)
+    #             )
+    #             session.execute(stmt)
+    #             stmt = select(User).where(User.telegram_username == telegram_username)
+    #             user = session.execute(stmt).first()
+    #             session.commit()
+    #             session.close()
+    #         else:
+    #             return False
+    #         session.commit()
+    #         session.close()
+    #     elif name is not None:
+    #         stmt = select(User).where(User.name == name)
+    #         user = session.execute(stmt).first()
+    #         session.commit()
+    #         session.close()
+    #     else:
+    #         return False
+    #     return user
 
     def convert_clockify_duration(self, duration):
         match = re.match(r"PT(\d+H)?(\d+M)?", duration)

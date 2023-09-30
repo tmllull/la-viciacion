@@ -1,3 +1,4 @@
+import requests
 import telegram
 import utils.keyboard as kb
 import utils.logger as logger
@@ -6,11 +7,9 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.action_logs import ActionLogs
 from utils.config import Config
-from utils.dbalchemy import DatabaseConnector
 from utils.my_utils import MyUtils
 
-db = DatabaseConnector()
-utils = MyUtils(db)
+utils = MyUtils()
 config = Config()
 
 
@@ -21,16 +20,14 @@ class AdminRoutes:
             query = update.callback_query
             user = query.from_user
             if user.id in config.ADMIN_USERS:
-                users = db.get_users()
+                users = requests.get(config.API_URL + "/users").json()
                 msg = ""
                 for user in users:
-                    print(user)
-                    username = str(user[0])
-                    name = str(user[1])
-                    user_id = str(user[2])
+                    username = str(user["telegram_username"])
+                    name = str(user["name"])
+                    user_id = str(user["telegram_id"])
                     msg += name + ": " + username + " - " + user_id + "\n"
                 await utils.response_conversation(update, context, msg)
-                db.close()
                 return ConversationHandler.END
         except Exception as e:
             logger.info(e)

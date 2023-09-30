@@ -1,3 +1,4 @@
+import datetime
 from typing import Union
 
 from pydantic import BaseModel
@@ -21,7 +22,7 @@ class Item(ItemBase):
 
 
 class UserBase(BaseModel):
-    email: str
+    id: int
 
 
 class UserCreate(UserBase):
@@ -30,8 +31,19 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    is_active: bool
-    items: list[Item] = []
+    name: str
+    telegram_username: str
+    telegram_id: Union[str, None] = None
+    clockify_id: Union[str, None] = None
+    last_ranking_hours: Union[int, None] = None
+    current_ranking_hours: Union[int, None] = None
+    last_streak: Union[int, None] = None
+    last_streak_date: Union[datetime.date, None] = None
+    current_streak: Union[int, None] = None
+    best_streak: Union[int, None] = None
+    best_streak_date: Union[datetime.date, None] = None
+    played_days: Union[int, None] = None
+    unplayed_streak: Union[int, None] = None
 
     class Config:
         from_attributes = True

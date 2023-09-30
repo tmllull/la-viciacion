@@ -149,11 +149,18 @@ class MyUtils:
                 return False
             else:
                 return True
-        user = self.db.get_user(telegram_id=user_id, telegram_username=username)
-        if not user:
-            logger.info(user)
+        response = requests.get("http://laviciacion-api:5000/users/" + username)
+        if response.status_code == 200:
+            return True
+        else:
             return False
-        return True
+        # print(user.status_code)
+        # return True
+        # user = self.db.get_user(telegram_id=user_id, telegram_username=username)
+        # if not user:
+        #     logger.info(user)
+        #     return False
+        # return True
 
     async def reply_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, msg

@@ -37,9 +37,17 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return users
 
 
-@app.get("/users/{user_id}", response_model=schemas.User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
+# @app.get("/users/{user_id}", response_model=schemas.User)
+# def read_user(user_id: int, db: Session = Depends(get_db)):
+#     db_user = crud.get_user(db, user_id=user_id)
+#     if db_user is None:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     return db_user
+
+
+@app.get("/users/{telegram_username}", response_model=schemas.User)
+def read_user(telegram_username: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_tg_username(db, telegram_username=telegram_username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user

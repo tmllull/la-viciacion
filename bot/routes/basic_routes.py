@@ -25,7 +25,7 @@ class BasicRoutes:
             context.user_data["userid"] = user.id
             logger.info("User " + user.username + " started the conversation.")
             # db.add_user_bot(user.username, user.first_name, user.id)
-            self.worksheet = utils.sh.worksheet(config.ALLOWED_USERS[user.username])
+            # self.worksheet = utils.sh.worksheet(config.ALLOWED_USERS[user.username])
             if user.id in config.ADMIN_USERS:
                 keyboard = kb.ADMIN_MENU
             else:

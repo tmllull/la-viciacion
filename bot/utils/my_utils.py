@@ -149,7 +149,7 @@ class MyUtils:
                 return False
             else:
                 return True
-        response = requests.get("http://laviciacion-api:5000/users/" + username)
+        response = requests.get(config.API_URL + "/users/" + username)
         if response.status_code == 200:
             return True
         else:

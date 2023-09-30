@@ -8,13 +8,10 @@ from dotenv import dotenv_values
 class Config:
     def __init__(self):
         try:
-            self.ALLOWED_USERS = json.loads(os.environ["ALLOWED_USERS"])
-            self.ALLOWED_USERS_RESET = json.loads(os.environ["ALLOWED_USERS_RESET"])
             self.TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
             self.ADMIN_USERS = json.loads(os.environ["ADMIN_USERS"])
             self.TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
             self.TELEGRAM_ADMIN_CHAT_ID = os.environ["TELEGRAM_ADMIN_CHAT_ID"]
-            self.GOOGLE_DRIVE_URL = os.environ["GOOGLE_DRIVE_URL"]
             self.DB_HOST = os.environ["DB_HOST"]
             self.DB_NAME = os.environ["DB_NAME"]
             self.DB_USER = os.environ["DB_USER"]
@@ -28,15 +25,13 @@ class Config:
             self.N8N_WH_ADD_GAME = os.environ["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = os.environ["HEALTHCHECKS"]
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
+            self.API_URL = os.environ["API_URL"]
 
         except Exception:
             # Load .env
             config = dotenv_values(".env")
-            self.ALLOWED_USERS = json.loads(config["ALLOWED_USERS"])
-            self.ALLOWED_USERS_RESET = json.loads(config["ALLOWED_USERS_RESET"])
             self.ADMIN_USERS = json.loads(config["ADMIN_USERS"])
             self.TELEGRAM_TOKEN = config["TELEGRAM_TOKEN"]
-            self.GOOGLE_DRIVE_URL = config["GOOGLE_DRIVE_URL"]
             self.TELEGRAM_CHAT_ID = config["TELEGRAM_CHAT_ID"]
             self.TELEGRAM_ADMIN_CHAT_ID = config["TELEGRAM_ADMIN_CHAT_ID"]
             self.DB_HOST = config["DB_HOST"]
@@ -52,3 +47,4 @@ class Config:
             self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = config["HEALTHCHECKS"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
+            self.API_URL = config["API_URL"]

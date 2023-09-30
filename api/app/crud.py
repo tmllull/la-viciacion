@@ -18,59 +18,6 @@ def get_user_by_tg_username(db: Session, telegram_username: str = None):
         .filter(models.User.telegram_username == telegram_username)
         .first()
     )
-    if telegram_id is not None:
-        user = (
-            db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
-        )
-        if user is not None:
-            return user
-        if user is None and telegram_username is not None:
-            stmt = (
-                update(models.User)
-                .where(models.User.telegram_username == telegram_username)
-                .values(telegram_id=telegram_id)
-            )
-            db.execute(stmt)
-            stmt = select(models.User).where(
-                models.User.telegram_username == telegram_username
-            )
-            user = db.execute(stmt).first()
-            db.commit()
-            # db.close()
-            return user
-        else:
-            return None
-    elif telegram_username is not None:
-        user = user = (
-            db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
-        )
-        if user is not None:
-            return user
-        if user is None and telegram_id is not None:
-            stmt = (
-                update(models.User)
-                .where(models.User.telegram_id == telegram_id)
-                .values(telegram_username=telegram_username)
-            )
-            db.execute(stmt)
-            stmt = select(models.User).where(
-                models.User.telegram_username == telegram_username
-            )
-            user = db.execute(stmt).first()
-            db.commit()
-            # db.close()
-            return user
-        else:
-            return None
-    # elif name is not None:
-    #     stmt = select(User).where(User.name == name)
-    #     user = session.execute(stmt).first()
-    #     session.commit()
-    #     session.close()
-    else:
-        return None
-        return user
-    return db.query(models.User).filter(models.User.email == email).first()
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):

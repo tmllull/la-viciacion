@@ -53,6 +53,7 @@ class User(Base):
     telegram_username = Column(String(255))
     telegram_id = Column(String(255))
     clockify_id = Column(String(255))
+    is_admin = Column(Integer)
     last_ranking_hours = Column(Integer)
     current_ranking_hours = Column(Integer)
     last_streak = Column(Integer)

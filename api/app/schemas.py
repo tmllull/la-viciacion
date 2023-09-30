@@ -34,6 +34,7 @@ class User(UserBase):
     name: str
     telegram_username: str
     telegram_id: Union[str, None] = None
+    is_admin: Union[int, None] = None
     clockify_id: Union[str, None] = None
     last_ranking_hours: Union[int, None] = None
     current_ranking_hours: Union[int, None] = None

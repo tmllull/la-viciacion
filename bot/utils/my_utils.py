@@ -151,7 +151,7 @@ class MyUtils:
                 return True
         response = requests.get(config.API_URL + "/users/" + username)
         if response.status_code == 200:
-            return True
+            return response.json()
         else:
             return False
         # print(user.status_code)

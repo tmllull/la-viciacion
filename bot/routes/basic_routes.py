@@ -18,21 +18,23 @@ config = Config()
 
 class BasicRoutes:
     async def menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        if utils.check_valid_chat(update):
-            user = update.message.from_user
-            context.user_data["username"] = user.username
-            context.user_data["user"] = user.first_name
-            context.user_data["userid"] = user.id
-            logger.info("User " + user.username + " started the conversation.")
+        user = utils.check_valid_chat(update)
+        if user:
+            # logger.info(user)
+            tg_info = update.message.from_user
+            context.user_data["username"] = tg_info.username
+            context.user_data["user"] = tg_info.first_name
+            context.user_data["userid"] = tg_info.id
+            logger.info("User " + tg_info.username + " started the conversation.")
             # db.add_user_bot(user.username, user.first_name, user.id)
             # self.worksheet = utils.sh.worksheet(config.ALLOWED_USERS[user.username])
-            if user.id in config.ADMIN_USERS:
+            if user["is_admin"]:
                 keyboard = kb.ADMIN_MENU
             else:
                 keyboard = kb.MAIN_MENU
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(
-                "Hola " + user.first_name + ", elije una opción:",
+                "Hola " + tg_info.first_name + ", elije una opción:",
                 reply_markup=reply_markup,
             )
             return utils.MAIN_MENU

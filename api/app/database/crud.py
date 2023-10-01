@@ -8,8 +8,12 @@ def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+def get_user_by_id(db: Session, id: int):
+    return db.query(models.User).filter(models.User.id == id).first()
+
+
+# def get_user_by_email(db: Session, email: str):
+#     return db.query(models.User).filter(models.User.email == email).first()
 
 
 def get_user_by_tg_username(db: Session, telegram_username: str = None):
@@ -18,6 +22,10 @@ def get_user_by_tg_username(db: Session, telegram_username: str = None):
         .filter(models.User.telegram_username == telegram_username)
         .first()
     )
+
+
+def get_user_by_tg_id(db: Session, telegram_id: int = None):
+    return db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):

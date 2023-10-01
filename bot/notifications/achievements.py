@@ -4,11 +4,9 @@ import pandas as pd
 import utils.logger as logger
 import utils.messages as msgs
 from utils.achievements_list import AchievementsList
-from utils.dbalchemy import DatabaseConnector
 from utils.my_utils import MyUtils
 
 utils = MyUtils()
-db = DatabaseConnector()
 
 
 class Achievements:
@@ -18,6 +16,8 @@ class Achievements:
         self.silent = silent
 
     async def check_achievements(self, player, data, data_path):
+        logger.info("TBI")
+        return
         # Check if played today (or 5am to force sync streaks)
         if (
             not self.played_today(player, data_path)
@@ -112,6 +112,8 @@ class Achievements:
         await self.save_played_days(player, played_days)
 
     def played_today(self, player, data_path):
+        logger.info("TBI")
+        return
         if self.silent:
             return True
         current_time = datetime.datetime.now()
@@ -132,11 +134,15 @@ class Achievements:
         return False
 
     async def check_global_achievements(self):
+        logger.info("TBI")
+        return
         logger.info("Global rankings and achievements...")
         await self.ranking_hours()
         await self.ranking_games_hours()
 
     async def ranking_games_hours(self):
+        logger.info("TBI")
+        return
         try:
             ranking_games = db.get_ranking_games()
             if not self.silent:
@@ -229,6 +235,8 @@ class Achievements:
             i += 1
 
     async def ranking_hours(self):
+        logger.info("TBI")
+        return
         logger.info("Ranking hours")
         ranking_players = db.player_played_time()
         ranking_players = dict(
@@ -298,6 +306,8 @@ class Achievements:
     async def check_game_achievements(
         self, player, game, hours=None, minutes=None, total_time=None
     ):
+        logger.info("TBI")
+        return
         if (
             hours != None
             and hours >= 8
@@ -353,6 +363,8 @@ class Achievements:
     async def check_day_achievements(
         self, player, hours=None, total_entries=None, day=None
     ):
+        logger.info("TBI")
+        return
         if (
             hours != None
             and hours >= 8
@@ -426,6 +438,8 @@ class Achievements:
                     await utils.send_message(msg)
 
     async def check_played_achievements(self, player):
+        logger.info("TBI")
+        return
         played_games = db.get_played_games(player).count()
         completed_games = db.my_completed_games(player).count()
         if played_games >= 42 and not db.check_achievement(
@@ -478,6 +492,8 @@ class Achievements:
             #     await utils.send_message(msg)
 
     async def streak(self, player, streak, date):
+        logger.info("TBI")
+        return
         try:
             if streak == 7 and not db.check_achievement(
                 player, AchievementsList.STREAK_7_DAYS
@@ -544,6 +560,8 @@ class Achievements:
         db.current_streak(player, streak)
 
     async def lose_streak(self, player, streak):
+        logger.info("TBI")
+        return
         try:
             # logger.info("Check streak: "+ streak)
             lose = db.lose_streak(player, streak)
@@ -575,6 +593,8 @@ class Achievements:
     ############
 
     async def save_played_days(self, player, played_days):
+        logger.info("TBI")
+        return
         try:
             db.save_played_days(player, played_days)
         except Exception as e:

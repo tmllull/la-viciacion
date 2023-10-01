@@ -13,7 +13,6 @@ from notifications.achievements import Achievements
 from notifications.basic_checks import BasicChecks
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
-from utils.dbalchemy import DatabaseConnector
 from utils.my_utils import MyUtils
 
 INIT = False
@@ -46,7 +45,7 @@ async def main():
     start = time.time()
     bc = BasicChecks(SILENT)
     ach = Achievements(SILENT)
-    db = DatabaseConnector(INIT, RESET)
+    # db = DatabaseConnector(INIT, RESET)
     try:
         response = requests.get(config.GOOGLE_DRIVE_URL)
         open(DATA_PATH, "wb").write(response.content)

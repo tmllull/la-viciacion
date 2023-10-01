@@ -5,11 +5,9 @@ import utils.logger as logger
 import utils.messages as msgs
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
-from utils.dbalchemy import DatabaseConnector
 from utils.my_utils import MyUtils
 
 # utils = MyUtils()
-db = DatabaseConnector()
 clockify = ClockifyApi()
 config = Config()
 
@@ -20,6 +18,8 @@ class BasicChecks:
         self.utils = MyUtils(db, silent)
 
     async def check_games(self, player, data):
+        logger.info("TBI")
+        return
         logger.info("Checking games...")
         for i in range(data.index.stop):
             if type(data.loc[i][0]) is not float:
@@ -70,6 +70,8 @@ class BasicChecks:
         return platform
 
     def played_today(self, player, data_path):
+        logger.info("TBI")
+        return
         if self.silent:
             return True
         current_time = datetime.datetime.now()
@@ -89,6 +91,8 @@ class BasicChecks:
         return False
 
     async def update_games_data(self):
+        logger.info("TBI")
+        return
         try:
             logger.info("Update games data...")
             # print("Update games data")

@@ -17,7 +17,6 @@ from telegram import Bot, Update
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
-from utils.dbalchemy import DatabaseConnector
 
 config = Config()
 clockify = ClockifyApi()
@@ -30,11 +29,10 @@ rawgio_search_game = (
 class MyUtils:
     """_summary_"""
 
-    def __init__(self, db: DatabaseConnector = None, silent=None):
+    def __init__(self, silent=None):
         self.bot = Bot(config.TELEGRAM_TOKEN)
         self.gc = gspread.service_account(filename="la-viciacion-bot-google.json")
         self.sh = self.gc.open("Registro de Juegos 2023")
-        self.db = db
         self.silent = silent
         # Conversation routes
         (
@@ -89,6 +87,8 @@ class MyUtils:
             )
 
     async def get_game_info(self, game):
+        logger.info("TBI")
+        return
         # Rawg
         game_request = requests.get(rawgio_search_game + game)
         try:
@@ -111,6 +111,8 @@ class MyUtils:
         return rawg_content, hltb_content, hltb_main_history
 
     def calculate_total_time(self, row, player=None, game=None):
+        logger.info("TBI")
+        return
         current_time = datetime.datetime.now()
         current_date = datetime.date(
             current_time.year, current_time.month, current_time.day
@@ -125,7 +127,8 @@ class MyUtils:
                 played_time = datetime.timedelta(
                     hours=row[val].hour, minutes=row[val].minute
                 )
-                self.db.add_time_entry_from_excel(player, game, val, played_time)
+                # TODO: TBI
+                # self.db.add_time_entry_from_excel(player, game, val, played_time)
                 # exit()
                 h = h + row[val].hour
                 m = m + row[val].minute
@@ -208,20 +211,20 @@ class MyUtils:
         minutes = (seconds % 3600) // 60
         return f"{hours}h{minutes}m"
 
-    def get_excel_column(self, worksheet, name):
-        for k in range(1, worksheet.col_count + 1):
-            col = worksheet.col_values(k)  # this reads all columns in each row
-            if col[0] == name:  # value 0 reads column A
-                return k
+    # def get_excel_column(self, worksheet, name):
+    #     for k in range(1, worksheet.col_count + 1):
+    #         col = worksheet.col_values(k)  # this reads all columns in each row
+    #         if col[0] == name:  # value 0 reads column A
+    #             return k
 
-    def get_excel_row(self, worksheet, name):
-        for k in range(1, worksheet.row_count + 1):
-            row = worksheet.row_values(k)  # this reads all columns in each row
-            if row[0] == name:  # value 0 reads column A
-                return k
+    # def get_excel_row(self, worksheet, name):
+    #     for k in range(1, worksheet.row_count + 1):
+    #         row = worksheet.row_values(k)  # this reads all columns in each row
+    #         if row[0] == name:  # value 0 reads column A
+    #             return k
 
-    def get_last_row(self, worksheet):
-        return worksheet.col_values(1)
+    # def get_last_row(self, worksheet):
+    #     return worksheet.col_values(1)
 
     def send(self, percent):
         return random.randrange(100) <= percent
@@ -248,6 +251,8 @@ class MyUtils:
         return text
 
     async def add_or_update_game_user(self, game, player, score, platform, i, seconds):
+        logger.info("TBI")
+        return
         new_game = self.db.add_or_update_game_user(
             game, player, score, platform, i, seconds
         )
@@ -266,6 +271,8 @@ class MyUtils:
     async def notify_new_game(
         self, player, game, slug, picture_url, platform, total_games
     ):
+        logger.info("TBI")
+        return
         if not self.silent:
             m_text = " ha empezado su juego nº " + str(total_games) + ": "
             msg = (
@@ -288,6 +295,8 @@ class MyUtils:
                 await self.send_message(msg)
 
     async def add_new_game(self, game):
+        logger.info("TBI")
+        return
         try:
             logger.info("Adding game " + game)
             mean_time = "0"
@@ -338,6 +347,8 @@ class MyUtils:
     async def complete_game(
         self, player, game, score, total_time, formatted_time, seconds
     ):
+        logger.info("TBI")
+        return
         try:
             total_games = self.db.complete_game(
                 player, game, score, formatted_time, seconds
@@ -349,6 +360,8 @@ class MyUtils:
                 logger.exception(e)
 
     async def notify_completed_game(self, player, game, total_games, formatted_time):
+        logger.info("TBI")
+        return
         if not self.silent:
             mean_time = float(self.db.mean_time_game(game))
             if mean_time > 0:
@@ -373,6 +386,8 @@ class MyUtils:
             await self.send_message(msg)
 
     async def just_in_time(self, player, game):
+        logger.info("TBI")
+        return
         try:
             self.db.just_in_time(player)
             await self.send_message(msgs.just_in_time(player, game))

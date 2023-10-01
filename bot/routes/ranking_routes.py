@@ -9,17 +9,14 @@ from telegram import (
 )
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.action_logs import ActionLogs
-from utils.dbalchemy import DatabaseConnector
 from utils.my_utils import MyUtils
 
-db = DatabaseConnector()
-utils = MyUtils(db)
+utils = MyUtils()
 
 
 class RankingRoutes:
     async def rankings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info("Ranking")
-        # db.log(context.user_data["user"], ActionLogs.RANKING)
         query = update.callback_query
         await query.answer()
         keyboard = kb.RANKING_MENU
@@ -33,6 +30,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking hours")
+        await utils.response_conversation(update, context, "TBI")
+        return
         ranking_players = db.player_played_time()
         ranking_players = dict(
             sorted(ranking_players, key=lambda x: x[1], reverse=True)
@@ -71,6 +70,8 @@ class RankingRoutes:
     ) -> None:
         logger.info("Ranking days")
         # db.log(context.user_data["user"], ActionLogs.RANKING_DAYS)
+        await utils.response_conversation(update, context, "TBI")
+        return
         ranking_played = db.ranking_days()
         msg = "Así está el ranking de días de vicio:\n"
         for elem in ranking_played:
@@ -81,6 +82,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking achievements")
+        await utils.response_conversation(update, context, "TBI")
+        return
         ach = db.ranking_achievements()
         msg = "El ranking de logros está de la siguiente manera:\n"
         for player, count in ach:
@@ -91,6 +94,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking streak")
+        await utils.response_conversation(update, context, "TBI")
+        return
         streaks = db.ranking_streak()
         msg = "Así va el ranking de racha de días:\n"
         for row in streaks:
@@ -101,6 +106,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking current streak")
+        await utils.response_conversation(update, context, "TBI")
+        return
         # db.log(context.user_data["user"], ActionLogs.RANKING_CURRENT_STREAK)
         streaks = db.ranking_current_streak()
         msg = "Estas són las rachas de días actuales:\n"
@@ -112,6 +119,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking ratio")
+        await utils.response_conversation(update, context, "TBI")
+        return
         # db.log(context.user_data["user"], ActionLogs.RANKING_RATIO)
         ratio = {}
         played = db.ranking_num_games()
@@ -131,6 +140,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking played")
+        await utils.response_conversation(update, context, "TBI")
+        return
         # db.log(context.user_data["user"], ActionLogs.RANKING_PLAYED)
         played_games = db.ranking_num_games()
         msg = "Ranking de juegos jugados:\n"
@@ -143,6 +154,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking completed")
+        await utils.response_conversation(update, context, "TBI")
+        return
         # db.log(context.user_data["user"], ActionLogs.RANKING_COMPLETED)
         completed_games = db.ranking_completed_games()
         msg = "Ranking de juegos completados:\n"
@@ -205,6 +218,8 @@ class RankingRoutes:
     ) -> None:
         logger.info("Ranking last played")
         # db.log(context.user_data["user"], ActionLogs.RANKING_LAST_PLAYED_GAMES)
+        await utils.response_conversation(update, context, "TBI")
+        return
         last_games = db.ranking_last_played_games()
         msg = "Últimos juegos jugados:\n"
         i = 0
@@ -221,6 +236,8 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking most played")
+        await utils.response_conversation(update, context, "TBI")
+        return
         # db.log(context.user_data["user"], ActionLogs.RANKING_MOST_PLAYED)
         most_played = db.ranking_most_played_games()
         msg = "Juegos más jugados:\n"

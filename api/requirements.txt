@@ -10,3 +10,4 @@ fastapi_login
 mysql-connector-python
 pymysql
 sqlalchemy
+requests

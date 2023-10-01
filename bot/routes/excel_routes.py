@@ -10,15 +10,13 @@ from telegram.ext import ContextTypes, ConversationHandler
 from utils.action_logs import ActionLogs
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
-from utils.dbalchemy import DatabaseConnector
 from utils.my_utils import MyUtils
 
-db = DatabaseConnector()
-utils = MyUtils(db)
+utils = MyUtils()
 config = Config()
 clockify = ClockifyApi()
-gc = gspread.service_account(filename="la-viciacion-bot-google.json")
-sh = gc.open("Registro de Juegos 2023")
+# gc = gspread.service_account(filename="la-viciacion-bot-google.json")
+# sh = gc.open("Registro de Juegos 2023")
 
 (
     GAME,
@@ -46,10 +44,9 @@ class ExcelRoutes:
             )
         else:
             logger.info("Update excel menu...")
-            # db.log(context.user_data["user"], ActionLogs.EXCEL_MENU)
-            context.user_data["worksheet"] = sh.worksheet(
-                config.ALLOWED_USERS[context.user_data["username"]]
-            )
+            # context.user_data["worksheet"] = sh.worksheet(
+            #     config.ALLOWED_USERS[context.user_data["username"]]
+            # )
             # self.worksheet = sh.worksheet(
             #     config.ALLOWED_USERS[context.user_data["username"]]
             # )
@@ -63,7 +60,7 @@ class ExcelRoutes:
                 resize_keyboard=True,
                 selective=True,
             )
-            await query.edit_message_text("Accediendo al menú de actualizar excel...")
+            await query.edit_message_text("Accediendo al menú de actualizar datos...")
             await query.message.reply_text(
                 "Elije una opción:", reply_markup=reply_markup
             )
@@ -71,7 +68,6 @@ class ExcelRoutes:
 
     async def add_game(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info("Add game...")
-        # db.log(context.user_data["user"], ActionLogs.EXCEL_ADD_GAME)
         await update.message.reply_text(
             "¿Qué juego quieres añadir? (/cancel para cancelar)",
             reply_markup=ReplyKeyboardRemove(),
@@ -83,7 +79,6 @@ class ExcelRoutes:
     ) -> int:
         if "cancel" in update.message.text.lower():
             await utils.reply_message(update, context, "Enga, nos vemos.")
-            db.close()
             return ConversationHandler.END
         context.user_data[GAME] = update.message.text
         logger.info("Received game: " + context.user_data[GAME])
@@ -141,20 +136,16 @@ class ExcelRoutes:
             msg += "Desarrolladora: " + str(context.user_data[DEV]) + "\n"
             msg += "Plataforma: " + str(context.user_data[PLATFORM]) + "\n"
             msg += "Steam ID: " + str(context.user_data[STEAM_ID])
-            row = db.get_game_excel_row(
-                config.ALLOWED_USERS[context.user_data["username"]],
-                context.user_data[GAME],
-            )
-            if row != 0:
+            await utils.response_conversation(update, context, "TBI")
+            return
+            game = requests.get(config.API_URL + "/?????????")
+            if game != 0:
                 await update.message.reply_text(
                     "Ya tienes añadido "
                     + str(context.user_data[GAME])
-                    + " a tu lista, específicamente en la linea "
-                    + str(row)
-                    + " del Excel. Cancelando inserción del juego",
+                    + " a tu lista de juegos.",
                     reply_markup=ReplyKeyboardRemove(),
                 )
-                db.close()
                 return ConversationHandler.END
             keyboard = kb.YES_NO
             reply_markup = ReplyKeyboardMarkup(
@@ -185,23 +176,25 @@ class ExcelRoutes:
         try:
             if "Sí" in str(update.message.text):
                 logger.info("Adding new game confirmed")
-                row_num = len(utils.get_last_row(context.user_data["worksheet"])) + 1
-                context.user_data["worksheet"].update_cell(
-                    row_num, 1, context.user_data[GAME]
-                )
-                context.user_data["worksheet"].update_cell(
-                    row_num, 2, context.user_data[DEV]
-                )
-                context.user_data["worksheet"].update_cell(
-                    row_num, 3, context.user_data[RELEASE_DATE]
-                )
-                context.user_data["worksheet"].update_cell(
-                    row_num, 4, context.user_data[PLATFORM]
-                )
-                # context.user_data["worksheet"].update_cell(row_num, 5, context.user_data[GENRES])
-                context.user_data["worksheet"].update_cell(
-                    row_num, 9, context.user_data[STEAM_ID]
-                )
+                await utils.response_conversation(update, context, "TBI")
+                return
+                # row_num = len(utils.get_last_row(context.user_data["worksheet"])) + 1
+                # context.user_data["worksheet"].update_cell(
+                #     row_num, 1, context.user_data[GAME]
+                # )
+                # context.user_data["worksheet"].update_cell(
+                #     row_num, 2, context.user_data[DEV]
+                # )
+                # context.user_data["worksheet"].update_cell(
+                #     row_num, 3, context.user_data[RELEASE_DATE]
+                # )
+                # context.user_data["worksheet"].update_cell(
+                #     row_num, 4, context.user_data[PLATFORM]
+                # )
+                # # context.user_data["worksheet"].update_cell(row_num, 5, context.user_data[GENRES])
+                # context.user_data["worksheet"].update_cell(
+                #     row_num, 9, context.user_data[STEAM_ID]
+                # )
                 logger.info("Game " + context.user_data[GAME] + " added"),
                 jsonData = {
                     "user": config.ALLOWED_USERS[context.user_data["username"]],
@@ -213,55 +206,54 @@ class ExcelRoutes:
                     json=jsonData,
                 )
                 logger.info("Webhook sended...")
-                if not db.game_exists(context.user_data[GAME]):
-                    db.add_new_game(
-                        context.user_data[GAME],
-                        context.user_data[DEV],
-                        context.user_data[RELEASE_DATE],
-                        context.user_data[GENRES],
-                        context.user_data[MEAN_TIME],
-                    )
-                last_row = (
-                    db.get_last_row_games(
-                        config.ALLOWED_USERS[context.user_data["username"]]
-                    )[0]
-                    + 2
-                )
-                print("Last game row:", last_row)
-                await utils.add_or_update_game_user(
-                    context.user_data[GAME],
-                    config.ALLOWED_USERS[context.user_data["username"]],
-                    0,
-                    context.user_data[PLATFORM],
-                    last_row + 1,
-                    0,
-                )
+                response = requests.post(config.API_URL + "/????????")
+                # if not db.game_exists(context.user_data[GAME]):
+                #     db.add_new_game(
+                #         context.user_data[GAME],
+                #         context.user_data[DEV],
+                #         context.user_data[RELEASE_DATE],
+                #         context.user_data[GENRES],
+                #         context.user_data[MEAN_TIME],
+                #     )
+                # last_row = (
+                #     db.get_last_row_games(
+                #         config.ALLOWED_USERS[context.user_data["username"]]
+                #     )[0]
+                #     + 2
+                # )
+                # print("Last game row:", last_row)
+                # await utils.add_or_update_game_user(
+                #     context.user_data[GAME],
+                #     config.ALLOWED_USERS[context.user_data["username"]],
+                #     0,
+                #     context.user_data[PLATFORM],
+                #     last_row + 1,
+                #     0,
+                # )
                 await update.message.reply_text(
                     "Juego añadido", reply_markup=ReplyKeyboardRemove()
                 )
-                db.close()
                 return ConversationHandler.END
             else:
                 await update.message.reply_text(
                     "Acción cancelada", reply_markup=ReplyKeyboardRemove()
                 )
-                db.close()
                 return ConversationHandler.END
         except Exception as e:
             await update.message.reply_text(
                 "Algo ha salido mal al añadir el juego:" + str(e)
             )
             logger.info(e)
-            db.close()
             return ConversationHandler.END
 
     async def rate_game(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Rate game...")
-        # db.log(context.user_data["user"], ActionLogs.EXCEL_RATE_GAME)
         username = update.message.from_user.username
-        games = db.get_games_to_score(config.ALLOWED_USERS[username])
+        await utils.response_conversation(update, context, "TBI")
+        return
+        games = requests.get(config.API_URL + "???????")
         keyboard = []
         for game in games:
             keyboard.append([game[0]])
@@ -284,7 +276,6 @@ class ExcelRoutes:
     ) -> int:
         if "cancel" in update.message.text.lower():
             await utils.reply_message(update, context, "Pos nah.")
-            db.close()
             return ConversationHandler.END
         context.user_data[GAME] = update.message.text
         logger.info("Received game: " + context.user_data[GAME])
@@ -301,7 +292,6 @@ class ExcelRoutes:
         logger.info("Received rating")
         if update.message.text == "/cancel" or update.message.text.lower() == "cancel":
             await utils.reply_message(update, context, "Pos nah. Taluego.")
-            db.close()
             return ConversationHandler.END
         message = update.message.text
         context.user_data[RATE] = message
@@ -329,15 +319,13 @@ class ExcelRoutes:
             if "Sí" in str(update.message.text):
                 logger.info("Rate game confirmed")
                 username = context.user_data["username"]
-                row_num = db.get_game_excel_row(
-                    config.ALLOWED_USERS[username], context.user_data[GAME]
-                )
-                context.user_data["worksheet"].update_cell(
-                    row_num, 8, str(context.user_data[RATE])
-                )
                 await update.message.reply_text(
-                    "Juego puntuado correctamente", reply_markup=ReplyKeyboardRemove()
+                    "TBI", reply_markup=ReplyKeyboardRemove()
                 )
+                return
+                # await update.message.reply_text(
+                #     "Juego puntuado correctamente", reply_markup=ReplyKeyboardRemove()
+                # )
             else:
                 await update.message.reply_text(
                     "Cancelada acción de puntuar juego",
@@ -345,16 +333,16 @@ class ExcelRoutes:
                 )
         except Exception as e:
             await update.message.reply_text("Algo ha salido mal")
-        db.close()
         return ConversationHandler.END
 
     async def update_time(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Add time to game...")
-        # db.log(context.user_data["user"], ActionLogs.EXCEL_ADD_TIME)
         username = update.message.from_user.username
-        games = db.get_games_by_last_played(config.ALLOWED_USERS[username])
+        await utils.response_conversation(update, context, "TBI")
+        return
+        games = requests.get(config.API_URL + "/??????")
         keyboard = []
         for game in games:
             keyboard.append([game[0]])
@@ -391,7 +379,6 @@ class ExcelRoutes:
         logger.info("Received time")
         if update.message.text == "/cancel" or update.message.text.lower() == "cancel":
             await utils.reply_message(update, context, "Pos nah. Taluego.")
-            db.close()
             return ConversationHandler.END
         username = update.message.from_user.username
         message = update.message.text
@@ -401,29 +388,17 @@ class ExcelRoutes:
         except Exception as e:
             await update.message.reply_text("El formato de tiempo no es correcto.")
         col_num = int(datetime.now().strftime("%j")) + 9
-        row_num = db.get_game_excel_row(
-            config.ALLOWED_USERS[username], context.user_data[GAME]
-        )
+
         # game_row = result.fetchone()[0]
         # row_num = game_row + 2
-        if context.user_data["worksheet"].cell(row_num, col_num).value is None:
-            current_time_raw = "00:00"
-        else:
-            current_time_raw = (
-                context.user_data["worksheet"].cell(row_num, col_num).value
-            )
-        # db.cursor.close()
-        current_time = datetime.strptime(current_time_raw, "%H:%M")
+
         time_to_add = timedelta(
             minutes=time_to_add_temp.minute, hours=time_to_add_temp.hour
         )
-        total_time = current_time + time_to_add
-        total_time = total_time.strftime("%H:%M")
-        context.user_data[TIME] = total_time
+
+        context.user_data[TIME] = time_to_add
         msg = "Juego: *" + context.user_data[GAME] + "*\n"
-        msg += "Tiempo actual: " + str(current_time.strftime("%H:%M")) + "\n"
         msg += "Tiempo añadido: " + str(time_to_add_temp.strftime("%H:%M")) + "\n"
-        msg += "Tiempo total del día: " + str(total_time)
         keyboard = kb.YES_NO
         reply_markup = ReplyKeyboardMarkup(
             keyboard,
@@ -447,38 +422,35 @@ class ExcelRoutes:
                 logger.info("Add time confirmed")
                 username = update.message.from_user.username
                 col_num = int(datetime.now().strftime("%j")) + 9
-                row_num = db.get_game_excel_row(
-                    config.ALLOWED_USERS[username], context.user_data[GAME]
-                )
+
                 # game_row = result.fetchone()[0]
                 # row_num = game_row + 2
-                context.user_data["worksheet"].update_cell(
-                    row_num, col_num, context.user_data[TIME]
-                )
                 await update.message.reply_text(
-                    "Tiempo añadido", reply_markup=ReplyKeyboardRemove()
+                    "TBI", reply_markup=ReplyKeyboardRemove()
                 )
-                db.close()
+                return
+                # await update.message.reply_text(
+                #     "Tiempo añadido", reply_markup=ReplyKeyboardRemove()
+                # )
                 return ConversationHandler.END
             else:
                 await update.message.reply_text(
                     "Operación cancelada", reply_markup=ReplyKeyboardRemove()
                 )
-                db.close()
                 return ConversationHandler.END
         except Exception as e:
             logger.info(e)
             await update.message.reply_text("Algo ha salido mal al añadir el tiempo")
-            db.close()
             return ConversationHandler.END
 
     async def complete_game(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Complete game...")
-        # db.log(context.user_data["user"], ActionLogs.EXCEL_COMPLETE_GAME)
         username = update.message.from_user.username
-        games = db.get_games_to_complete(config.ALLOWED_USERS[username])
+        await utils.response_conversation(update, context, "TBI")
+        return
+        games = requests.get(config.API_URL + "/??????")
         keyboard = []
         for game in games:
             keyboard.append([game[0]])
@@ -523,12 +495,12 @@ class ExcelRoutes:
             if "Sí" in str(update.message.text):
                 logger.info("Complete game confirmed")
                 username = context.user_data["username"]
-                row_num = db.get_game_excel_row(
-                    config.ALLOWED_USERS[username], context.user_data[GAME]
-                )
+
                 # game_row = result.fetchone()[0]
                 # row_num = game_row + 2
-                context.user_data["worksheet"].update_cell(row_num, 6, True)
+                await utils.response_conversation(update, context, "TBI")
+                return
+                response = requests.patch(config.API_URL + "/???????")
                 await update.message.reply_text(
                     "Juego marcado como completado", reply_markup=ReplyKeyboardRemove()
                 )
@@ -540,23 +512,22 @@ class ExcelRoutes:
                 )
         except Exception as e:
             await update.message.reply_text("Algo ha salido mal")
-        db.close()
         return ConversationHandler.END
 
     async def active_timer(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Active timer select game....")
-        # db.log(context.user_data["user"], ActionLogs.EXCEL_START_TIMER)
         username = update.message.from_user.username
         if username not in config.CLOCKIFY_USERS_API:
             await update.message.reply_text(
                 "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
                 reply_markup=ReplyKeyboardRemove(),
             )
-            db.close()
             return ConversationHandler.END
-        games = db.get_games_by_last_played(config.ALLOWED_USERS[username])
+        await utils.response_conversation(update, context, "TBI")
+        return
+        games = requests.get(config.API_URL + "/??????")
         keyboard = []
         for game in games:
             keyboard.append([game[0]])
@@ -632,7 +603,6 @@ class ExcelRoutes:
             await update.message.reply_text(
                 "Algo ha salido mal", reply_markup=ReplyKeyboardRemove()
             )
-        db.close()
         return ConversationHandler.END
 
     async def stop_timer(
@@ -645,9 +615,7 @@ class ExcelRoutes:
                 "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
                 reply_markup=ReplyKeyboardRemove(),
             )
-            db.close()
             return ConversationHandler.END
-        # db.log(context.user_data["user"], ActionLogs.EXCEL_STOP_TIMER)
         keyboard = kb.YES_NO
         reply_markup = ReplyKeyboardMarkup(
             keyboard,
@@ -699,14 +667,11 @@ class ExcelRoutes:
                 )
         except Exception as e:
             await update.message.reply_text("Algo ha salido mal")
-        db.close()
         return ConversationHandler.END
 
     async def cancel_excel(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Closing excel menu...")
-        # db.log(context.user_data["user"], ActionLogs.EXIT)
         await update.message.reply_text("Taluego!", reply_markup=ReplyKeyboardRemove())
-        db.close()
         return ConversationHandler.END

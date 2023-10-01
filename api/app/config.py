@@ -52,3 +52,6 @@ class Config:
             self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = config["HEALTHCHECKS"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
+        self.TAG_USERS = "Users"
+        self.TAG_RANKINGS = "Rankings"
+        self.TAG_ACHIEVEMENTS = "Achievements"

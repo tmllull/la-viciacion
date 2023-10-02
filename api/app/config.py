@@ -6,7 +6,7 @@ from dotenv import dotenv_values
 
 
 class Config:
-    def __init__(self):
+    def __init__(self, silent: bool = False):
         try:
             self.ALLOWED_USERS = json.loads(os.environ["ALLOWED_USERS"])
             self.ALLOWED_USERS_RESET = json.loads(os.environ["ALLOWED_USERS_RESET"])
@@ -55,3 +55,4 @@ class Config:
         self.TAG_USERS = "Users"
         self.TAG_RANKINGS = "Rankings"
         self.TAG_ACHIEVEMENTS = "Achievements"
+        self.silent = silent

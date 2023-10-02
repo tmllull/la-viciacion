@@ -5,6 +5,7 @@ from .config import Config
 from .database import crud, models, schemas
 from .database.database import SessionLocal, engine
 from .utils import actions as actions
+from .utils import logger as logger
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -248,8 +249,9 @@ def rankings_debt(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 
 
 @app.get("/rankings/last-played-games", tags=["Rankings"])
-def rankings_days(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return "TBI"
+def rankings_days(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    last_played = actions.get_last_played_games(db)
+    return last_played
 
 
 ##############################
@@ -282,9 +284,9 @@ def get_achievements(skip: int = 0, limit: int = 100, db: Session = Depends(get_
 
 
 @app.get("/sync-data", tags=["Actions"])
-def sync_data(date: str = None, db: Session = Depends(get_db)):
+async def sync_data(date: str = None, db: Session = Depends(get_db)):
     try:
-        actions.sync_data(db, date)
+        await actions.sync_data(db, date)
         # actions.sync_clockify_entries(db, date)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -98,10 +98,9 @@ def add_or_update_game_user(db: Session, game_name, player, score, platform, sec
 
 def user_played_time(db: Session):
     stmt = select(
-        models.TimeEntries.duration, func.sum(models.TimeEntries.duration)
-    ).group_by(models.TimeEntries.user_id)
-    result = db.execute(stmt)
-    return result
+        models.TimeEntries.user, func.sum(models.TimeEntries.duration)
+    ).group_by(models.TimeEntries.user)
+    return db.execute(stmt)
 
 
 # def user_played_time(db: Session):
@@ -367,6 +366,12 @@ def total_played_time_games(db: Session):
     return result
 
 
+def most_played_games_time(db: Session):
+    stmt = select(models.GamesInfo.game).order_by(desc(models.GamesInfo.played_time))
+    result = db.execute(stmt)
+    return result
+
+
 ####################
 ##### RANKINGS #####
 ####################
@@ -410,10 +415,20 @@ def get_current_ranking_games(db: Session, limit: int = 11):
         logger.info(e)
 
 
-def get_current_ranking_players(db: Session):
+def get_current_ranking_hours_players(db: Session):
     try:
         stmt = select(models.User.name, models.User.current_ranking_hours).order_by(
             asc(models.User.current_ranking_hours)
+        )
+        return db.execute(stmt)
+    except Exception as e:
+        logger.info(e)
+
+
+def get_last_ranking_hours_players(db: Session):
+    try:
+        stmt = select(models.User.name, models.User.last_ranking_hours).order_by(
+            asc(models.User.last_ranking_hours)
         )
         return db.execute(stmt)
     except Exception as e:
@@ -432,30 +447,20 @@ def get_last_ranking_games(db: Session, limit: int = 11):
         logger.info(e)
 
 
-def get_last_ranking_players(db: Session):
-    try:
-        stmt = select(models.User.name, models.User.last_ranking_hours).order_by(
-            asc(models.User.last_ranking_hours)
-        )
-        return db.execute(stmt)
-    except Exception as e:
-        logger.info(e)
-
-
-def update_current_ranking_hours(db: Session, ranking, player):
+def update_current_ranking_hours_user(db: Session, ranking, user):
     stmt = (
         update(models.User)
-        .where(models.User.name == player)
+        .where(models.User.name == user)
         .values(current_ranking_hours=ranking)
     )
     db.execute(stmt)
     db.commit()
 
 
-def update_last_ranking_hours(db: Session, ranking, player):
+def update_last_ranking_hours_user(db: Session, ranking, user):
     stmt = (
         update(models.User)
-        .where(models.User.name == player)
+        .where(models.User.name == user)
         .values(last_ranking_hours=ranking)
     )
     db.execute(stmt)
@@ -538,9 +543,19 @@ def ranking_completed_games(db: Session):
 
 
 def ranking_last_played_games(db: Session):
-    stmt = select(models.UsersGames.game, models.UsersGames.played_time).order_by(
-        desc(models.UsersGames.last_update)
-    )
+    # try:
+    #     stmt = (
+    #         select(models.GamesInfo.game)
+    #         .order_by(asc(models.GamesInfo.current_ranking))
+    #         .limit(limit)
+    #     )
+
+    #     return db.execute(stmt)
+    # except Exception as e:
+    #     logger.info(e)
+    stmt = select(
+        models.TimeEntries.project, models.TimeEntries.user, models.TimeEntries.start
+    ).order_by(desc(models.TimeEntries.start))
     return db.execute(stmt).fetchall()
 
 
@@ -633,7 +648,6 @@ def sync_clockify_entries(db: Session, user_id, entries):
             )
             exists = db.execute(stmt).first()
             if not exists:
-                logger.info("New entry")
                 new_entry = models.TimeEntries(
                     id=entry["id"],
                     user=user.name,
@@ -647,7 +661,6 @@ def sync_clockify_entries(db: Session, user_id, entries):
                 )
                 db.add(new_entry)
             else:
-                logger.info("Updating entry")
                 stmt = (
                     update(models.TimeEntries)
                     .where(models.TimeEntries.id == entry["id"])

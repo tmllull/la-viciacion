@@ -3,8 +3,9 @@ import datetime
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
-from ..utils import actions as utils
+from ..utils import actions as actions
 from ..utils import logger
+from ..utils import my_utils as utils
 from ..utils.clockify_api import ClockifyApi
 from . import models, schemas
 
@@ -642,6 +643,9 @@ def sync_clockify_entries(db: Session, user_id, entries):
                 end = ""
             if duration is None:
                 duration = ""
+            start = utils.change_timezone_clockify(start)
+            if end != "":
+                end = utils.change_timezone_clockify(end)
             project_name = clockify.get_project(entry["projectId"])["name"]
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
@@ -657,7 +661,7 @@ def sync_clockify_entries(db: Session, user_id, entries):
                     project_id=entry["projectId"],
                     start=start,
                     end=end,
-                    duration=utils.convert_clockify_duration(duration),
+                    duration=actions.convert_clockify_duration(duration),
                 )
                 db.add(new_entry)
             else:
@@ -670,7 +674,7 @@ def sync_clockify_entries(db: Session, user_id, entries):
                         project_id=entry["projectId"],
                         start=start,
                         end=end,
-                        duration=utils.convert_clockify_duration(duration),
+                        duration=actions.convert_clockify_duration(duration),
                     )
                 )
                 db.execute(stmt)

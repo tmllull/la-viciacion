@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from .config import Config
 from .database import crud, models, schemas
 from .database.database import SessionLocal, engine
-from .utils import actions as utils
+from .utils import actions as actions
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -281,10 +281,21 @@ def get_achievements(skip: int = 0, limit: int = 100, db: Session = Depends(get_
 #########################
 
 
-@app.get("/sync-time-entries", tags=["Actions"])
-def sync_time_entries(date: str = None, db: Session = Depends(get_db)):
+@app.get("/sync-data", tags=["Actions"])
+def sync_data(date: str = None, db: Session = Depends(get_db)):
     try:
-        utils.sync_clockify_entries(db, date)
+        actions.sync_data(db, date)
+        # actions.sync_clockify_entries(db, date)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"
+
+
+@app.get("/init-data", tags=["Actions"])
+async def sync_data(db: Session = Depends(get_db)):
+    try:
+        await actions.init_data(db)
+        # actions.sync_clockify_entries(db, date)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return "Init completed!"

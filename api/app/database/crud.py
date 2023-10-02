@@ -98,10 +98,18 @@ def add_or_update_game_user(db: Session, game_name, player, score, platform, sec
 
 def user_played_time(db: Session):
     stmt = select(
-        models.UsersGames.player, func.sum(models.UsersGames.played_time)
-    ).group_by(models.UsersGames.player)
+        models.TimeEntries.duration, func.sum(models.TimeEntries.duration)
+    ).group_by(models.TimeEntries.user_id)
     result = db.execute(stmt)
     return result
+
+
+# def user_played_time(db: Session):
+#     stmt = select(
+#         models.UsersGames.player, func.sum(models.UsersGames.played_time)
+#     ).group_by(models.UsersGames.player)
+#     result = db.execute(stmt)
+#     return result
 
 
 def user_played_games(db: Session, player):
@@ -208,6 +216,11 @@ def set_user_achievement(db: Session, player, achievement):
 #################
 
 
+def get_all_played_games(db: Session):
+    stmt = select(models.TimeEntries.project, models.TimeEntries.project_id)
+    return db.execute(stmt)
+
+
 def game_exists(db: Session, game_name: str):
     stmt = select(models.GamesInfo).where(models.GamesInfo.game == game_name)
     game = db.execute(stmt).first()
@@ -237,8 +250,8 @@ def add_new_game(
             clockify_id=clockify_id,
             genres=genres,
             mean_time=mean_time,
-            last_ranking=1000,
-            current_ranking=1000,
+            last_ranking=1000000000,
+            current_ranking=1000000000,
         )
         db.add(game)
         db.commit()
@@ -348,8 +361,8 @@ def mean_time_game(db: Session, game):
 
 def total_played_time_games(db: Session):
     stmt = select(
-        models.UsersGames.game, func.sum(models.UsersGames.played_time)
-    ).group_by(models.UsersGames.game)
+        models.TimeEntries.project, func.sum(models.TimeEntries.duration)
+    ).group_by(models.TimeEntries.project)
     result = db.execute(stmt)
     return result
 
@@ -620,6 +633,7 @@ def sync_clockify_entries(db: Session, user_id, entries):
             )
             exists = db.execute(stmt).first()
             if not exists:
+                logger.info("New entry")
                 new_entry = models.TimeEntries(
                     id=entry["id"],
                     user=user.name,
@@ -633,13 +647,12 @@ def sync_clockify_entries(db: Session, user_id, entries):
                 )
                 db.add(new_entry)
             else:
+                logger.info("Updating entry")
                 stmt = (
                     update(models.TimeEntries)
                     .where(models.TimeEntries.id == entry["id"])
                     .values(
-                        user_clockify_id=user.clockify_id,
                         user=user.name,
-                        user_id=user.id,
                         project=project_name,
                         project_id=entry["projectId"],
                         start=start,

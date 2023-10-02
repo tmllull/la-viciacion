@@ -66,6 +66,26 @@ class User(Base):
     __table_args__ = (UniqueConstraint("id"),)
 
 
+class RankingUsers(Base):
+    __tablename__ = "ranking_users"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)
+    name = Column(String(255))
+    played_hours_current = Column(Integer)
+    played_hours_last = Column(Integer)
+    played_games_current = Column(Integer)
+    played_games_last = Column(Integer)
+    played_days_total = Column(Integer)
+    completed_games_current = Column(Integer)
+    completed_games_last = Column(Integer)
+    streak_current = Column(Integer)
+    streak_last = Column(Integer)
+    streak_best = Column(Integer)
+    streak_best_date = Column(Date)
+    unplayed_streak = Column(Integer)
+
+
 class GamesInfo(Base):
     __tablename__ = "games_info"
 
@@ -95,11 +115,9 @@ class UsersGames(Base):
     completed = Column(Integer)
     completed_date = Column(Date)
     score = Column(Float)
-    row = Column(Integer)
     played_time = Column(Integer)
     completion_time = Column(String(255))
-    last_update = Column(String(255))
-    __table_args__ = (UniqueConstraint("player", "platform", "row"),)
+    __table_args__ = (UniqueConstraint("player", "game", "platform"),)
 
 
 class UserAchievements(Base):

@@ -11,3 +11,5 @@ mysql-connector-python
 pymysql
 sqlalchemy
 requests
+howlongtobeatpy
+rawg

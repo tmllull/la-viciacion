@@ -32,16 +32,6 @@ def hello_world():
     return "Hello world!"
 
 
-@app.get("/sync-data")
-async def sync_data(date: str = None, db: Session = Depends(get_db)):
-    try:
-        await actions.sync_data(db, date)
-        # actions.sync_clockify_entries(db, date)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return "Sync completed!"
-
-
 @app.get("/init-data")
 async def sync_data(db: Session = Depends(get_db)):
     try:
@@ -50,6 +40,16 @@ async def sync_data(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Init completed!"
+
+
+@app.get("/sync-data")
+async def sync_data(date: str = None, db: Session = Depends(get_db)):
+    try:
+        await actions.sync_data(db, date)
+        # actions.sync_clockify_entries(db, date)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return "Sync completed!"
 
 
 ######################

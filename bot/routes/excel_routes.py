@@ -45,13 +45,7 @@ class ExcelRoutes:
                 "Esta opción sólo puede usarse en un chat directo con el bot",
             )
         else:
-            logger.info("Update excel menu...")
-            # context.user_data["worksheet"] = sh.worksheet(
-            #     config.ALLOWED_USERS[context.user_data["username"]]
-            # )
-            # self.worksheet = sh.worksheet(
-            #     config.ALLOWED_USERS[context.user_data["username"]]
-            # )
+            logger.info("Update data menu...")
             query = update.callback_query
             await query.answer()
             keyboard = kb.EXCEL_ACTIONS
@@ -67,6 +61,10 @@ class ExcelRoutes:
                 "Elije una opción:", reply_markup=reply_markup
             )
             return utils.EXCEL_STUFF
+
+    ##################################
+    ########## ADD NEW GAME ##########
+    ##################################
 
     async def add_game(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info("Add game...")
@@ -269,6 +267,85 @@ class ExcelRoutes:
             logger.info(e)
             return ConversationHandler.END
 
+    #############################
+    ####### COMPLETE GAME #######
+    #############################
+
+    async def complete_game(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        logger.info("Complete game...")
+        username = update.message.from_user.username
+        await utils.response_conversation(update, context, "TBI")
+        return
+        games = requests.get(config.API_URL + "/??????")
+        keyboard = []
+        for game in games:
+            keyboard.append([game[0]])
+        keyboard.append(kb.CANCEL)
+        reply_markup = ReplyKeyboardMarkup(
+            keyboard,
+            one_time_keyboard=True,
+            input_field_placeholder="",
+            resize_keyboard=True,
+            selective=True,
+        )
+        await update.message.reply_text(
+            "¿Qué juego acabas de completar?", reply_markup=reply_markup
+        )
+        return utils.EXCEL_COMPLETE_GAME
+
+    async def complete_game_validation(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        logger.info("Received game")
+        message = update.message.text
+        context.user_data[GAME] = message
+        keyboard = kb.YES_NO
+        reply_markup = ReplyKeyboardMarkup(
+            keyboard,
+            one_time_keyboard=True,
+            input_field_placeholder="",
+            resize_keyboard=True,
+            selective=True,
+        )
+        await update.message.reply_text(
+            "¿Seguro que quieres marcar el juego *" + message + "* como completado?",
+            reply_markup=reply_markup,
+            parse_mode=telegram.constants.ParseMode.MARKDOWN,
+        )
+        return utils.EXCEL_CONFIRM_COMPLETED
+
+    async def complete_game_confirmation(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        try:
+            if "Sí" in str(update.message.text):
+                logger.info("Complete game confirmed")
+                username = context.user_data["username"]
+
+                # game_row = result.fetchone()[0]
+                # row_num = game_row + 2
+                await utils.response_conversation(update, context, "TBI")
+                return
+                response = requests.patch(config.API_URL + "/???????")
+                await update.message.reply_text(
+                    "Juego marcado como completado", reply_markup=ReplyKeyboardRemove()
+                )
+
+            else:
+                await update.message.reply_text(
+                    "Cancelada acción de completar juego",
+                    reply_markup=ReplyKeyboardRemove(),
+                )
+        except Exception as e:
+            await update.message.reply_text("Algo ha salido mal")
+        return ConversationHandler.END
+
+    #############################
+    ######### RATE GAME #########
+    #############################
+
     async def rate_game(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
@@ -465,77 +542,6 @@ class ExcelRoutes:
             logger.info(e)
             await update.message.reply_text("Algo ha salido mal al añadir el tiempo")
             return ConversationHandler.END
-
-    async def complete_game(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Complete game...")
-        username = update.message.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        games = requests.get(config.API_URL + "/??????")
-        keyboard = []
-        for game in games:
-            keyboard.append([game[0]])
-        keyboard.append(kb.CANCEL)
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "¿Qué juego acabas de completar?", reply_markup=reply_markup
-        )
-        return utils.EXCEL_COMPLETE_GAME
-
-    async def complete_game_validation(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Received game")
-        message = update.message.text
-        context.user_data[GAME] = message
-        keyboard = kb.YES_NO
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "¿Seguro que quieres marcar el juego *" + message + "* como completado?",
-            reply_markup=reply_markup,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN,
-        )
-        return utils.EXCEL_CONFIRM_COMPLETED
-
-    async def complete_game_confirmation(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        try:
-            if "Sí" in str(update.message.text):
-                logger.info("Complete game confirmed")
-                username = context.user_data["username"]
-
-                # game_row = result.fetchone()[0]
-                # row_num = game_row + 2
-                await utils.response_conversation(update, context, "TBI")
-                return
-                response = requests.patch(config.API_URL + "/???????")
-                await update.message.reply_text(
-                    "Juego marcado como completado", reply_markup=ReplyKeyboardRemove()
-                )
-
-            else:
-                await update.message.reply_text(
-                    "Cancelada acción de completar juego",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-        except Exception as e:
-            await update.message.reply_text("Algo ha salido mal")
-        return ConversationHandler.END
 
     async def active_timer(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE

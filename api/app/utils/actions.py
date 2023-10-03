@@ -8,7 +8,7 @@ from howlongtobeatpy import HowLongToBeat
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..database import crud
+from ..database import crud, models, schemas
 from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
@@ -29,6 +29,7 @@ async def init_data(db: Session):
     logger.info("Init data...")
     sync_clockify_entries(db, "2023-01-01")
     await sync_games_from_clockify(db)
+    sync_played_games(db)
     init_played_time_games(db)
     init_played_time_users(db)
     return
@@ -36,13 +37,13 @@ async def init_data(db: Session):
 
 async def sync_data(db: Session, date: str = None):
     logger.info("Sync data...")
-    # sync_clockify_entries(db, date)
-    # logger.info("Updating played time games...")
-    # played_time_games = crud.total_played_time_games(db)
-    # for game in played_time_games:
-    #     crud.update_total_played_game(db, game[0], game[1])
-    # await ranking_games_hours(db)
-    # sync_played_games(db)
+    sync_clockify_entries(db, date)
+    logger.info("Updating played time games...")
+    played_time_games = crud.total_played_time_games(db)
+    for game in played_time_games:
+        crud.update_total_played_game(db, game[0], game[1])
+    await ranking_games_hours(db)
+    sync_played_games(db)
     sync_played_games_user(db)
     # check_ranking_played_hours(db)
     return
@@ -187,22 +188,39 @@ async def get_game_info(game):
     return rawg_content, hltb_content, hltb_main_history
 
 
-def sync_played_games(db: Session):
+def sync_played_games(db: Session, start_date: str = None):
+    logger.info("Sync played games (TBI)...")
+    if start_date is None:
+        date = datetime.datetime.now()
+        start = date - datetime.timedelta(days=1)
+        start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        start = date - datetime.timedelta(days=1)
+        start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
     time_entries = crud.get_all_time_entries(db)
     for time_entry in time_entries:
-        logger.info(time_entry.user)
-        break
+        already_played = crud.user_played_game(
+            db, time_entry.user_id, time_entry.project
+        )
+        if crud.user_played_game(db, time_entry.user_id, time_entry.project) is None:
+            start_game = models.UsersGames(
+                game=time_entry.project,
+                user=time_entry.user,
+                user_id=time_entry.user_id,
+            )
+            db.add(start_game)
+            db.commit()
+            # crud.user_add_new_game()
 
 
 def sync_played_games_user(db: Session):
+    logger.info("Sync played time on every game for users...")
     users = crud.get_users(db)
     for user in users:
         games = crud.user_played_time_game(db, user.id)
         for game in games:
-            game = game[0]
-            time = game[1]
-            user_id = user.id
-            crud.update_user_played_time_game(db, user_id, game, time)
+            crud.update_user_played_time_game(db, user.id, game[0], game[1])
 
 
 ####################

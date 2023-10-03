@@ -139,7 +139,10 @@ def user_played_time(db: Session):
 
 def user_played_time_game(db: Session, user_id: str):
     stmt = (
-        select(models.TimeEntries.project, func.sum(models.TimeEntries.duration))
+        select(
+            models.TimeEntries.project,
+            func.sum(models.TimeEntries.duration),
+        )
         .where(models.TimeEntries.user_id == user_id)
         .group_by(models.TimeEntries.project)
     )
@@ -156,6 +159,16 @@ def user_played_time_game(db: Session, user_id: str):
 
 def user_played_games(db: Session, user_id) -> list[models.UsersGames]:
     return db.query(models.UsersGames).filter_by(user_id=user_id)
+
+
+def user_played_game(db: Session, user_id, game) -> models.UsersGames:
+    # stmt = (
+    #         select(models.UsersGames.id)
+    #         .where(UsersGames.player == player)
+    #         .order_by(desc(UsersGames.row))
+    #     )
+    #     return session.execute(stmt).first()
+    return db.query(models.UsersGames.id).filter_by(user_id=user_id, game=game).first()
 
 
 def update_played_days(db: Session, player, played_days):
@@ -717,7 +730,7 @@ def current_streak(db: Session, player, streak):
 
 
 def sync_clockify_entries(db: Session, user_id, entries):
-    user = get_user_by_id(db, id=user_id)
+    user = get_user(db, user=user_id)
     logger.info("Sync entries for user " + str(user.name))
     for entry in entries:
         try:

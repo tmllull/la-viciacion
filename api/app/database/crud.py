@@ -1,4 +1,5 @@
 import datetime
+from typing import Union
 
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
@@ -20,6 +21,15 @@ def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
+def get_user_id(db: Session, user_id: Union[int, str]):
+    db_user = get_user_by_tg_id(db, telegram_id=user_id)
+    if db_user is None:
+        db_user = get_user_by_tg_username(db, telegram_username=user_id)
+        if db_user is None:
+            return None
+    return db_user.id
+
+
 def get_user_by_id(db: Session, id: int) -> models.User:
     return db.query(models.User).filter(models.User.id == id).first()
 
@@ -28,7 +38,7 @@ def get_user_by_id(db: Session, id: int) -> models.User:
 #     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def get_user_by_tg_username(db: Session, telegram_username: str = None):
+def get_user_by_tg_username(db: Session, telegram_username: str = None) -> models.User:
     return (
         db.query(models.User)
         .filter(models.User.telegram_username == telegram_username)
@@ -36,7 +46,7 @@ def get_user_by_tg_username(db: Session, telegram_username: str = None):
     )
 
 
-def get_user_by_tg_id(db: Session, telegram_id: int = None):
+def get_user_by_tg_id(db: Session, telegram_id: int = None) -> models.User:
     return db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
 
 
@@ -44,7 +54,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: schemas.User):
     fake_hashed_password = user.password + "notreallyhashed"
     db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
     db.add(db_user)
@@ -112,17 +122,8 @@ def user_played_time(db: Session):
 #     return result
 
 
-def user_played_games(db: Session, player):
-    return (
-        db.query(
-            models.UsersGames.game,
-            models.UsersGames.platform,
-            models.UsersGames.row,
-            models.UsersGames.played_time,
-        )
-        .filter_by(player=player)
-        .order_by(desc(models.UsersGames.last_update))
-    )
+def user_played_games(db: Session, user_id):
+    return db.query(models.UsersGames).filter_by(user_id=user_id)
 
 
 def update_played_days(db: Session, player, played_days):
@@ -216,9 +217,25 @@ def set_user_achievement(db: Session, player, achievement):
 #################
 
 
+def get_games(db: Session, skip: int = 0, limit: int = 100) -> list[models.GamesInfo]:
+    return db.query(models.GamesInfo).offset(skip).limit(limit).all()
+
+
+def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
+    return db.query(models.GamesInfo).filter(models.GamesInfo.game == name).first()
+
+
 def get_all_played_games(db: Session):
     stmt = select(models.TimeEntries.project, models.TimeEntries.project_id)
     return db.execute(stmt)
+
+
+def create_game(db: Session, game: schemas.GamesInfo):
+    # db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
+    # db.add(db_user)
+    # db.commit()
+    # db.refresh(db_user)
+    return "TBI"
 
 
 def game_exists(db: Session, game_name: str):
@@ -255,6 +272,7 @@ def add_new_game(
         )
         db.add(game)
         db.commit()
+        db.refresh(game)
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
             db.rollback()
@@ -686,6 +704,10 @@ def sync_clockify_entries(db: Session, user_id, entries):
         # logger.info(entry["id"])
         # exit()
     return
+
+
+def get_all_time_entries(db: Session) -> list[models.TimeEntries]:
+    return db.query(models.TimeEntries).order_by(models.TimeEntries.user_id)
 
 
 # def get_items(db: Session, skip: int = 0, limit: int = 100):

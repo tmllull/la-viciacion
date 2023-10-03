@@ -1,6 +1,7 @@
 import datetime
 import json
 import re
+from typing import Union
 
 import requests
 from howlongtobeatpy import HowLongToBeat
@@ -19,6 +20,10 @@ rawgio_search_game = (
     "https://api.rawg.io/api/games?key=bc7e0ee53f654393835ad0fa3b23a8cf&page=1&search="
 )
 
+########################
+##### BASIC ROUTES #####
+########################
+
 
 async def init_data(db: Session):
     logger.info("Init data...")
@@ -31,15 +36,37 @@ async def init_data(db: Session):
 
 async def sync_data(db: Session, date: str = None):
     logger.info("Sync data...")
-    sync_clockify_entries(db, date)
-    logger.info("Updating played time games...")
-    played_time_games = crud.total_played_time_games(db)
-    for game in played_time_games:
-        crud.update_total_played_game(db, game[0], game[1])
-    await ranking_games_hours(db)
-
+    # sync_clockify_entries(db, date)
+    # logger.info("Updating played time games...")
+    # played_time_games = crud.total_played_time_games(db)
+    # for game in played_time_games:
+    #     crud.update_total_played_game(db, game[0], game[1])
+    # await ranking_games_hours(db)
+    sync_played_games(db)
     # check_ranking_played_hours(db)
     return
+
+
+def sync_played_games(db: Session):
+    time_entries = crud.get_all_time_entries(db)
+    for time_entry in time_entries:
+        logger.info(time_entry.user)
+        break
+    return
+
+
+#################
+##### USERS #####
+#################
+
+
+# def get_user_id(db: Session, user_id: Union[int, str]):
+#     db_user = crud.get_user_by_tg_id(db, telegram_id=user_id)
+#     if db_user is None:
+#         db_user = crud.get_user_by_tg_username(db, telegram_username=user_id)
+#         if db_user is None:
+#             return None
+#     return db_user.id
 
 
 def check_rankings(db: Session):
@@ -133,7 +160,7 @@ async def add_new_game(db: Session, game):
             steam_id,
             released,
             genres,
-            hltb_main_story,
+            utils.convert_hours_minutes_to_seconds(hltb_main_story),
             project_id,
             picture_url,
         )

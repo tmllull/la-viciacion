@@ -1,32 +1,31 @@
 import datetime
-from typing import Union
+from typing import Optional, Union
 
 from pydantic import BaseModel
 
-
-class ItemBase(BaseModel):
-    title: str
-    description: Union[str, None] = None
-
-
-class ItemCreate(ItemBase):
-    pass
+# class ItemBase(BaseModel):
+#     title: str
+#     description: Union[str, None] = None
 
 
-class Item(ItemBase):
-    id: int
-    owner_id: int
+# class ItemCreate(ItemBase):
+#     pass
 
-    class Config:
-        from_attributes = True
+
+# class Item(ItemBase):
+#     id: int
+#     owner_id: int
+
+#     class Config:
+#         from_attributes = True
 
 
 class UserBase(BaseModel):
     id: int
 
 
-class UserCreate(UserBase):
-    password: str
+# class UserCreate(UserBase):
+#     password: str
 
 
 class User(UserBase):
@@ -50,16 +49,22 @@ class User(UserBase):
         from_attributes = True
 
 
-class GamesInfo(BaseModel):
+class GamesInfoBase(BaseModel):
     id: int
+
+    class Config:
+        from_attributes = True
+
+
+class GamesInfo(GamesInfoBase):
     game: str
     dev: Union[str, None] = None
-    release_date: Union[datetime.date, None] = None
+    release_date: Union[datetime.date, str, None] = None
     steam_id: Union[str, None] = None
     image_url: Union[str, None] = None
     genres: Union[str, None] = None
     played_time: Union[int, None] = None
-    mean_time: Union[str, None] = None
+    mean_time: Union[int, None] = None
     last_ranking: Union[int, None] = None
     current_ranking: Union[int, None] = None
     clockify_id: Union[str, None] = None
@@ -68,9 +73,34 @@ class GamesInfo(BaseModel):
         from_attributes = True
 
 
-class UsersGames(BaseModel):
+class NewGame(BaseModel):
+    game: str
+    dev: Union[str, None] = None
+    release_date: Union[datetime.date, None] = None
+    steam_id: Union[str, None] = None
+    image_url: Union[str, None] = None
+    genres: Union[str, None] = None
+    played_time: Union[int, None] = None
+    mean_time: Union[int, None] = None
+    last_ranking: Union[int, None] = None
+    current_ranking: Union[int, None] = None
+    clockify_id: Union[str, None] = None
+
+    class Config:
+        from_attributes = True
+
+
+class UsersGamesBase(BaseModel):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class UsersGames(UsersGamesBase):
     id: Union[int, None] = None
-    player: Union[str, None] = None
+    user: Union[str, None] = None
+    user_id: Union[int, None] = None
     game: Union[str, None] = None
     started_date: Union[datetime.date, None] = None
     platform: Union[str, None] = None

@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 
 import gspread
@@ -28,7 +29,7 @@ clockify = ClockifyApi()
     DEV,
     TIME,
     RATE,
-    ROW,
+    IMAGE_URL,
 ) = range(20, 30)
 
 
@@ -96,6 +97,9 @@ class ExcelRoutes:
             rawg_info, hltb_info, mean_time = await utils.get_game_info(
                 context.user_data[GAME]
             )
+            logger.info("Received GAME INFO: ")
+            logger.info(rawg_info)
+            logger.info(hltb_info)
             context.user_data[GAME] = rawg_info["name"]
             context.user_data[RELEASE_DATE] = rawg_info["released"]
             if hltb_info is None:
@@ -122,6 +126,7 @@ class ExcelRoutes:
                 genres += genre["name"] + ","
             context.user_data[GENRES] = genres[:-1]
             context.user_data[MEAN_TIME] = mean_time
+            context.user_data[IMAGE_URL] = rawg_info["background_image"]
             msg = "¿Quieres añadir un nuevo juego con los siguiente datos?:\n"
             msg += (
                 "Juego: "
@@ -136,10 +141,40 @@ class ExcelRoutes:
             msg += "Desarrolladora: " + str(context.user_data[DEV]) + "\n"
             msg += "Plataforma: " + str(context.user_data[PLATFORM]) + "\n"
             msg += "Steam ID: " + str(context.user_data[STEAM_ID])
-            await utils.response_conversation(update, context, "TBI")
-            return
-            game = requests.get(config.API_URL + "/?????????")
-            if game != 0:
+            # await utils.response_conversation(update, context, "TBI")
+            # return
+            # endpoint = "/workspaces/{}/projects?name={}".format(
+            #     config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
+            # )
+            # url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
+            # logger.info("CLOCKIFY URL: " + str(url))
+            # headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
+            # request = requests.request("GET", url, headers=headers)
+            # logger.info(request)
+            # await utils.response_conversation(update, context, "TBI")
+            # return
+            # clockify_id = requests.post(
+            #     config.CLOCKIFY_BASEURL+endpoint
+            # )
+            # new_game = {
+            #     "game": context.user_data[GAME],
+            #     "dev": context.user_data[DEV],
+            #     "release_date": "2023-10-03",
+            #     "steam_id": context.user_data[STEAM_ID],
+            #     "image_url": context.user_data[IMAGE_URL],
+            #     "genres": context.user_data[GENRES],
+            #     "played_time": 0,
+            #     "mean_time": context.user_data[MEAN_TIME],
+            #     "last_ranking": 1000000000,
+            #     "current_ranking": 1000000000,
+            #     "clockify_id": clockify_id,
+            # }
+            game = requests.get(
+                config.API_URL
+                + "/users/{user_id}/games/played"
+                + str(context.user_data[GAME])
+            )
+            if game.status_code != 404:
                 await update.message.reply_text(
                     "Ya tienes añadido "
                     + str(context.user_data[GAME])
@@ -176,6 +211,51 @@ class ExcelRoutes:
         try:
             if "Sí" in str(update.message.text):
                 logger.info("Adding new game confirmed")
+                endpoint = "/workspaces/{}/projects".format(config.CLOCKIFY_WORKSPACE)
+                url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
+                headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
+                data = {"name": context.user_data[GAME]}
+                request = requests.request("POST", url, headers=headers, json=data)
+                if request.status_code == 400:
+                    logger.info("Project exists on Clockify")
+                    endpoint = "/workspaces/{}/projects?name={}".format(
+                        config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
+                    )
+                    url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
+                    request = requests.request("GET", url, headers=headers, json=data)
+                    logger.info(request.json())
+                clockify_id = request.json()[0]["id"]
+                # await utils.response_conversation(update, context, "TBI")
+                # return
+                release_date = str(
+                    datetime.strptime(
+                        context.user_data[RELEASE_DATE], "%d-%m-%Y"
+                    ).date()
+                )
+                logger.info(release_date)
+                new_game = {
+                    "game": context.user_data[GAME],
+                    "dev": context.user_data[DEV],
+                    "release_date": release_date,
+                    "steam_id": str(context.user_data[STEAM_ID]),
+                    "image_url": context.user_data[IMAGE_URL],
+                    "genres": context.user_data[GENRES],
+                    "played_time": 0,
+                    "mean_time": utils.convert_hours_minutes_to_seconds(
+                        context.user_data[MEAN_TIME]
+                    ),
+                    "last_ranking": 1000000000,
+                    "current_ranking": 1000000000,
+                    "clockify_id": clockify_id,
+                }
+                # new_game = json.dumps(new_game)
+                logger.info(type(new_game))
+                logger.info(new_game)
+                request = requests.request(
+                    "POST", config.API_URL + "/games", json=new_game
+                )
+                logger.info("Post add game")
+                logger.info(request.json())
                 await utils.response_conversation(update, context, "TBI")
                 return
                 # row_num = len(utils.get_last_row(context.user_data["worksheet"])) + 1

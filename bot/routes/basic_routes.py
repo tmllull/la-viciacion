@@ -16,6 +16,7 @@ config = Config()
 
 class BasicRoutes:
     async def menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        logger.info(update.message.from_user.username + " has started conversation...")
         user = utils.check_valid_chat(update)
         if user:
             # logger.info(user)

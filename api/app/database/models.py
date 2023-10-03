@@ -97,7 +97,7 @@ class GamesInfo(Base):
     image_url = Column(String(255))
     genres = Column(String(255))
     played_time = Column(Integer)
-    mean_time = Column(String(255))
+    mean_time = Column(Integer)
     last_ranking = Column(Integer)
     current_ranking = Column(Integer)
     clockify_id = Column(String(255))
@@ -108,7 +108,8 @@ class UsersGames(Base):
     __tablename__ = "users_games"
 
     id = Column(Integer, primary_key=True)
-    player = Column(String(255))
+    user = Column(String(255))
+    user_id = Column(Integer)
     game = Column(String(255))
     started_date = Column(Date)
     platform = Column(String(255))
@@ -117,7 +118,7 @@ class UsersGames(Base):
     score = Column(Float)
     played_time = Column(Integer)
     completion_time = Column(String(255))
-    __table_args__ = (UniqueConstraint("player", "game", "platform"),)
+    __table_args__ = (UniqueConstraint("user_id", "game", "platform"),)
 
 
 class UserAchievements(Base):

@@ -1,3 +1,5 @@
+from typing import Union
+
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
@@ -36,7 +38,7 @@ def hello_world():
 
 
 @app.get("/users/", tags=["Users"], response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
@@ -48,36 +50,17 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     "/users/{user_id}",
     tags=["Users"],
 )
-def user_played_hours(user_id: int, db: Session = Depends(get_db)):
-    return "TBI"
-
-
-@app.get("/users/{telegram_id}", tags=["Users"], response_model=schemas.User)
-def read_user(telegram_username: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_tg_username(db, telegram_username=telegram_username)
+def get_user(user_id: Union[int, str], db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_tg_id(db, telegram_id=user_id)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        db_user = crud.get_user_by_tg_username(db, telegram_username=user_id)
+        if db_user is None:
+            raise HTTPException(status_code=404, detail="User not found")
     return db_user
-
-
-@app.get("/users/{telegram_username}", tags=["Users"], response_model=schemas.User)
-def read_user(telegram_username: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_tg_username(db, telegram_username=telegram_username)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-
-
-@app.get(
-    "/users/{name}",
-    tags=["Users"],
-)
-def user_played_hours(name: int, db: Session = Depends(get_db)):
-    return "TBI"
 
 
 @app.post("/users/", tags=["Users"], response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: schemas.User, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
@@ -89,7 +72,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.put("/users/", tags=["Users"], response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def update_user(user: schemas.User, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
@@ -112,11 +95,16 @@ def user_played_hours(user_id: int, db: Session = Depends(get_db)):
     return "TBI"
 
 
-@app.get("/users/{user_id}/games/played", tags=["Users"])
+@app.get("/users/{user}/games/played", tags=["Users"])
 def user_games_played(
-    user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+    user: Union[int, str],
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
 ):
-    return "TBI"
+    user_id = crud.get_user_id(db, user_id=user)
+    played_games = crud.user_played_games(db, user_id)
+    return played_games
 
 
 @app.get("/users/{user_id}/games/played/most", tags=["Users"])
@@ -159,6 +147,45 @@ def user_streak_best(
 #     user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)
 # ):
 #     return crud.create_user_item(db=db, item=item, user_id=user_id)
+
+
+#######################
+######## GAMES ########
+#######################
+
+
+@app.get("/games/", tags=["Games"], response_model=list[schemas.GamesInfo])
+def get_games(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    TODO: Add description
+    """
+    users = crud.get_games(db, skip, limit)
+    return users
+
+
+@app.get("/games/{name}", tags=["Games"], response_model=schemas.GamesInfo)
+def get_game_by_name(name: str, db: Session = Depends(get_db)):
+    """
+    TODO: Add description
+    """
+    game = crud.get_game_by_name(db, name)
+    if game is None:
+        raise HTTPException(status_code=404, detail="Game not exists")
+
+    return game
+
+
+@app.post("/games/", tags=["Games"], response_model=schemas.GamesInfo)
+def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
+    """
+    TODO: Add description
+    """
+    db_game = crud.get_game_by_name(db, game.game)
+    # db_user = crud.get_user_by_email(db, email=user.email)
+    if db_game:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    # return "Done"
+    return crud.create_game(db=db, game=game)
 
 
 ##########################

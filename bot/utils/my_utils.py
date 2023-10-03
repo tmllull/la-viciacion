@@ -87,8 +87,8 @@ class MyUtils:
             )
 
     async def get_game_info(self, game):
-        logger.info("TBI")
-        return
+        # logger.info("TBI")
+        # return
         # Rawg
         game_request = requests.get(rawgio_search_game + game)
         try:
@@ -210,6 +210,11 @@ class MyUtils:
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         return f"{hours}h{minutes}m"
+
+    def convert_hours_minutes_to_seconds(self, time) -> int:
+        if time is None:
+            return 0
+        return time * 3600
 
     # def get_excel_column(self, worksheet, name):
     #     for k in range(1, worksheet.col_count + 1):

@@ -90,7 +90,7 @@ class GamesInfo(Base):
     __tablename__ = "games_info"
 
     id = Column(Integer, primary_key=True)
-    game = Column(String(255))
+    name = Column(String(255))
     dev = Column(String(255))
     release_date = Column(Date)
     steam_id = Column(String(255))
@@ -101,7 +101,7 @@ class GamesInfo(Base):
     last_ranking = Column(Integer)
     current_ranking = Column(Integer)
     clockify_id = Column(String(255))
-    __table_args__ = (UniqueConstraint("game"),)
+    __table_args__ = (UniqueConstraint("name"),)
 
 
 class UsersGames(Base):
@@ -111,6 +111,7 @@ class UsersGames(Base):
     user = Column(String(255))
     user_id = Column(Integer)
     game = Column(String(255))
+    game_id = Column(Integer)
     started_date = Column(Date)
     platform = Column(String(255))
     completed = Column(Integer)
@@ -133,6 +134,7 @@ class UserAchievements(Base):
 
 class Achievement(Base):
     __tablename__ = "achievements"
+
     id = Column(Integer, primary_key=True)
     achievement = Column(String(255))
     message = Column(String(255))
@@ -141,6 +143,7 @@ class Achievement(Base):
 
 class TimeEntries(Base):
     __tablename__ = "time_entries"
+
     id = Column(String(255), primary_key=True)
     user = Column(String(255))
     user_id = Column(String(255))

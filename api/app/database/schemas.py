@@ -57,7 +57,7 @@ class GamesInfoBase(BaseModel):
 
 
 class GamesInfo(GamesInfoBase):
-    game: str
+    name: str
     dev: Union[str, None] = None
     release_date: Union[datetime.date, str, None] = None
     steam_id: Union[str, None] = None
@@ -69,22 +69,27 @@ class GamesInfo(GamesInfoBase):
     current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
 class NewGame(BaseModel):
-    game: str
-    dev: Union[str, None] = None
-    release_date: Union[datetime.date, None] = None
-    steam_id: Union[str, None] = None
-    image_url: Union[str, None] = None
-    genres: Union[str, None] = None
-    mean_time: Union[int, None] = None
-    clockify_id: Union[str, None] = None
+    name: str
+    dev: Optional[Union[str, None]] = None
+    release_date: Optional[Union[datetime.date, None]] = None
+    steam_id: Optional[Union[str, None]] = None
+    image_url: Optional[Union[str, None]] = None
+    genres: Optional[Union[str, None]] = None
+    mean_time: Optional[Union[int, None]] = None
+    clockify_id: Optional[Union[str, None]] = None
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
+
+
+class StartGame(BaseModel):
+    game: str
+    platform: Union[str, None] = None
 
 
 class UsersGamesBase(BaseModel):

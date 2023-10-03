@@ -79,7 +79,7 @@ class ExcelRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         if "cancel" in update.message.text.lower():
-            await utils.reply_message(update, context, "Enga, nos vemos.")
+            await utils.reply_message(update, context, "Operación cancelada")
             return ConversationHandler.END
         context.user_data[GAME] = update.message.text
         logger.info("Received game: " + context.user_data[GAME])
@@ -97,9 +97,6 @@ class ExcelRoutes:
             rawg_info, hltb_info, mean_time = await utils.get_game_info(
                 context.user_data[GAME]
             )
-            logger.info("Received GAME INFO: ")
-            logger.info(rawg_info)
-            logger.info(hltb_info)
             context.user_data[GAME] = rawg_info["name"]
             context.user_data[RELEASE_DATE] = rawg_info["released"]
             if hltb_info is None:
@@ -127,6 +124,22 @@ class ExcelRoutes:
             context.user_data[GENRES] = genres[:-1]
             context.user_data[MEAN_TIME] = mean_time
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
+            response = requests.get(
+                config.API_URL
+                + "/users/"
+                + str(update.message.from_user.username)
+                + "/games/played"
+            )
+            played_games = response.json()
+            for played_game in played_games:
+                if played_game["game"] == context.user_data[GAME]:
+                    await update.message.reply_text(
+                        "Ya tienes añadido "
+                        + str(context.user_data[GAME])
+                        + " a tu lista de juegos.",
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                    return ConversationHandler.END
             msg = "¿Quieres añadir un nuevo juego con los siguiente datos?:\n"
             msg += (
                 "Juego: "
@@ -136,52 +149,10 @@ class ExcelRoutes:
                 + rawg_info["slug"]
                 + ")\n"
             )
-            # msg += "Género: " + str(context.user_data[GENRES]) + "\n"
             msg += "Lanzamiento: " + str(context.user_data[RELEASE_DATE]) + "\n"
             msg += "Desarrolladora: " + str(context.user_data[DEV]) + "\n"
             msg += "Plataforma: " + str(context.user_data[PLATFORM]) + "\n"
             msg += "Steam ID: " + str(context.user_data[STEAM_ID])
-            # await utils.response_conversation(update, context, "TBI")
-            # return
-            # endpoint = "/workspaces/{}/projects?name={}".format(
-            #     config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
-            # )
-            # url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-            # logger.info("CLOCKIFY URL: " + str(url))
-            # headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
-            # request = requests.request("GET", url, headers=headers)
-            # logger.info(request)
-            # await utils.response_conversation(update, context, "TBI")
-            # return
-            # clockify_id = requests.post(
-            #     config.CLOCKIFY_BASEURL+endpoint
-            # )
-            # new_game = {
-            #     "game": context.user_data[GAME],
-            #     "dev": context.user_data[DEV],
-            #     "release_date": "2023-10-03",
-            #     "steam_id": context.user_data[STEAM_ID],
-            #     "image_url": context.user_data[IMAGE_URL],
-            #     "genres": context.user_data[GENRES],
-            #     "played_time": 0,
-            #     "mean_time": context.user_data[MEAN_TIME],
-            #     "last_ranking": 1000000000,
-            #     "current_ranking": 1000000000,
-            #     "clockify_id": clockify_id,
-            # }
-            game = requests.get(
-                config.API_URL
-                + "/users/{user_id}/games/played"
-                + str(context.user_data[GAME])
-            )
-            if game.status_code != 404:
-                await update.message.reply_text(
-                    "Ya tienes añadido "
-                    + str(context.user_data[GAME])
-                    + " a tu lista de juegos.",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-                return ConversationHandler.END
             keyboard = kb.YES_NO
             reply_markup = ReplyKeyboardMarkup(
                 keyboard,
@@ -215,104 +186,72 @@ class ExcelRoutes:
                 url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
                 headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
                 data = {"name": context.user_data[GAME]}
-                request = requests.request("POST", url, headers=headers, json=data)
-                if request.status_code == 400:
+                # Add game as project on Clockify
+                response = requests.request("POST", url, headers=headers, json=data)
+                if response.status_code == 400:
                     logger.info("Project exists on Clockify")
                     endpoint = "/workspaces/{}/projects?name={}".format(
                         config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
                     )
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-                    request = requests.request("GET", url, headers=headers, json=data)
-                    logger.info(request.json())
-                clockify_id = request.json()[0]["id"]
-                # await utils.response_conversation(update, context, "TBI")
-                # return
+                    response = requests.request("GET", url, headers=headers, json=data)
+                clockify_id = response.json()[0]["id"]
                 release_date = str(
                     datetime.strptime(
                         context.user_data[RELEASE_DATE], "%d-%m-%Y"
                     ).date()
                 )
-                logger.info(release_date)
                 new_game = {
-                    "game": context.user_data[GAME],
+                    "name": context.user_data[GAME],
                     "dev": context.user_data[DEV],
                     "release_date": release_date,
                     "steam_id": str(context.user_data[STEAM_ID]),
                     "image_url": context.user_data[IMAGE_URL],
                     "genres": context.user_data[GENRES],
-                    "played_time": 0,
                     "mean_time": utils.convert_hours_minutes_to_seconds(
                         context.user_data[MEAN_TIME]
                     ),
-                    "last_ranking": 1000000000,
-                    "current_ranking": 1000000000,
                     "clockify_id": clockify_id,
                 }
-                # new_game = json.dumps(new_game)
-                logger.info(type(new_game))
-                logger.info(new_game)
-                request = requests.request(
+                logger.info("Adding game to DB...")
+                response = requests.request(
                     "POST", config.API_URL + "/games", json=new_game
                 )
-                logger.info("Post add game")
-                logger.info(request.json())
-                await utils.response_conversation(update, context, "TBI")
-                return
-                # row_num = len(utils.get_last_row(context.user_data["worksheet"])) + 1
-                # context.user_data["worksheet"].update_cell(
-                #     row_num, 1, context.user_data[GAME]
-                # )
-                # context.user_data["worksheet"].update_cell(
-                #     row_num, 2, context.user_data[DEV]
-                # )
-                # context.user_data["worksheet"].update_cell(
-                #     row_num, 3, context.user_data[RELEASE_DATE]
-                # )
-                # context.user_data["worksheet"].update_cell(
-                #     row_num, 4, context.user_data[PLATFORM]
-                # )
-                # # context.user_data["worksheet"].update_cell(row_num, 5, context.user_data[GENRES])
-                # context.user_data["worksheet"].update_cell(
-                #     row_num, 9, context.user_data[STEAM_ID]
-                # )
-                logger.info("Game " + context.user_data[GAME] + " added"),
-                jsonData = {
-                    "user": config.ALLOWED_USERS[context.user_data["username"]],
+                logger.info(response.status_code)
+                if response.status_code == 400:
+                    logger.info("Game already exists on DB")
+                elif response.status_code == 200:
+                    logger.info("New game added")
+                else:
+                    logger.info("Error adding new game:" + str(response.json()))
+                username = update.message.from_user.username
+                logger.info("Adding new game for " + username)
+                start_game = {
                     "game": context.user_data[GAME],
+                    "platform": context.user_data[PLATFORM],
                 }
-                logger.info("Send webhook...")
-                requests.post(
-                    config.N8N_BASE_URL + config.N8N_WH_ADD_GAME,
-                    json=jsonData,
+                response = requests.request(
+                    "POST",
+                    config.API_URL + "/users/" + username + "/new_game",
+                    json=start_game,
                 )
-                logger.info("Webhook sended...")
-                response = requests.post(config.API_URL + "/????????")
-                # if not db.game_exists(context.user_data[GAME]):
-                #     db.add_new_game(
-                #         context.user_data[GAME],
-                #         context.user_data[DEV],
-                #         context.user_data[RELEASE_DATE],
-                #         context.user_data[GENRES],
-                #         context.user_data[MEAN_TIME],
-                #     )
-                # last_row = (
-                #     db.get_last_row_games(
-                #         config.ALLOWED_USERS[context.user_data["username"]]
-                #     )[0]
-                #     + 2
-                # )
-                # print("Last game row:", last_row)
-                # await utils.add_or_update_game_user(
-                #     context.user_data[GAME],
-                #     config.ALLOWED_USERS[context.user_data["username"]],
-                #     0,
-                #     context.user_data[PLATFORM],
-                #     last_row + 1,
-                #     0,
-                # )
-                await update.message.reply_text(
-                    "Juego añadido", reply_markup=ReplyKeyboardRemove()
-                )
+                if response.status_code == 200:
+                    logger.info("Game added")
+                    await update.message.reply_text(
+                        "Juego añadido", reply_markup=ReplyKeyboardRemove()
+                    )
+                    await utils.send_message(
+                        update.message.from_user.name
+                        + " acaba de empezar *"
+                        + context.user_data[GAME]
+                        + "*"
+                    )
+                else:
+                    logger.info("Error adding new game to user: " + response.json())
+                    await update.message.reply_text(
+                        "Algo ha salido mal: " + str(response.json()),
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
                 return ConversationHandler.END
             else:
                 await update.message.reply_text(

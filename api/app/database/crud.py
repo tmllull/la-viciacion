@@ -21,31 +21,29 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def get_user(db: Session, user_id: int) -> models.User:
-    return db.query(models.User).filter(models.User.id == user_id).first()
+# def get_user(db: Session, user_id: int) -> models.User:
+#     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def get_user_id(db: Session, user_id: Union[int, str]) -> int:
+def get_user(db: Session, user: Union[int, str]) -> models.User:
     # Check ID
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    db_user = db.query(models.User).filter(models.User.id == user).first()
     # Check tg_id
     if db_user is None:
-        db_user = (
-            db.query(models.User).filter(models.User.telegram_id == user_id).first()
-        )
+        db_user = db.query(models.User).filter(models.User.telegram_id == user).first()
         if db_user is None:
             # Check tg_username
             db_user = (
                 db.query(models.User)
-                .filter(models.User.telegram_username == user_id)
+                .filter(models.User.telegram_username == user)
                 .first()
             )
             if db_user is None:
                 return None
-    return db_user.id
+    return db_user
 
 
-def create_user(db: Session, user: schemas.User):
+def user_create(db: Session, user: schemas.User):
     # fake_hashed_password = user.password + "notreallyhashed"
     # db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
     # db.add(db_user)
@@ -54,22 +52,24 @@ def create_user(db: Session, user: schemas.User):
     return {"message": "TBI"}
 
 
-def start_new_game(
-    db: Session, game: str, user: str, user_id: int, platform: str = None
-):
+def user_add_new_game(db: Session, game: schemas.StartGame, username: str):
+    logger.info("Adding new game")
     try:
+        game_db = get_game_by_name(db, game.game)
+        user = get_user(db, username)
         user_game = models.UsersGames(
-            game=game,
-            player=user,
-            platform=platform,
-            started_date=datetime.datetime.now().date(),
-            user_id=user_id,
+            user=user.name,
+            user_id=user.id,
+            game=game.game,
+            game_id=game_db.id,
+            platform=game.platform,
+            started_date=datetime.datetime.now(),
         )
         db.add(user_game)
         db.commit()
     except Exception as e:
         logger.info(e)
-    return {"message": "TBI"}
+    return {"message": "Game started"}
 
 
 def add_or_update_game_user(db: Session, game_name, player, score, platform, seconds):
@@ -154,7 +154,7 @@ def user_played_time_game(db: Session, user_id: str):
 #     return result
 
 
-def user_played_games(db: Session, user_id):
+def user_played_games(db: Session, user_id) -> list[models.UsersGames]:
     return db.query(models.UsersGames).filter_by(user_id=user_id)
 
 
@@ -254,7 +254,77 @@ def get_games(db: Session, skip: int = 0, limit: int = 100) -> list[models.Games
 
 
 def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
-    return db.query(models.GamesInfo).filter(models.GamesInfo.game == name).first()
+    logger.info("Searching game: " + name)
+    return db.query(models.GamesInfo).filter(models.GamesInfo.name == name).first()
+
+
+def game_exists(db: Session, game_name: str):
+    stmt = select(models.GamesInfo).where(models.GamesInfo.name == game_name)
+    game = db.execute(stmt).first()
+    if game:
+        return True
+    return False
+
+
+def new_game(db: Session, game: schemas.NewGame):
+    try:
+        game = models.GamesInfo(
+            name=game.name,
+            dev=game.dev,
+            steam_id=game.steam_id,
+            image_url=game.image_url,
+            release_date=game.release_date,
+            clockify_id=game.clockify_id,
+            genres=game.genres,
+            mean_time=game.mean_time,
+            last_ranking=1000000000,
+            current_ranking=1000000000,
+        )
+        db.add(game)
+        db.commit()
+        db.refresh(game)
+        return game
+    except Exception as e:
+        if "UNIQUE constraint failed" in str(e):
+            db.rollback()
+        else:
+            logger.info("Error adding new game: " + str(e))
+            raise e
+
+
+# def add_new_game(
+#     db: Session,
+#     game,
+#     dev=None,
+#     steam_id=None,
+#     released=None,
+#     genres=None,
+#     mean_time=None,
+#     clockify_id=None,
+#     image_url=None,
+# ):
+#     try:
+#         game = models.GamesInfo(
+#             game=game,
+#             dev=dev,
+#             steam_id=steam_id,
+#             image_url=image_url,
+#             release_date=released,
+#             clockify_id=clockify_id,
+#             genres=genres,
+#             mean_time=mean_time,
+#             last_ranking=1000000000,
+#             current_ranking=1000000000,
+#         )
+#         db.add(game)
+#         db.commit()
+#         db.refresh(game)
+#     except Exception as e:
+#         if "UNIQUE constraint failed" in str(e):
+#             db.rollback()
+#         else:
+#             logger.info("Error adding new game: " + str(e))
+#             raise e
 
 
 def get_all_played_games(db: Session):
@@ -271,46 +341,11 @@ def create_game(db: Session, game: schemas.GamesInfo):
 
 
 def game_exists(db: Session, game_name: str):
-    stmt = select(models.GamesInfo).where(models.GamesInfo.game == game_name)
+    stmt = select(models.GamesInfo).where(models.GamesInfo.name == game_name)
     game = db.execute(stmt).first()
     if game:
         return True
     return False
-
-
-def add_new_game(
-    db: Session,
-    game,
-    dev=None,
-    steam_id=None,
-    released=None,
-    genres=None,
-    mean_time=None,
-    clockify_id=None,
-    image_url=None,
-):
-    try:
-        game = models.GamesInfo(
-            game=game,
-            dev=dev,
-            steam_id=steam_id,
-            image_url=image_url,
-            release_date=released,
-            clockify_id=clockify_id,
-            genres=genres,
-            mean_time=mean_time,
-            last_ranking=1000000000,
-            current_ranking=1000000000,
-        )
-        db.add(game)
-        db.commit()
-        db.refresh(game)
-    except Exception as e:
-        if "UNIQUE constraint failed" in str(e):
-            db.rollback()
-        else:
-            logger.info("Error adding new game: " + str(e))
-            raise e
 
 
 def update_game(
@@ -327,7 +362,7 @@ def update_game(
     try:
         stmt = (
             update(models.GamesInfo)
-            .where(models.GamesInfo.game == game)
+            .where(models.GamesInfo.name == game)
             .values(
                 game=game,
                 dev=dev,
@@ -350,7 +385,7 @@ def update_total_played_game(db: Session, game, total_played):
     try:
         stmt = (
             update(models.GamesInfo)
-            .where(models.GamesInfo.game == game)
+            .where(models.GamesInfo.name == game)
             .values(played_time=total_played)
         )
         db.execute(stmt)
@@ -404,7 +439,7 @@ def complete_game(db: Session, player, game_name, score, time, seconds):
 
 
 def mean_time_game(db: Session, game):
-    stmt = select(models.GamesInfo.mean_time).where(models.GamesInfo.game == game)
+    stmt = select(models.GamesInfo.mean_time).where(models.GamesInfo.name == game)
     result = db.execute(stmt).first()
     return result
 
@@ -418,7 +453,7 @@ def total_played_time_games(db: Session):
 
 
 def most_played_games_time(db: Session):
-    stmt = select(models.GamesInfo.game).order_by(desc(models.GamesInfo.played_time))
+    stmt = select(models.GamesInfo.name).order_by(desc(models.GamesInfo.played_time))
     result = db.execute(stmt)
     return result
 
@@ -432,7 +467,7 @@ def update_current_ranking_hours_game(db: Session, i, game):
     try:
         stmt = (
             update(models.GamesInfo)
-            .where(models.GamesInfo.game == game)
+            .where(models.GamesInfo.name == game)
             .values(current_ranking=i)
         )
         db.execute(stmt)
@@ -445,7 +480,7 @@ def update_last_ranking_hours_game(db: Session, i, game):
     try:
         stmt = (
             update(models.GamesInfo)
-            .where(models.GamesInfo.game == game)
+            .where(models.GamesInfo.name == game)
             .values(last_ranking=i)
         )
         db.execute(stmt)
@@ -457,7 +492,7 @@ def update_last_ranking_hours_game(db: Session, i, game):
 def get_current_ranking_games(db: Session, limit: int = 11):
     try:
         stmt = (
-            select(models.GamesInfo.game)
+            select(models.GamesInfo.name)
             .order_by(asc(models.GamesInfo.current_ranking))
             .limit(limit)
         )
@@ -489,7 +524,7 @@ def get_last_ranking_hours_players(db: Session):
 def get_last_ranking_games(db: Session, limit: int = 11):
     try:
         stmt = (
-            select(models.GamesInfo.game)
+            select(models.GamesInfo.name)
             .order_by(asc(models.GamesInfo.last_ranking))
             .limit(limit)
         )
@@ -521,7 +556,7 @@ def update_last_ranking_hours_user(db: Session, ranking, user):
 def get_ranking_games(db: Session):
     try:
         stmt = select(
-            models.GamesInfo.game,
+            models.GamesInfo.name,
             models.GamesInfo.played_time,
             models.GamesInfo.last_ranking,
             models.GamesInfo.current_ranking,
@@ -596,7 +631,7 @@ def ranking_completed_games(db: Session):
 def ranking_last_played_games(db: Session):
     # try:
     #     stmt = (
-    #         select(models.GamesInfo.game)
+    #         select(models.GamesInfo.name)
     #         .order_by(asc(models.GamesInfo.current_ranking))
     #         .limit(limit)
     #     )
@@ -612,7 +647,7 @@ def ranking_last_played_games(db: Session):
 
 def ranking_most_played_games(db: Session, limit: int = 10):
     stmt = (
-        select(models.GamesInfo.game, models.GamesInfo.played_time)
+        select(models.GamesInfo.name, models.GamesInfo.played_time)
         .order_by(desc(models.GamesInfo.played_time))
         .limit(limit)
     )

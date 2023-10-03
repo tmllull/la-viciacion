@@ -42,16 +42,9 @@ async def sync_data(db: Session, date: str = None):
     # for game in played_time_games:
     #     crud.update_total_played_game(db, game[0], game[1])
     # await ranking_games_hours(db)
-    sync_played_games(db)
+    # sync_played_games(db)
+    sync_played_games_user(db)
     # check_ranking_played_hours(db)
-    return
-
-
-def sync_played_games(db: Session):
-    time_entries = crud.get_all_time_entries(db)
-    for time_entry in time_entries:
-        logger.info(time_entry.user)
-        break
     return
 
 
@@ -192,6 +185,24 @@ async def get_game_info(game):
         hltb_content = hltb_main_history = None
 
     return rawg_content, hltb_content, hltb_main_history
+
+
+def sync_played_games(db: Session):
+    time_entries = crud.get_all_time_entries(db)
+    for time_entry in time_entries:
+        logger.info(time_entry.user)
+        break
+
+
+def sync_played_games_user(db: Session):
+    users = crud.get_users(db)
+    for user in users:
+        games = crud.user_played_time_game(db, user.id)
+        for game in games:
+            game = game[0]
+            time = game[1]
+            user_id = user.id
+            crud.update_user_played_time_game(db, user_id, game, time)
 
 
 ####################

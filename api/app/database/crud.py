@@ -17,50 +17,59 @@ clockify = ClockifyApi()
 #################
 
 
-def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
-
-
-def get_user_id(db: Session, user_id: Union[int, str]):
-    db_user = get_user_by_tg_id(db, telegram_id=user_id)
-    if db_user is None:
-        db_user = get_user_by_tg_username(db, telegram_username=user_id)
-        if db_user is None:
-            return None
-    return db_user.id
-
-
-def get_user_by_id(db: Session, id: int) -> models.User:
-    return db.query(models.User).filter(models.User.id == id).first()
-
-
-# def get_user_by_email(db: Session, email: str):
-#     return db.query(models.User).filter(models.User.email == email).first()
-
-
-def get_user_by_tg_username(db: Session, telegram_username: str = None) -> models.User:
-    return (
-        db.query(models.User)
-        .filter(models.User.telegram_username == telegram_username)
-        .first()
-    )
-
-
-def get_user_by_tg_id(db: Session, telegram_id: int = None) -> models.User:
-    return db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
-
-
 def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]:
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
+def get_user(db: Session, user_id: int) -> models.User:
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+
+def get_user_id(db: Session, user_id: Union[int, str]) -> int:
+    # Check ID
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    # Check tg_id
+    if db_user is None:
+        db_user = (
+            db.query(models.User).filter(models.User.telegram_id == user_id).first()
+        )
+        if db_user is None:
+            # Check tg_username
+            db_user = (
+                db.query(models.User)
+                .filter(models.User.telegram_username == user_id)
+                .first()
+            )
+            if db_user is None:
+                return None
+    return db_user.id
+
+
 def create_user(db: Session, user: schemas.User):
-    fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    # fake_hashed_password = user.password + "notreallyhashed"
+    # db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
+    # db.add(db_user)
+    # db.commit()
+    # db.refresh(db_user)
+    return {"message": "TBI"}
+
+
+def start_new_game(
+    db: Session, game: str, user: str, user_id: int, platform: str = None
+):
+    try:
+        user_game = models.UsersGames(
+            game=game,
+            player=user,
+            platform=platform,
+            started_date=datetime.datetime.now().date(),
+            user_id=user_id,
+        )
+        db.add(user_game)
+        db.commit()
+    except Exception as e:
+        logger.info(e)
+    return {"message": "TBI"}
 
 
 def add_or_update_game_user(db: Session, game_name, player, score, platform, seconds):
@@ -107,10 +116,33 @@ def add_or_update_game_user(db: Session, game_name, player, score, platform, sec
         logger.info(e)
 
 
+def update_user_played_time_game(db: Session, user_id: str, game: str, time: int):
+    stmt = (
+        update(models.UsersGames)
+        .where(
+            models.UsersGames.game == game,
+            models.UsersGames.user_id == user_id,
+        )
+        .values(played_time=time)
+    )
+    db.execute(stmt)
+    db.commit()
+    return
+
+
 def user_played_time(db: Session):
     stmt = select(
         models.TimeEntries.user, func.sum(models.TimeEntries.duration)
     ).group_by(models.TimeEntries.user)
+    return db.execute(stmt)
+
+
+def user_played_time_game(db: Session, user_id: str):
+    stmt = (
+        select(models.TimeEntries.project, func.sum(models.TimeEntries.duration))
+        .where(models.TimeEntries.user_id == user_id)
+        .group_by(models.TimeEntries.project)
+    )
     return db.execute(stmt)
 
 

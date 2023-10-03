@@ -30,7 +30,8 @@ clockify = ClockifyApi()
     TIME,
     RATE,
     IMAGE_URL,
-) = range(20, 30)
+    TOTAL_PLAYED_GAMES,
+) = range(20, 31)
 
 
 class ExcelRoutes:
@@ -131,6 +132,7 @@ class ExcelRoutes:
                 + "/games/played"
             )
             played_games = response.json()
+            context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
             for played_game in played_games:
                 if played_game["game"] == context.user_data[GAME]:
                     await update.message.reply_text(
@@ -241,8 +243,10 @@ class ExcelRoutes:
                         "Juego añadido", reply_markup=ReplyKeyboardRemove()
                     )
                     await utils.send_message(
-                        update.message.from_user.name
-                        + " acaba de empezar *"
+                        update.message.from_user.first_name
+                        + " acaba de empezar su juego número "
+                        + str(context.user_data[TOTAL_PLAYED_GAMES] + 1)
+                        + ": *"
                         + context.user_data[GAME]
                         + "*"
                     )

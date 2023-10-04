@@ -59,11 +59,11 @@ async def sync_data(date: str = None, db: Session = Depends(get_db)):
 
 
 @app.get("/users/", tags=["Users"], response_model=list[schemas.User])
-def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_users(limit: int = 10000, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    users_db = users.get_users(db, skip, limit)
+    users_db = users.get_users(db, limit)
     return users_db
 
 
@@ -96,7 +96,7 @@ def get_user(user: Union[int, str], db: Session = Depends(get_db)):
 
 
 @app.post("/users/{username}/new_game", tags=["Users"])
-def start_game(username: str, game: schemas.StartGame, db: Session = Depends(get_db)):
+def add_game(username: str, game: schemas.StartGame, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
@@ -131,46 +131,57 @@ def start_game(username: str, game: schemas.StartGame, db: Session = Depends(get
 )
 def user_games_played(
     user: Union[int, str],
-    skip: int = 0,
-    limit: int = 100,
+    limit: int = 1000000,
+    completed: bool = None,
     db: Session = Depends(get_db),
 ):
     user_id = users.get_user(db, user=user).id
-    played_games = users.get_games(db, user_id)
+    played_games = users.get_games(db, user_id, limit, completed)
     return played_games
+
+
+@app.put("/users/{user}/complete-game", tags=["Users"])
+def update_user(user: str, game_name: str, db: Session = Depends(get_db)):
+    """
+    TODO: Add description
+    """
+    num_completed_games = users.complete_game(
+        db, users.get_user(db, user).id, game_name
+    )
+    return num_completed_games
 
 
 # @app.get("/users/{user_id}/games/played/most", tags=["Users"])
 # def user_games_played_most(
-#     user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/users/{user_id}/games/played/last", tags=["Users"])
 # def user_games_played_last(
-#     user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/users/{user_id}/games/completed", tags=["Users"])
 # def user_games_completed(
-#     user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/users/{user_id}/streak/current", tags=["Users"])
 # def user_streak_current(
-#     user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/users/{user_id}/streak/best", tags=["Users"])
 # def user_streak_best(
-#     user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
@@ -188,11 +199,11 @@ def user_games_played(
 
 
 @app.get("/games/", tags=["Games"], response_model=list[schemas.GamesInfo])
-def get_games(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_games(limit: int = 10000, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    games_db = games.get_games(db, skip, limit)
+    games_db = games.get_games(db, limit)
     return games_db
 
 
@@ -234,90 +245,90 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 ##########################
 
 # @app.get("/items/", response_model=list[schemas.Item])
-# def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     items = crud.get_items(db, skip=skip, limit=limit)
+# def read_items( limit: int = 10000, db: Session = Depends(get_db)):
+#     items = crud.get_items(db,  limit=limit)
 #     return items
 
 
 # @app.get("/rankings/", tags=["Rankings"])
-# def rankings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     items = crud.get_items(db, skip=skip, limit=limit)
+# def rankings( limit: int = 10000, db: Session = Depends(get_db)):
+#     items = crud.get_items(db,  limit=limit)
 #     return items
 
 
 # @app.get("/rankings/played-days", tags=["Rankings"])
 # def rankings_played_days(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/played-hours", tags=["Rankings"])
 # def rankings_played_hours(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/played-games", tags=["Rankings"])
 # def rankings_played_games(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/completed-games", tags=["Rankings"])
 # def rankings_completed_games(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/achievements", tags=["Rankings"])
 # def rankings_achievements(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/ratio", tags=["Rankings"])
-# def rankings_ratio(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+# def rankings_ratio( limit: int = 10000, db: Session = Depends(get_db)):
 #     return "TBI"
 
 
 # @app.get("/rankings/streak/current", tags=["Rankings"])
 # def rankings_streak_current(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/streak/best", tags=["Rankings"])
 # def rankings_streak_best(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/most-played-games", tags=["Rankings"])
 # def rankings_most_played_games(
-#     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+#      limit: int = 10000, db: Session = Depends(get_db)
 # ):
 #     return "TBI"
 
 
 # @app.get("/rankings/platform", tags=["Rankings"])
-# def rankings_platform(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+# def rankings_platform( limit: int = 10000, db: Session = Depends(get_db)):
 #     return "TBI"
 
 
 # @app.get("/rankings/debt", tags=["Rankings"])
-# def rankings_debt(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+# def rankings_debt( limit: int = 10000, db: Session = Depends(get_db)):
 #     return "TBI"
 
 
 # @app.get("/rankings/last-played-games", tags=["Rankings"])
-# def rankings_days(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+# def rankings_days( limit: int = 10, db: Session = Depends(get_db)):
 #     last_played = actions.get_last_played_games(db)
 #     return last_played
 
@@ -328,7 +339,7 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 
 
 # @app.get("/achievements", tags=["Achievements"])
-# def get_achievements(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+# def get_achievements( limit: int = 10000, db: Session = Depends(get_db)):
 #     return "TBI"
 
 

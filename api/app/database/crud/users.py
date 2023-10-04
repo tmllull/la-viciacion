@@ -17,8 +17,8 @@ clockify = ClockifyApi()
 #################
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]:
-    return db.query(models.User).offset(skip).limit(limit).all()
+def get_users(db: Session, limit: int = 100) -> list[models.User]:
+    return db.query(models.User).limit(limit).all()
 
 
 # def get_user(db: Session, user_id: int) -> models.User:
@@ -60,6 +60,7 @@ def add_new_game(db: Session, game: schemas.StartGame, username: str):
         user_game = models.UsersGames(
             user=user.name,
             user_id=user.id,
+            completed=0,
             game=game.game,
             game_id=game_db.id,
             platform=game.platform,
@@ -68,7 +69,7 @@ def add_new_game(db: Session, game: schemas.StartGame, username: str):
         db.add(user_game)
         db.commit()
     except Exception as e:
-        logger.info(e)
+        logger.info("Error adding new game user: " + str(e))
     return {"message": "Game added to user list"}
 
 
@@ -137,8 +138,18 @@ def get_played_time_games(db: Session, user_id: str):
 #     return result
 
 
-def get_games(db: Session, user_id) -> list[models.UsersGames]:
-    return db.query(models.UsersGames).filter_by(user_id=user_id)
+def get_games(
+    db: Session, user_id, limit=10000, completed=None
+) -> list[models.UsersGames]:
+    if completed != None:
+        completed = 1 if completed == True else 0
+        return (
+            db.query(models.UsersGames)
+            .filter_by(user_id=user_id, completed=completed)
+            .limit(limit)
+        )
+    else:
+        return db.query(models.UsersGames).filter_by(user_id=user_id).limit(limit)
 
 
 def get_game(db: Session, user_id, game) -> models.UsersGames:
@@ -179,18 +190,6 @@ def top_games(db: Session, player, limit: int = 10):
         raise e
 
 
-def completed_games(db: Session, player):
-    try:
-        return (
-            db.query(models.UsersGames)
-            .filter_by(player=player, completed=1)
-            .order_by(desc(models.UsersGames.completed_date))
-        )
-    except Exception as e:
-        logger.info(e)
-        raise e
-
-
 # def get_achievements(db: Session, player):
 #     try:
 #         stmt = select(models.UserAchievements.achievement).where(
@@ -212,6 +211,49 @@ def streak(db: Session, player):
     except Exception as e:
         logger.info(e)
         raise e
+
+
+def game_completed(db: Session, player, game) -> bool:
+    stmt = select(models.UsersGames).where(
+        models.UsersGames.game == game,
+        models.UsersGames.player == player,
+        models.UsersGames.completed == 1,
+    )
+    game = db.execute(stmt).first()
+    if game:
+        return True
+    return False
+
+
+def complete_game(db: Session, user, game_name):
+    try:
+        logger.info("Completing game...")
+        stmt = (
+            update(models.UsersGames)
+            .where(
+                models.UsersGames.game == game_name, models.UsersGames.user_id == user
+            )
+            .values(
+                completed=1,
+                completed_date=datetime.datetime.now().date(),
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+        logger.info("Game completed")
+
+        # completed_games_count = (
+        #     db.query(models.UsersGames.game).filter_by(user=player, completed=1).count()
+        # )
+
+        return (
+            db.query(models.UsersGames.game)
+            .filter_by(user_id=user, completed=1)
+            .count()
+        )
+    except Exception as e:
+        db.rollback()
+        raise Exception("Error checking achievement:", str(e))
 
 
 # def set_user_achievement(db: Session, player, achievement):

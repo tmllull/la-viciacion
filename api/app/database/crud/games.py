@@ -152,49 +152,6 @@ def update_total_played_time(db: Session, game, total_played):
         raise e
 
 
-def game_completed(db: Session, player, game) -> bool:
-    stmt = select(models.UsersGames).where(
-        models.UsersGames.game == game,
-        models.UsersGames.player == player,
-        models.UsersGames.completed == 1,
-    )
-    game = db.execute(stmt).first()
-    if game:
-        return True
-    return False
-
-
-def complete_game(db: Session, player, game_name, score, time, seconds):
-    try:
-        stmt = (
-            update(models.UsersGames)
-            .where(
-                models.UsersGames.game == game_name, models.UsersGames.player == player
-            )
-            .values(
-                score=score,
-                played_time=seconds,
-                completed=1,
-                completed_date=datetime.datetime.now().date(),
-            )
-        )
-        db.execute(stmt)
-        db.commit()
-
-        completed_games_count = (
-            db.query(models.UsersGames).filter_by(player=player, completed=1).count()
-        )
-
-        return completed_games_count
-    except Exception as e:
-        db.rollback()
-        if "Duplicate entry" in str(e) or "UNIQUE" in str(e):
-            # logger.info("Logro '" + achievement + "' ya desbloqueado")
-            return False
-        else:
-            raise Exception("Error checking achievement:", e)
-
-
 def game_avg_time(db: Session, game):
     stmt = select(models.GamesInfo.avg_time).where(models.GamesInfo.name == game)
     result = db.execute(stmt).first()

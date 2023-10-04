@@ -277,12 +277,14 @@ class ExcelRoutes:
     ) -> int:
         logger.info("Complete game...")
         username = update.message.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        games = requests.get(config.API_URL + "/??????")
+        # await utils.response_conversation(update, context, "TBI")
+        # return
+        games = requests.get(
+            config.API_URL + "/users/" + username + "/games/played?completed=false"
+        ).json()
         keyboard = []
         for game in games:
-            keyboard.append([game[0]])
+            keyboard.append([game["game"]])
         keyboard.append(kb.CANCEL)
         reply_markup = ReplyKeyboardMarkup(
             keyboard,
@@ -327,11 +329,19 @@ class ExcelRoutes:
 
                 # game_row = result.fetchone()[0]
                 # row_num = game_row + 2
-                await utils.response_conversation(update, context, "TBI")
-                return
-                response = requests.patch(config.API_URL + "/???????")
+                # await utils.response_conversation(update, context, "TBI")
+                # return
+                response = requests.put(
+                    config.API_URL
+                    + "/users/"
+                    + username
+                    + "/complete-game?game_name="
+                    + context.user_data[GAME]
+                )
+
                 await update.message.reply_text(
-                    "Juego marcado como completado", reply_markup=ReplyKeyboardRemove()
+                    "Juego número " + str(response.text) + " marcado como completado",
+                    reply_markup=ReplyKeyboardRemove(),
                 )
 
             else:

@@ -1,4 +1,5 @@
 import datetime
+import re
 
 import pytz
 from dateutil.parser import isoparse
@@ -20,3 +21,20 @@ def change_timezone_clockify(time) -> str:
     date_time = isoparse(time)
     spain_timezone = pytz.timezone("Europe/Madrid")
     return str(date_time.astimezone(spain_timezone).strftime("%Y-%m-%d %H:%M:%S"))
+
+
+def convert_clockify_duration(duration):
+    match = re.match(r"PT(\d+H)?(\d+M)?", duration)
+    if match:
+        horas_str = match.group(1)
+        minutos_str = match.group(2)
+
+        horas = int(horas_str[:-1]) if horas_str else 0
+        minutos = int(minutos_str[:-1]) if minutos_str else 0
+
+        # Convertir horas y minutos a segundos
+        segundos = horas * 3600 + minutos * 60
+
+        return segundos
+    else:
+        return 0

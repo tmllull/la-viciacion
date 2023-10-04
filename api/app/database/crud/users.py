@@ -108,26 +108,6 @@ def update_played_time_game(db: Session, user_id: str, game: str, time: int):
     )
     db.execute(stmt)
     db.commit()
-    return
-
-
-def get_total_played_time(db: Session):
-    stmt = select(
-        models.TimeEntries.user, func.sum(models.TimeEntries.duration)
-    ).group_by(models.TimeEntries.user)
-    return db.execute(stmt)
-
-
-def get_played_time_games(db: Session, user_id: str):
-    stmt = (
-        select(
-            models.TimeEntries.project,
-            func.sum(models.TimeEntries.duration),
-        )
-        .where(models.TimeEntries.user_id == user_id)
-        .group_by(models.TimeEntries.project)
-    )
-    return db.execute(stmt)
 
 
 # def user_played_time(db: Session):

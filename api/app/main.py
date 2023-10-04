@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .config import Config
 from .database import models, schemas
-from .database.crud import crud_old, games, users
+from .database.crud import games, users
 from .database.database import SessionLocal, engine
 from .utils import actions as actions
 from .utils import logger as logger
@@ -141,14 +141,17 @@ def user_games_played(
 
 
 @app.put("/users/{user}/complete-game", tags=["Users"])
-def update_user(user: str, game_name: str, db: Session = Depends(get_db)):
+async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
     num_completed_games = users.complete_game(
         db, users.get_user(db, user).id, game_name
     )
-    return num_completed_games
+    game_info = await actions.get_game_info(game_name)
+    avg_time = game_info["hltb"]["comp_main"]
+    games.update_avg_time_game(db, game_name, avg_time)
+    return {"completed_games": num_completed_games, "avg_time": avg_time}
 
 
 # @app.get("/users/{user_id}/games/played/most", tags=["Users"])
@@ -235,7 +238,7 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    if games.game_exists(db, game.name):
+    if games.get_game_by_name(db, game.name):
         raise HTTPException(status_code=400, detail="Game already in DB")
     return games.new_game(db=db, game=game)
 

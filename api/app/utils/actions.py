@@ -1,19 +1,22 @@
 import datetime
 import json
 import re
+import time
 from typing import Union
 
 import requests
 from howlongtobeatpy import HowLongToBeat
+from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
 from ..database import crud, models, schemas
+from ..database.crud import games, rankings, time_entries, users
 from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
 
-clockify = ClockifyApi()
+clockify_api = ClockifyApi()
 config = Config(False)
 
 rawgio_search_game = (
@@ -27,40 +30,41 @@ rawgio_search_game = (
 
 async def init_data(db: Session):
     logger.info("Init data...")
-    sync_clockify_entries(db, "2023-01-01")
-    await sync_games_from_clockify(db)
-    sync_played_games(db)
-    init_played_time_games(db)
-    init_played_time_users(db)
-    return
+    # sync_clockify_entries(db, "2023-01-01")
+    # await sync_games_from_clockify(db)
+    # sync_played_games(db)
+    # init_played_time_games(db)
+    # init_played_time_users(db)
+    # return
 
 
 async def sync_data(db: Session, date: str = None):
     logger.info("Sync data...")
+    start_time = time.time()
     sync_clockify_entries(db, date)
     logger.info("Updating played time games...")
-    played_time_games = crud.games_total_played_time_by_game(db)
+    played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
-        crud.games_update_total_played_time(db, game[0], game[1])
+        games.update_total_played_time(db, game[0], game[1])
+    logger.info("Updating played time users...")
+    played_time_users = time_entries.get_users_played_time(db)
+    for user in played_time_users:
+        logger.info("TBI")
+        break
+    logger.info("Updating played time game-user...")
+    users_db = users.get_users(db)
+    for user in users_db:
+        played_time_games = time_entries.get_user_games_played_time(db, user.id)
+        for game in played_time_games:
+            users.update_played_time_game(db, user.id, game[0], game[1])
+
     await ranking_games_hours(db)
     sync_played_games(db)
-    sync_played_games_user(db)
+    # sync_played_games_user(db)
     # check_ranking_played_hours(db)
+    end_time = time.time()
+    logger.info("Elapsed time: " + str(end_time - start_time))
     return
-
-
-#################
-##### USERS #####
-#################
-
-
-# def get_user_id(db: Session, user_id: Union[int, str]):
-#     db_user = crud.get_user_by_tg_id(db, telegram_id=user_id)
-#     if db_user is None:
-#         db_user = crud.get_user_by_tg_username(db, telegram_username=user_id)
-#         if db_user is None:
-#             return None
-#     return db_user.id
 
 
 def check_rankings(db: Session):
@@ -69,37 +73,28 @@ def check_rankings(db: Session):
 
 
 async def sync_games_from_clockify(db: Session):
-    games = crud.games_get_all_played_games(db)
     logger.info("Adding games...")
-    for game in games:
-        if not crud.games_game_exists(db, game[0]):
-            await add_new_game(db, game)
-
-
-def init_played_time_games(db: Session):
-    logger.info("Updating played time games...")
-    played_time_games = crud.games_total_played_time_by_game(db)
-    for game in played_time_games:
-        crud.games_update_total_played_time(db, game[0], game[1])
-    most_played_games = crud.games_most_played_time(db)
-    for i, game in enumerate(most_played_games):
-        crud.update_current_ranking_hours_game(db, i + 1, game[0])
-        crud.update_last_ranking_hours_game(db, i + 1, game[0])
-
-
-def init_played_time_users(db: Session):
-    logger.info("Updating played time players...")
-    most_played_users = crud.user_get_total_played_time(db)
-    for i, player in enumerate(most_played_users):
-        logger.info(str(i) + ": " + player[0])
-        crud.update_current_ranking_hours_user(db, i + 1, player[0])
-        crud.update_last_ranking_hours_user(db, i + 1, player[0])
+    games_db = games.get_all_played_games(db)
+    for game in games_db:
+        if not games.get_game_by_name(db, game[0]):
+            game_info = await get_game_info(game[0])
+            game_data = {
+                "name": game[0],
+                "dev": game_info[""],
+                "release_date": game_info[""],
+                "steam_id": game_info[""],
+                "image_url": game_info[""],
+                "genres": game_info[""],
+                "avg_time": game_info[""],
+                "clockify_id": game_info[""],
+            }
+            await games.new_game(db, game_data)
 
 
 def check_ranking_played_hours(db: Session):
-    result = crud.user_get_total_played_time(db)
-    for data in result:
-        logger.info(data)
+    # result = crud.user_get_total_played_time(db)
+    # for data in result:
+    #     logger.info(data)
     return
 
 
@@ -156,19 +151,6 @@ async def search_game_info_by_name(game: str):
             "clockify_id": None,
         }
         return game_info
-        # total_games = crud.add_new_game(
-        #     db,
-        #     game_name,
-        #     dev,
-        #     steam_id,
-        #     released,
-        #     genres,
-        #     utils.convert_hours_minutes_to_seconds(hltb_main_story),
-        #     project_id,
-        #     picture_url,
-        # )
-        # clockify_project = clockify.add_project(game)
-        # logger.info(clockify_project)
     except Exception as e:
         logger.exception(e)
 
@@ -194,7 +176,7 @@ async def get_game_info(game):
 
 
 def sync_played_games(db: Session, start_date: str = None):
-    logger.info("Sync played games (TBI)...")
+    logger.info("Sync played games (To Revise)...")
     if start_date is None:
         date = datetime.datetime.now()
         start = date - datetime.timedelta(days=1)
@@ -203,10 +185,10 @@ def sync_played_games(db: Session, start_date: str = None):
         date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         start = date - datetime.timedelta(days=1)
         start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
-    time_entries = crud.get_all_time_entries(db)
-    for time_entry in time_entries:
-        already_played = crud.user_get_game(db, time_entry.user_id, time_entry.project)
-        if crud.user_get_game(db, time_entry.user_id, time_entry.project) is None:
+    time_entries_db = time_entries.get_time_entries(db, start_date)
+    for time_entry in time_entries_db:
+        # already_played = crud.user_get_game(db, time_entry.user_id, time_entry.project)
+        if users.get_game(db, time_entry.user_id, time_entry.project) is None:
             start_game = models.UsersGames(
                 game=time_entry.project,
                 user=time_entry.user,
@@ -217,13 +199,13 @@ def sync_played_games(db: Session, start_date: str = None):
             # crud.user_add_new_game()
 
 
-def sync_played_games_user(db: Session):
-    logger.info("Sync played time on every game for users...")
-    users = crud.get_users(db)
-    for user in users:
-        games = crud.user_get_played_time_games(db, user.id)
-        for game in games:
-            crud.user_update_played_time_game(db, user.id, game[0], game[1])
+# def sync_played_games_user(db: Session):
+#     logger.info("Sync played time on every game for users...")
+#     users = crud.get_users(db)
+#     for user in users:
+#         games = crud.user_get_played_time_games(db, user.id)
+#         for game in games:
+#             crud.user_update_played_time_game(db, user.id, game[0], game[1])
 
 
 ####################
@@ -234,13 +216,13 @@ def sync_played_games_user(db: Session):
 async def ranking_games_hours(db: Session):
     logger.info("Checking games ranking hours...")
     try:
-        ranking_games = crud.get_ranking_games(db)
+        ranking_games = rankings.get_ranking_games(db)
         if not config.silent:
-            result = crud.get_current_ranking_games(db)
+            result = rankings.get_current_ranking_games(db)
             current = []
             for game in result:
                 current.append(game[0])
-            result = crud.get_last_ranking_games(db)
+            result = rankings.get_last_ranking_games(db)
             last = []
             for game in result:
                 last.append(game[0])
@@ -261,7 +243,7 @@ async def ranking_games_hours(db: Session):
                         last = game[2]
                         current = game[3]
                         logger.info(game_name + " " + str(i + 1))
-                        crud.update_last_ranking_hours_game(db, i + 1, game_name)
+                        rankings.update_last_ranking_hours_game(db, i + 1, game_name)
                         diff_raw = last - current
                         diff = str(diff_raw)
                         # This adds + to games that up position (positive diff has not + sign)
@@ -318,15 +300,15 @@ async def ranking_games_hours(db: Session):
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
     logger.info("Sync current ranking with last ranking...")
-    ranking_games = crud.get_ranking_games(db)
+    ranking_games = rankings.get_ranking_games(db)
     i = 1
     for game in ranking_games:
-        crud.update_last_ranking_hours_game(db, i, game[0])
+        rankings.update_last_ranking_hours_game(db, i, game[0])
         i += 1
 
 
 def get_last_played_games(db: Session):
-    last_played = crud.ranking_last_played_games(db)
+    last_played = rankings.ranking_last_played_games(db)
     games = []
     games_temp = []
     i = 1
@@ -346,32 +328,72 @@ def get_last_played_games(db: Session):
 
 
 def sync_clockify_entries(db: Session, date: str = None):
-    users = crud.get_users(db)
+    users_db = users.get_users(db)
     if date is None:
         logger.info("Syncing last time entries...")
     else:
         logger.info("Syncing time entries from " + date + "...")
     try:
-        for user in users:
-            entries = clockify.get_time_entries(user.clockify_id, date)
-            crud.sync_clockify_entries(db, user.id, entries)
+        for user in users_db:
+            entries = clockify_api.get_time_entries(user.clockify_id, date)
+            sync_clockify_entries_db(db, user.id, entries)
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))
         raise e
 
 
-def convert_clockify_duration(duration):
-    match = re.match(r"PT(\d+H)?(\d+M)?", duration)
-    if match:
-        horas_str = match.group(1)
-        minutos_str = match.group(2)
-
-        horas = int(horas_str[:-1]) if horas_str else 0
-        minutos = int(minutos_str[:-1]) if minutos_str else 0
-
-        # Convertir horas y minutos a segundos
-        segundos = horas * 3600 + minutos * 60
-
-        return segundos
-    else:
-        return 0
+def sync_clockify_entries_db(db: Session, user_id, entries):
+    user = users.get_user(db, user=user_id)
+    logger.info("Sync entries for user " + str(user.name))
+    for entry in entries:
+        try:
+            start = entry["timeInterval"]["start"]
+            end = entry["timeInterval"]["end"]
+            duration = entry["timeInterval"]["duration"]
+            if end is None:
+                end = ""
+            if duration is None:
+                duration = ""
+            start = utils.change_timezone_clockify(start)
+            if end != "":
+                end = utils.change_timezone_clockify(end)
+            project_name = clockify_api.get_project(entry["projectId"])["name"]
+            stmt = select(models.TimeEntries).where(
+                models.TimeEntries.id == entry["id"]
+            )
+            exists = db.execute(stmt).first()
+            if not exists:
+                new_entry = models.TimeEntries(
+                    id=entry["id"],
+                    user=user.name,
+                    user_id=user.id,
+                    user_clockify_id=user.clockify_id,
+                    project=project_name,
+                    project_id=entry["projectId"],
+                    start=start,
+                    end=end,
+                    duration=utils.convert_clockify_duration(duration),
+                )
+                db.add(new_entry)
+            else:
+                stmt = (
+                    update(models.TimeEntries)
+                    .where(models.TimeEntries.id == entry["id"])
+                    .values(
+                        user=user.name,
+                        project=project_name,
+                        project_id=entry["projectId"],
+                        start=start,
+                        end=end,
+                        duration=utils.convert_clockify_duration(duration),
+                    )
+                )
+                db.execute(stmt)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            logger.info("Error adding new entry " + str(entry) + ": " + str(e))
+            raise e
+        # logger.info(entry["id"])
+        # exit()
+    return

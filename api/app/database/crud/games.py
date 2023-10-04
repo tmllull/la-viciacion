@@ -18,21 +18,15 @@ clockify = ClockifyApi()
 #################
 
 
-def get_games(db: Session, skip: int = 0, limit: int = 100) -> list[models.GamesInfo]:
+def get_games(
+    db: Session, skip: int = 0, limit: int = 10000000
+) -> list[models.GamesInfo]:
     return db.query(models.GamesInfo).offset(skip).limit(limit).all()
 
 
 def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
     logger.info("Searching game: " + name)
     return db.query(models.GamesInfo).filter(models.GamesInfo.name == name).first()
-
-
-def game_exists(db: Session, game_name: str):
-    stmt = select(models.GamesInfo).where(models.GamesInfo.name == game_name)
-    game = db.execute(stmt).first()
-    if game:
-        return True
-    return False
 
 
 # def new_game_by_name(db: Session, game: str):
@@ -105,30 +99,36 @@ def get_all_played_games(db: Session):
     return db.execute(stmt)
 
 
-def update_game(
-    db: Session,
-    game,
-    dev=None,
-    steam_id=None,
-    released=None,
-    genres=None,
-    avg_time=None,
-    clockify_id=None,
-    image_url=None,
-):
+def update_avg_time_game(db: Session, game: str, avg_time: int):
     try:
         stmt = (
             update(models.GamesInfo)
             .where(models.GamesInfo.name == game)
             .values(
-                game=game,
-                dev=dev,
-                steam_id=steam_id,
-                image_url=image_url,
-                release_date=released,
-                clockify_id=clockify_id,
-                genres=genres,
                 avg_time=avg_time,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        logger.info(e)
+        raise e
+
+
+def update_game(db: Session, game: models.GamesInfo):
+    try:
+        stmt = (
+            update(models.GamesInfo)
+            .where(models.GamesInfo.name == game)
+            .values(
+                game=game.name,
+                dev=game.dev,
+                steam_id=game.steam_id,
+                image_url=game.image_url,
+                release_date=game.released,
+                clockify_id=game.clockify_id,
+                genres=game.genres,
+                avg_time=game.avg_time,
             )
         )
         db.execute(stmt)
@@ -155,22 +155,6 @@ def update_total_played_time(db: Session, game, total_played):
 def game_avg_time(db: Session, game):
     stmt = select(models.GamesInfo.avg_time).where(models.GamesInfo.name == game)
     result = db.execute(stmt).first()
-    return result
-
-
-def total_played_time_by_game(db: Session, game):
-    stmt = select(
-        models.TimeEntries.project, func.sum(models.TimeEntries.duration)
-    ).where(models.TimeEntries.project == game)
-    result = db.execute(stmt)
-    return result
-
-
-def total_played_time_all(db: Session):
-    stmt = select(
-        models.TimeEntries.project, func.sum(models.TimeEntries.duration)
-    ).group_by(models.TimeEntries.project)
-    result = db.execute(stmt)
     return result
 
 

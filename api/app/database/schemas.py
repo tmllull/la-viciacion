@@ -36,7 +36,6 @@ class User(UserBase):
     is_admin: Union[int, None] = None
     played_time: Union[int, None] = None
     clockify_id: Union[str, None] = None
-    last_ranking_hours: Union[int, None] = None
     current_ranking_hours: Union[int, None] = None
     last_streak: Union[int, None] = None
     last_streak_date: Union[datetime.date, None] = None

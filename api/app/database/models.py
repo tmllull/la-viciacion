@@ -55,7 +55,6 @@ class User(Base):
     clockify_id = Column(String(255))
     is_admin = Column(Integer)
     played_time = Column(Integer)
-    last_ranking_hours = Column(Integer)
     current_ranking_hours = Column(Integer)
     last_streak = Column(Integer)
     last_streak_date = Column(Date)

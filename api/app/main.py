@@ -44,9 +44,11 @@ async def sync_data(db: Session = Depends(get_db)):
 
 
 @app.get("/sync-data")
-async def sync_data(date: str = None, db: Session = Depends(get_db)):
+async def sync_data(
+    start_date: str = None, silent: bool = False, db: Session = Depends(get_db)
+):
     try:
-        await actions.sync_data(db, date)
+        await actions.sync_data(db, start_date, silent)
         # actions.sync_clockify_entries(db, date)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

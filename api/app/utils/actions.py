@@ -38,10 +38,12 @@ async def init_data(db: Session):
     # return
 
 
-async def sync_data(db: Session, date: str = None):
+async def sync_data(db: Session, date: str = None, silent: bool = False):
     logger.info("Sync data...")
     start_time = time.time()
-    sync_clockify_entries(db, date)
+    total_entries = sync_clockify_entries(db, date)
+    if total_entries < 1:
+        return
     # sync_played_games(db)
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
@@ -66,7 +68,6 @@ async def sync_data(db: Session, date: str = None):
     # check_ranking_played_hours(db)
     end_time = time.time()
     logger.info("Elapsed time: " + str(end_time - start_time))
-    return
 
 
 # def check_rankings(db: Session):
@@ -222,16 +223,20 @@ async def ranking_games_hours(db: Session):
         # ranking_games = rankings.get_ranking_games(db)
         most_played_games = games.get_most_played_time(db, 11)
         most_played: list[models.GamesInfo] = []
+        most_played_to_check = []
         for game in most_played_games:
             most_played.append(game)
+            most_played_to_check.append(game.name)
         result = rankings.get_current_ranking_games(db)
         current: list[models.GamesInfo] = []
+        current_to_check = []
         for game in result:
             current.append(game)
-        if current[:10] == most_played[:10]:
-            logger.info("No changes in games ranking")
+            current_to_check.append(game.name)
+        if current_to_check[:10] == most_played_to_check[:10]:
+            logger.info("No changes in TOP 10 games ranking")
         else:
-            logger.info("Changes in games ranking")
+            logger.info("Changes in TOP 10 games ranking")
             msg = "📣📣 Actualización del ránking de juegos 📣📣\n"
             i = 0
             for game in most_played:
@@ -297,8 +302,8 @@ async def ranking_games_hours(db: Session):
             logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
-    logger.info("Sync current ranking with last ranking...")
-    most_played = games.get_most_played_time(db, 11)
+    logger.info("Updating ranking...")
+    most_played = games.get_most_played_time(db)
     i = 1
     for game in most_played:
         rankings.update_current_ranking_hours_game(db, i, game.name)
@@ -308,53 +313,61 @@ async def ranking_games_hours(db: Session):
 async def ranking_players_hours(db: Session):
     # logger.info("TBI")
     # return
-    logger.info("Ranking player hours (TBI)")
-    return
+    logger.info("Ranking player hours...")
+    # return
     most_played_users = users.get_most_played_time(db)
-    most_played = []
+    most_played: list[models.User] = []
+    most_played_to_check = []
     for player in most_played_users:
-        most_played.append(player.name)
+        most_played.append(player)
+        most_played_to_check.append(player.name)
     result = rankings.get_current_ranking_hours_players(db)
-    current = []
+    current: list[models.User] = []
+    current_to_check = []
     for player in result:
-        current.append(player.name)
+        current.append(player)
+        current_to_check.append(player.name)
     # last = dict(sorted(last, key=lambda x: x[1], reverse=True))
-    if current == most_played:
+    if current_to_check == most_played_to_check:
         logger.info("No changes in player ranking")
     else:
         logger.info("Changes in player ranking")
-        ranking_players = db.player_played_time()
-        ranking_players = dict(
-            sorted(ranking_players, key=lambda x: x[1], reverse=True)
-        )
+        # ranking_players = db.player_played_time()
+        # ranking_players = dict(
+        #     sorted(ranking_players, key=lambda x: x[1], reverse=True)
+        # )
         msg = "📣📣 Actualización del ránking de horas 📣📣\n"
         for i, player in enumerate(most_played_users):
             name = player.name
-            rankings.update_current_ranking_hours_user(db, i, player.id)
+            # rankings.update_current_ranking_hours_user(db, i + 1, player.id)
             # db.update_last_ranking_hours(i + 1, player)
             hours = player.played_time
-            diff_raw = last[player] - current[player]
+            if hours is None:
+                hours = 0
+            current = player.current_ranking_hours
+            diff_raw = current - (i + 1)
             diff = str(diff_raw)
+            # logger.info("Checkpoint")
             # This adds + to games that up position (positive diff has not + sign)
             if diff_raw > 0:
                 diff = "+" + diff
             diff = diff.replace("+", "↑")
             diff = diff.replace("-", "↓")
             if diff != "0":
-                player = "*" + player + "*"
+                name = "*" + name + "*"
             else:
                 diff = diff.replace("0", "=")
             if diff_raw > 1:
-                player = "⏫ " + player
+                name = "⏫ " + name
             if diff_raw == 1:
-                player = "⬆️ " + player
+                name = "⬆️ " + name
             if diff_raw < 0:
-                player = "⬇️ " + player
+                name = "⬇️ " + name
             msg = (
                 msg
                 + str(i + 1)
                 + ". "
-                + player
+                + name
                 + ": "
                 + str(utils.convert_time_to_hours(hours))
                 + " ("
@@ -362,9 +375,11 @@ async def ranking_players_hours(db: Session):
                 + ")"
                 + "\n"
             )
-        if not self.silent:
-            logger.info(msg)
-            await utils.send_message(msg)
+            rankings.update_current_ranking_hours_user(db, i + 1, player.id)
+        # if not self.silent:
+        #     logger.info(msg)
+        #     await utils.send_message(msg)
+        logger.info(msg)
 
 
 def get_last_played_games(db: Session):
@@ -393,10 +408,13 @@ def sync_clockify_entries(db: Session, date: str = None):
         logger.info("Syncing last time entries...")
     else:
         logger.info("Syncing time entries from " + date + "...")
+    total_entries = 0
     try:
         for user in users_db:
             entries = clockify_api.get_time_entries(user.clockify_id, date)
+            total_entries += len(entries)
             sync_clockify_entries_db(db, user.id, entries)
+        return total_entries
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))
         raise e

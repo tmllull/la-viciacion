@@ -42,6 +42,7 @@ async def sync_data(db: Session, date: str = None):
     logger.info("Sync data...")
     start_time = time.time()
     sync_clockify_entries(db, date)
+    sync_played_games(db)
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -59,7 +60,7 @@ async def sync_data(db: Session, date: str = None):
             users.update_played_time_game(db, user.id, game[0], game[1])
 
     await ranking_games_hours(db)
-    sync_played_games(db)
+    await ranking_players_hours(db)
     # sync_played_games_user(db)
     # check_ranking_played_hours(db)
     end_time = time.time()
@@ -67,9 +68,9 @@ async def sync_data(db: Session, date: str = None):
     return
 
 
-def check_rankings(db: Session):
-    sync_clockify_entries(db, "2023-01-01")
-    return
+# def check_rankings(db: Session):
+#     sync_clockify_entries(db, "2023-01-01")
+#     return
 
 
 async def sync_games_from_clockify(db: Session):
@@ -305,6 +306,74 @@ async def ranking_games_hours(db: Session):
     for game in ranking_games:
         rankings.update_last_ranking_hours_game(db, i, game[0])
         i += 1
+
+
+async def ranking_players_hours(db: Session):
+    logger.info("TBI")
+    return
+    logger.info("Ranking hours")
+    ranking_players = db.player_played_time()
+    ranking_players = dict(sorted(ranking_players, key=lambda x: x[1], reverse=True))
+    for i, elem in enumerate(ranking_players):
+        db.update_current_ranking_hours(i + 1, elem)
+        if self.silent:
+            db.update_last_ranking_hours(i + 1, elem)
+    if not self.silent:
+        result = db.get_current_ranking_players()
+        current = []
+        for player in result:
+            current.append(player)
+        current = dict(sorted(current, key=lambda x: x[1], reverse=True))
+        result = db.get_last_ranking_players()
+        last = []
+        for player in result:
+            last.append(player)
+        last = dict(sorted(last, key=lambda x: x[1], reverse=True))
+        if current == last:
+            logger.info("No changes in player ranking")
+        else:
+            logger.info("Changes in player ranking")
+            ranking_players = db.player_played_time()
+            ranking_players = dict(
+                sorted(ranking_players, key=lambda x: x[1], reverse=True)
+            )
+            msg = "📣📣 Actualización del ránking de horas 📣📣\n"
+            for i, elem in enumerate(ranking_players):
+                player = elem
+                db.update_last_ranking_hours(i + 1, player)
+                hours = ranking_players[elem]
+                diff_raw = last[player] - current[player]
+                diff = str(diff_raw)
+                # This adds + to games that up position (positive diff has not + sign)
+                if diff_raw > 0:
+                    diff = "+" + diff
+                diff = diff.replace("+", "↑")
+                diff = diff.replace("-", "↓")
+                if diff != "0":
+                    player = "*" + player + "*"
+                else:
+                    diff = diff.replace("0", "=")
+                if diff_raw > 1:
+                    player = "⏫ " + player
+                if diff_raw == 1:
+                    player = "⬆️ " + player
+                if diff_raw < 0:
+                    player = "⬇️ " + player
+                msg = (
+                    msg
+                    + str(i + 1)
+                    + ". "
+                    + player
+                    + ": "
+                    + str(utils.convert_time_to_hours(hours))
+                    + " ("
+                    + diff
+                    + ")"
+                    + "\n"
+                )
+            if not self.silent:
+                logger.info(msg)
+                await utils.send_message(msg)
 
 
 def get_last_played_games(db: Session):

@@ -39,9 +39,9 @@ async def sync_data(db: Session, date: str = None):
     logger.info("Sync data...")
     sync_clockify_entries(db, date)
     logger.info("Updating played time games...")
-    played_time_games = crud.total_played_time_games(db)
+    played_time_games = crud.games_total_played_time_by_game(db)
     for game in played_time_games:
-        crud.update_total_played_game(db, game[0], game[1])
+        crud.games_update_total_played_time(db, game[0], game[1])
     await ranking_games_hours(db)
     sync_played_games(db)
     sync_played_games_user(db)
@@ -69,19 +69,19 @@ def check_rankings(db: Session):
 
 
 async def sync_games_from_clockify(db: Session):
-    games = crud.get_all_played_games(db)
+    games = crud.games_get_all_played_games(db)
     logger.info("Adding games...")
     for game in games:
-        if not crud.game_exists(db, game[0]):
+        if not crud.games_game_exists(db, game[0]):
             await add_new_game(db, game)
 
 
 def init_played_time_games(db: Session):
     logger.info("Updating played time games...")
-    played_time_games = crud.total_played_time_games(db)
+    played_time_games = crud.games_total_played_time_by_game(db)
     for game in played_time_games:
-        crud.update_total_played_game(db, game[0], game[1])
-    most_played_games = crud.most_played_games_time(db)
+        crud.games_update_total_played_time(db, game[0], game[1])
+    most_played_games = crud.games_most_played_time(db)
     for i, game in enumerate(most_played_games):
         crud.update_current_ranking_hours_game(db, i + 1, game[0])
         crud.update_last_ranking_hours_game(db, i + 1, game[0])
@@ -89,7 +89,7 @@ def init_played_time_games(db: Session):
 
 def init_played_time_users(db: Session):
     logger.info("Updating played time players...")
-    most_played_users = crud.user_played_time(db)
+    most_played_users = crud.user_get_total_played_time(db)
     for i, player in enumerate(most_played_users):
         logger.info(str(i) + ": " + player[0])
         crud.update_current_ranking_hours_user(db, i + 1, player[0])
@@ -97,7 +97,7 @@ def init_played_time_users(db: Session):
 
 
 def check_ranking_played_hours(db: Session):
-    result = crud.user_played_time(db)
+    result = crud.user_get_total_played_time(db)
     for data in result:
         logger.info(data)
     return
@@ -119,15 +119,13 @@ def update_played_days(db: Session):
     return
 
 
-async def add_new_game(db: Session, game):
+async def search_game_info_by_name(game: str):
     try:
-        logger.info("Adding game " + game[0])
-        game_name = game[0]
-        project_id = game[1]
+        logger.info("Adding game " + game)
         released = ""
         genres = ""
         steam_id = ""
-        rawg_info, hltb_info, hltb_main_story = await get_game_info(game_name)
+        rawg_info, hltb_info, hltb_main_story = await get_game_info(game)
         if rawg_info is not None:
             try:
                 steam_id = hltb_info["profile_steam"]
@@ -142,27 +140,37 @@ async def add_new_game(db: Session, game):
             for genre in rawg_info["genres"]:
                 genres += genre["name"] + ","
             genres = genres[:-1]
-
+        game_name = rawg_info["name"]
         dev = ""
         picture_url = rawg_info["background_image"]
         if hltb_info is not None:
             dev = hltb_info["profile_dev"]
-        total_games = crud.add_new_game(
-            db,
-            game_name,
-            dev,
-            steam_id,
-            released,
-            genres,
-            utils.convert_hours_minutes_to_seconds(hltb_main_story),
-            project_id,
-            picture_url,
-        )
+        game_info = {
+            "name": game_name,
+            "dev": dev,
+            "release_date": released,
+            "steam_id": steam_id,
+            "image_url": picture_url,
+            "genres": genres,
+            "avg_time": utils.convert_hours_minutes_to_seconds(hltb_main_story),
+            "clockify_id": None,
+        }
+        return game_info
+        # total_games = crud.add_new_game(
+        #     db,
+        #     game_name,
+        #     dev,
+        #     steam_id,
+        #     released,
+        #     genres,
+        #     utils.convert_hours_minutes_to_seconds(hltb_main_story),
+        #     project_id,
+        #     picture_url,
+        # )
         # clockify_project = clockify.add_project(game)
         # logger.info(clockify_project)
     except Exception as e:
-        if "Duplicate" not in str(e):
-            logger.exception(e)
+        logger.exception(e)
 
 
 async def get_game_info(game):
@@ -178,14 +186,11 @@ async def get_game_info(game):
     results_list = await HowLongToBeat().async_search(game)
     if results_list is not None and len(results_list) > 0:
         best_element = max(results_list, key=lambda element: element.similarity)
-        hltb_content, hltb_main_history = (
-            best_element.json_content,
-            best_element.main_story,
-        )
+        hltb_content = best_element.json_content
     else:
-        hltb_content = hltb_main_history = None
+        hltb_content = None
 
-    return rawg_content, hltb_content, hltb_main_history
+    return {"rawg": rawg_content, "hltb": hltb_content}
 
 
 def sync_played_games(db: Session, start_date: str = None):
@@ -200,10 +205,8 @@ def sync_played_games(db: Session, start_date: str = None):
         start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
     time_entries = crud.get_all_time_entries(db)
     for time_entry in time_entries:
-        already_played = crud.user_played_game(
-            db, time_entry.user_id, time_entry.project
-        )
-        if crud.user_played_game(db, time_entry.user_id, time_entry.project) is None:
+        already_played = crud.user_get_game(db, time_entry.user_id, time_entry.project)
+        if crud.user_get_game(db, time_entry.user_id, time_entry.project) is None:
             start_game = models.UsersGames(
                 game=time_entry.project,
                 user=time_entry.user,
@@ -218,9 +221,9 @@ def sync_played_games_user(db: Session):
     logger.info("Sync played time on every game for users...")
     users = crud.get_users(db)
     for user in users:
-        games = crud.user_played_time_game(db, user.id)
+        games = crud.user_get_played_time_games(db, user.id)
         for game in games:
-            crud.update_user_played_time_game(db, user.id, game[0], game[1])
+            crud.user_update_played_time_game(db, user.id, game[0], game[1])
 
 
 ####################

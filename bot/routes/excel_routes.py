@@ -93,9 +93,11 @@ class ExcelRoutes:
         try:
             context.user_data[PLATFORM] = update.message.text
             logger.info("Received platform: " + context.user_data[PLATFORM])
-            rawg_info, hltb_info, mean_time = await utils.get_game_info(
-                context.user_data[GAME]
+            response = requests.get(
+                config.API_URL + "/games/rawg/" + str(context.user_data[GAME])
             )
+            rawg_info = response.json()["rawg"]
+            hltb_info = response.json()["hltb"]
             context.user_data[GAME] = rawg_info["name"]
             context.user_data[RELEASE_DATE] = rawg_info["released"]
             if hltb_info is None:
@@ -121,7 +123,7 @@ class ExcelRoutes:
             for genre in rawg_info["genres"]:
                 genres += genre["name"] + ","
             context.user_data[GENRES] = genres[:-1]
-            context.user_data[MEAN_TIME] = mean_time
+            context.user_data[MEAN_TIME] = hltb_info["comp_main"]
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
             response = requests.get(
                 config.API_URL
@@ -217,7 +219,6 @@ class ExcelRoutes:
                 response = requests.request(
                     "POST", config.API_URL + "/games", json=new_game
                 )
-                logger.info(response.status_code)
                 if response.status_code == 400:
                     logger.info("Game already exists on DB")
                 elif response.status_code == 200:

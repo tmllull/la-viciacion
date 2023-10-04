@@ -4,7 +4,8 @@ from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
 from .config import Config
-from .database import crud, models, schemas
+from .database import models, schemas
+from .database.crud import crud_old, games, users
 from .database.database import SessionLocal, engine
 from .utils import actions as actions
 from .utils import logger as logger
@@ -62,16 +63,16 @@ def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    users = crud.get_users(db, skip, limit)
-    return users
+    users_db = users.get_users(db, skip, limit)
+    return users_db
 
 
 @app.get("/users/{user}", tags=["Users"])
 def get_user(user: Union[int, str], db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user=user)
-    if db_user is None:
+    user_db = users.get_user(db, user=user)
+    if user_db is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    return user_db
 
 
 # @app.post("/users/", tags=["Users"], response_model=schemas.User)
@@ -99,12 +100,12 @@ def start_game(username: str, game: schemas.StartGame, db: Session = Depends(get
     """
     TODO: Add description
     """
-    played_games = crud.user_played_games(db, crud.get_user(db, username).id)
+    played_games = users.get_games(db, users.get_user(db, username).id)
     for played_game in played_games:
         if played_game.game == game.game:
             raise HTTPException(status_code=400, detail="Game already exists")
 
-    return crud.user_add_new_game(db=db, game=game, username=username)
+    return users.add_new_game(db=db, game=game, username=username)
 
 
 # @app.get("/users/{user_id}", response_model=schemas.User)
@@ -134,8 +135,8 @@ def user_games_played(
     limit: int = 100,
     db: Session = Depends(get_db),
 ):
-    user_id = crud.get_user(db, user=user).id
-    played_games = crud.user_played_games(db, user_id)
+    user_id = users.get_user(db, user=user).id
+    played_games = users.get_games(db, user_id)
     return played_games
 
 
@@ -191,20 +192,31 @@ def get_games(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    users = crud.get_games(db, skip, limit)
-    return users
+    games_db = games.get_games(db, skip, limit)
+    return games_db
 
 
 @app.get("/games/{name}", tags=["Games"], response_model=schemas.GamesInfo)
-def get_game_by_name(name: str, db: Session = Depends(get_db)):
+async def get_game_by_name(name: str, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    game = crud.get_game_by_name(db, name)
-    if game is None:
+    # await actions.search_game_info_by_name(name)
+    game_db = games.get_game_by_name(db, name)
+    if game_db is None:
         raise HTTPException(status_code=404, detail="Game not exists")
 
-    return game
+    return game_db
+
+
+@app.get("/games/rawg/{name}", tags=["Games"])
+async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
+    """
+    TODO: Add description
+    """
+    # await actions.search_game_info_by_name(name)
+    game_info = await actions.get_game_info(name)
+    return game_info
 
 
 @app.post("/games/", tags=["Games"], response_model=schemas.GamesInfo)
@@ -212,10 +224,9 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    if crud.game_exists(db, game.name):
-        game_db = crud.get_game_by_name(db, game.name)
+    if games.game_exists(db, game.name):
         raise HTTPException(status_code=400, detail="Game already in DB")
-    return crud.new_game(db=db, game=game)
+    return games.new_game(db=db, game=game)
 
 
 ##########################

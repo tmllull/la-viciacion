@@ -64,7 +64,7 @@ class GamesInfo(GamesInfoBase):
     image_url: Union[str, None] = None
     genres: Union[str, None] = None
     played_time: Union[int, None] = None
-    mean_time: Union[int, None] = None
+    avg_time: Union[int, None] = None
     last_ranking: Optional[Union[int, None]] = 100000000
     current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
@@ -80,7 +80,7 @@ class NewGame(BaseModel):
     steam_id: Optional[Union[str, None]] = None
     image_url: Optional[Union[str, None]] = None
     genres: Optional[Union[str, None]] = None
-    mean_time: Optional[Union[int, None]] = None
+    avg_time: Optional[Union[int, None]] = None
     clockify_id: Optional[Union[str, None]] = None
 
     # class Config:

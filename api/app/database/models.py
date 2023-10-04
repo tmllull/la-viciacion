@@ -97,7 +97,7 @@ class GamesInfo(Base):
     image_url = Column(String(255))
     genres = Column(String(255))
     played_time = Column(Integer)
-    mean_time = Column(Integer)
+    avg_time = Column(Integer)
     last_ranking = Column(Integer)
     current_ranking = Column(Integer)
     clockify_id = Column(String(255))

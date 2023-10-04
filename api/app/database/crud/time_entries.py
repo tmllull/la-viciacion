@@ -16,8 +16,8 @@ clockify = ClockifyApi()
 
 def get_users_played_time(db: Session):
     stmt = select(
-        models.TimeEntries.user, func.sum(models.TimeEntries.duration)
-    ).group_by(models.TimeEntries.user)
+        models.TimeEntries.user_id, func.sum(models.TimeEntries.duration)
+    ).group_by(models.TimeEntries.user_id)
     return db.execute(stmt)
 
 

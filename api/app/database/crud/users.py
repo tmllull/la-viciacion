@@ -156,6 +156,20 @@ def update_played_days(db: Session, player, played_days):
         raise e
 
 
+def update_played_time(db: Session, user_id, played_time):
+    try:
+        stmt = (
+            update(models.User)
+            .where(models.User.id == user_id)
+            .values(played_time=played_time)
+        )
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        logger.info(e)
+        raise e
+
+
 def top_games(db: Session, player, limit: int = 10):
     try:
         stmt = (
@@ -249,3 +263,12 @@ def complete_game(db: Session, user, game_name):
 #             return True
 #         else:
 #             raise Exception("Error checking achievement:", e)
+
+
+def get_most_played_time(db: Session, limit: int = None) -> list[models.User]:
+    if limit is not None:
+        return (
+            db.query(models.User).order_by(desc(models.User.played_time)).limit(limit)
+        )
+    else:
+        return db.query(models.User).order_by(desc(models.User.played_time))

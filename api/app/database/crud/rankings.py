@@ -30,81 +30,83 @@ def update_current_ranking_hours_game(db: Session, i, game):
         logger.info(e)
 
 
-def update_last_ranking_hours_game(db: Session, i, game):
-    try:
-        stmt = (
-            update(models.GamesInfo)
-            .where(models.GamesInfo.name == game)
-            .values(last_ranking=i)
-        )
-        db.execute(stmt)
-        db.commit()
-    except Exception as e:
-        logger.info(e)
+# def update_last_ranking_hours_game(db: Session, i, game):
+#     try:
+#         stmt = (
+#             update(models.GamesInfo)
+#             .where(models.GamesInfo.name == game)
+#             .values(last_ranking=i)
+#         )
+#         db.execute(stmt)
+#         db.commit()
+#     except Exception as e:
+#         logger.info(e)
 
 
-def get_current_ranking_games(db: Session, limit: int = 11):
+def get_current_ranking_games(db: Session, limit: int = 11) -> list[models.GamesInfo]:
     try:
-        stmt = (
-            select(models.GamesInfo.name)
+        return (
+            db.query(models.GamesInfo)
             .order_by(asc(models.GamesInfo.current_ranking))
             .limit(limit)
         )
-        return db.execute(stmt)
+        # stmt = (
+        #     select(models.GamesInfo)
+        #     .order_by(asc(models.GamesInfo.current_ranking))
+        #     .limit(limit)
+        # )
+        # return db.execute(stmt)
     except Exception as e:
         logger.info(e)
 
 
-def get_current_ranking_hours_players(db: Session):
+def get_current_ranking_hours_players(db: Session) -> list[models.User]:
     try:
-        stmt = select(models.User.name, models.User.current_ranking_hours).order_by(
-            asc(models.User.current_ranking_hours)
-        )
-        return db.execute(stmt)
+        return db.query(models.User).order_by(asc(models.User.current_ranking_hours))
     except Exception as e:
         logger.info(e)
 
 
-def get_last_ranking_hours_players(db: Session):
-    try:
-        stmt = select(models.User.name, models.User.last_ranking_hours).order_by(
-            asc(models.User.last_ranking_hours)
-        )
-        return db.execute(stmt)
-    except Exception as e:
-        logger.info(e)
+# def get_last_ranking_hours_players(db: Session):
+#     try:
+#         stmt = select(models.User.name, models.User.last_ranking_hours).order_by(
+#             asc(models.User.last_ranking_hours)
+#         )
+#         return db.execute(stmt)
+#     except Exception as e:
+#         logger.info(e)
 
 
-def get_last_ranking_games(db: Session, limit: int = 11):
-    try:
-        stmt = (
-            select(models.GamesInfo.name)
-            .order_by(asc(models.GamesInfo.last_ranking))
-            .limit(limit)
-        )
-        return db.execute(stmt)
-    except Exception as e:
-        logger.info(e)
+# def get_last_ranking_games(db: Session, limit: int = 11):
+#     try:
+#         stmt = (
+#             select(models.GamesInfo.name)
+#             .order_by(asc(models.GamesInfo.last_ranking))
+#             .limit(limit)
+#         )
+#         return db.execute(stmt)
+#     except Exception as e:
+#         logger.info(e)
 
 
-def update_current_ranking_hours_user(db: Session, ranking, user):
+def update_current_ranking_hours_user(db: Session, ranking, user_id):
     stmt = (
         update(models.User)
-        .where(models.User.name == user)
+        .where(models.User.id == user_id)
         .values(current_ranking_hours=ranking)
     )
     db.execute(stmt)
     db.commit()
 
 
-def update_last_ranking_hours_user(db: Session, ranking, user):
-    stmt = (
-        update(models.User)
-        .where(models.User.name == user)
-        .values(last_ranking_hours=ranking)
-    )
-    db.execute(stmt)
-    db.commit()
+# def update_last_ranking_hours_user(db: Session, ranking, user):
+#     stmt = (
+#         update(models.User)
+#         .where(models.User.name == user)
+#         .values(last_ranking_hours=ranking)
+#     )
+#     db.execute(stmt)
+#     db.commit()
 
 
 def get_ranking_games(db: Session):

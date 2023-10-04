@@ -34,6 +34,7 @@ class User(UserBase):
     telegram_username: str
     telegram_id: Union[str, None] = None
     is_admin: Union[int, None] = None
+    played_time: Union[int, None] = None
     clockify_id: Union[str, None] = None
     last_ranking_hours: Union[int, None] = None
     current_ranking_hours: Union[int, None] = None
@@ -65,7 +66,6 @@ class GamesInfo(GamesInfoBase):
     genres: Union[str, None] = None
     played_time: Union[int, None] = None
     avg_time: Union[int, None] = None
-    last_ranking: Optional[Union[int, None]] = 100000000
     current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
 

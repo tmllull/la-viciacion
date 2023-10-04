@@ -42,7 +42,7 @@ async def sync_data(db: Session, date: str = None):
     logger.info("Sync data...")
     start_time = time.time()
     sync_clockify_entries(db, date)
-    sync_played_games(db)
+    # sync_played_games(db)
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -50,8 +50,9 @@ async def sync_data(db: Session, date: str = None):
     logger.info("Updating played time users...")
     played_time_users = time_entries.get_users_played_time(db)
     for user in played_time_users:
-        logger.info("TBI")
-        break
+        # logger.info("TBI")
+        users.update_played_time(db, user[0], user[1])
+        # break
     logger.info("Updating played time game-user...")
     users_db = users.get_users(db)
     for user in users_db:
@@ -187,6 +188,7 @@ def sync_played_games(db: Session, start_date: str = None):
         start = date - datetime.timedelta(days=1)
         start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
     time_entries_db = time_entries.get_time_entries(db, start_date)
+    logger.info("TIMEENTRIES: " + str(len(time_entries_db)))
     for time_entry in time_entries_db:
         # already_played = crud.user_get_game(db, time_entry.user_id, time_entry.project)
         if users.get_game(db, time_entry.user_id, time_entry.project) is None:
@@ -217,163 +219,152 @@ def sync_played_games(db: Session, start_date: str = None):
 async def ranking_games_hours(db: Session):
     logger.info("Checking games ranking hours...")
     try:
-        ranking_games = rankings.get_ranking_games(db)
-        if not config.silent:
-            result = rankings.get_current_ranking_games(db)
-            current = []
-            for game in result:
-                current.append(game[0])
-            result = rankings.get_last_ranking_games(db)
-            last = []
-            for game in result:
-                last.append(game[0])
-            if current[:10] == last[:10]:
-                logger.info("No changes in games ranking")
-            else:
-                logger.info("Changes in games ranking")
-                # logger.info("CURRENT")
-                # logger.info(current)
-                # logger.info("LAST")
-                # logger.info(last)
-                msg = "📣📣 Actualización del ránking de juegos 📣📣\n"
-                i = 0
-                for game in ranking_games:
-                    if i <= 10:
-                        game_name = game[0]
-                        time = game[1]
-                        last = game[2]
-                        current = game[3]
-                        logger.info(game_name + " " + str(i + 1))
-                        rankings.update_last_ranking_hours_game(db, i + 1, game_name)
-                        diff_raw = last - current
-                        diff = str(diff_raw)
-                        # This adds + to games that up position (positive diff has not + sign)
-                        if diff_raw > 0:
-                            diff = "+" + diff
-                        diff = diff.replace("+", "↑")
-                        diff = diff.replace("-", "↓")
-                        if diff != "0":
-                            game_name = "*" + game_name + "*"
-                        else:
-                            diff = diff.replace("0", "=")
-                        if diff_raw > 1:
-                            game_name = "⏫ " + game_name
-                        if diff_raw == 1:
-                            game_name = "⬆️ " + game_name
-                        if diff_raw < 0:
-                            game_name = "⬇️ " + game_name
-                        # Only to check if game has fall of the top10
-                        # Then, always break
-                        if i == 10 and "↓" in diff:
-                            msg = msg + "----------\n"
-                            msg = (
-                                msg
-                                + str(i + 1)
-                                + ". "
-                                + game_name
-                                + ": "
-                                + str(utils.convert_time_to_hours(time))
-                                + " ("
-                                + "💀"
-                                + ")"
-                                + "\n"
-                            )
-                            break
-                        elif i < 10:
-                            msg = (
-                                msg
-                                + str(i + 1)
-                                + ". "
-                                + game_name
-                                + ": "
-                                + str(utils.convert_time_to_hours(time))
-                                + " ("
-                                + diff
-                                + ")"
-                                + "\n"
-                            )
-                        if i == 10:
-                            break
-                    i += 1
+        # ranking_games = rankings.get_ranking_games(db)
+        most_played_games = games.get_most_played_time(db, 11)
+        most_played: list[models.GamesInfo] = []
+        for game in most_played_games:
+            most_played.append(game)
+        result = rankings.get_current_ranking_games(db)
+        current: list[models.GamesInfo] = []
+        for game in result:
+            current.append(game)
+        if current[:10] == most_played[:10]:
+            logger.info("No changes in games ranking")
+        else:
+            logger.info("Changes in games ranking")
+            msg = "📣📣 Actualización del ránking de juegos 📣📣\n"
+            i = 0
+            for game in most_played:
+                if i <= 10:
+                    game_name = game.name
+                    time = game.played_time
+                    current = game.current_ranking
+                    # logger.info(game_name + " " + str(i + 1))
+                    # rankings.update_current_ranking_hours_game(db, i + 1, game_name)
+                    diff_raw = current - (i + 1)
+                    diff = str(diff_raw)
+                    # This adds + to games that up position (positive diff has not + sign)
+                    if diff_raw > 0:
+                        diff = "+" + diff
+                    diff = diff.replace("+", "↑")
+                    diff = diff.replace("-", "↓")
+                    if diff != "0":
+                        game_name = "*" + game_name + "*"
+                    else:
+                        diff = diff.replace("0", "=")
+                    if diff_raw > 1:
+                        game_name = "⏫ " + game_name
+                    if diff_raw == 1:
+                        game_name = "⬆️ " + game_name
+                    if diff_raw < 0:
+                        game_name = "⬇️ " + game_name
+                    # Only to check if game has fall of the top10
+                    # Then, always break
+                    if i == 10 and "↓" in diff:
+                        msg = msg + "----------\n"
+                        msg = (
+                            msg
+                            + str(i + 1)
+                            + ". "
+                            + game_name
+                            + ": "
+                            + str(utils.convert_time_to_hours(time))
+                            + " ("
+                            + "💀"
+                            + ")"
+                            + "\n"
+                        )
+                        break
+                    elif i < 10:
+                        msg = (
+                            msg
+                            + str(i + 1)
+                            + ". "
+                            + game_name
+                            + ": "
+                            + str(utils.convert_time_to_hours(time))
+                            + " ("
+                            + diff
+                            + ")"
+                            + "\n"
+                        )
+                    if i == 10:
+                        break
+                i += 1
 
                 # if not config.silent:
                 #     await utils.send_message(msg)
+            logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
     logger.info("Sync current ranking with last ranking...")
-    ranking_games = rankings.get_ranking_games(db)
+    most_played = games.get_most_played_time(db, 11)
     i = 1
-    for game in ranking_games:
-        rankings.update_last_ranking_hours_game(db, i, game[0])
+    for game in most_played:
+        rankings.update_current_ranking_hours_game(db, i, game.name)
         i += 1
 
 
 async def ranking_players_hours(db: Session):
-    logger.info("TBI")
+    # logger.info("TBI")
+    # return
+    logger.info("Ranking player hours (TBI)")
     return
-    logger.info("Ranking hours")
-    ranking_players = db.player_played_time()
-    ranking_players = dict(sorted(ranking_players, key=lambda x: x[1], reverse=True))
-    for i, elem in enumerate(ranking_players):
-        db.update_current_ranking_hours(i + 1, elem)
-        if self.silent:
-            db.update_last_ranking_hours(i + 1, elem)
-    if not self.silent:
-        result = db.get_current_ranking_players()
-        current = []
-        for player in result:
-            current.append(player)
-        current = dict(sorted(current, key=lambda x: x[1], reverse=True))
-        result = db.get_last_ranking_players()
-        last = []
-        for player in result:
-            last.append(player)
-        last = dict(sorted(last, key=lambda x: x[1], reverse=True))
-        if current == last:
-            logger.info("No changes in player ranking")
-        else:
-            logger.info("Changes in player ranking")
-            ranking_players = db.player_played_time()
-            ranking_players = dict(
-                sorted(ranking_players, key=lambda x: x[1], reverse=True)
+    most_played_users = users.get_most_played_time(db)
+    most_played = []
+    for player in most_played_users:
+        most_played.append(player.name)
+    result = rankings.get_current_ranking_hours_players(db)
+    current = []
+    for player in result:
+        current.append(player.name)
+    # last = dict(sorted(last, key=lambda x: x[1], reverse=True))
+    if current == most_played:
+        logger.info("No changes in player ranking")
+    else:
+        logger.info("Changes in player ranking")
+        ranking_players = db.player_played_time()
+        ranking_players = dict(
+            sorted(ranking_players, key=lambda x: x[1], reverse=True)
+        )
+        msg = "📣📣 Actualización del ránking de horas 📣📣\n"
+        for i, player in enumerate(most_played_users):
+            name = player.name
+            rankings.update_current_ranking_hours_user(db, i, player.id)
+            # db.update_last_ranking_hours(i + 1, player)
+            hours = player.played_time
+            diff_raw = last[player] - current[player]
+            diff = str(diff_raw)
+            # This adds + to games that up position (positive diff has not + sign)
+            if diff_raw > 0:
+                diff = "+" + diff
+            diff = diff.replace("+", "↑")
+            diff = diff.replace("-", "↓")
+            if diff != "0":
+                player = "*" + player + "*"
+            else:
+                diff = diff.replace("0", "=")
+            if diff_raw > 1:
+                player = "⏫ " + player
+            if diff_raw == 1:
+                player = "⬆️ " + player
+            if diff_raw < 0:
+                player = "⬇️ " + player
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + player
+                + ": "
+                + str(utils.convert_time_to_hours(hours))
+                + " ("
+                + diff
+                + ")"
+                + "\n"
             )
-            msg = "📣📣 Actualización del ránking de horas 📣📣\n"
-            for i, elem in enumerate(ranking_players):
-                player = elem
-                db.update_last_ranking_hours(i + 1, player)
-                hours = ranking_players[elem]
-                diff_raw = last[player] - current[player]
-                diff = str(diff_raw)
-                # This adds + to games that up position (positive diff has not + sign)
-                if diff_raw > 0:
-                    diff = "+" + diff
-                diff = diff.replace("+", "↑")
-                diff = diff.replace("-", "↓")
-                if diff != "0":
-                    player = "*" + player + "*"
-                else:
-                    diff = diff.replace("0", "=")
-                if diff_raw > 1:
-                    player = "⏫ " + player
-                if diff_raw == 1:
-                    player = "⬆️ " + player
-                if diff_raw < 0:
-                    player = "⬇️ " + player
-                msg = (
-                    msg
-                    + str(i + 1)
-                    + ". "
-                    + player
-                    + ": "
-                    + str(utils.convert_time_to_hours(hours))
-                    + " ("
-                    + diff
-                    + ")"
-                    + "\n"
-                )
-            if not self.silent:
-                logger.info(msg)
-                await utils.send_message(msg)
+        if not self.silent:
+            logger.info(msg)
+            await utils.send_message(msg)
 
 
 def get_last_played_games(db: Session):
@@ -413,7 +404,7 @@ def sync_clockify_entries(db: Session, date: str = None):
 
 def sync_clockify_entries_db(db: Session, user_id, entries):
     user = users.get_user(db, user=user_id)
-    logger.info("Sync entries for user " + str(user.name))
+    logger.info("Sync " + str(len(entries)) + " entries for user " + str(user.name))
     for entry in entries:
         try:
             start = entry["timeInterval"]["start"]
@@ -426,7 +417,8 @@ def sync_clockify_entries_db(db: Session, user_id, entries):
             start = utils.change_timezone_clockify(start)
             if end != "":
                 end = utils.change_timezone_clockify(end)
-            project_name = clockify_api.get_project(entry["projectId"])["name"]
+            # project_name = clockify_api.get_project(entry["projectId"])["name"]
+            project_name = games.get_game_by_clockify_id(db, entry["projectId"])
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
             )

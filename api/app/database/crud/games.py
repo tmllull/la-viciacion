@@ -29,6 +29,11 @@ def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
     return db.query(models.GamesInfo).filter(models.GamesInfo.name == name).first()
 
 
+def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
+    # logger.info("Searching project: " + id)
+    return db.query(models.GamesInfo).filter(models.GamesInfo.clockify_id == id).first()
+
+
 # def new_game_by_name(db: Session, game: str):
 #     return
 
@@ -158,7 +163,12 @@ def game_avg_time(db: Session, game):
     return result
 
 
-def most_played_time(db: Session):
-    stmt = select(models.GamesInfo.name).order_by(desc(models.GamesInfo.played_time))
-    result = db.execute(stmt)
-    return result
+def get_most_played_time(db: Session, limit: int = None) -> list[models.GamesInfo]:
+    if limit is not None:
+        return (
+            db.query(models.GamesInfo)
+            .order_by(desc(models.GamesInfo.played_time))
+            .limit(limit)
+        )
+    else:
+        return db.query(models.GamesInfo).order_by(desc(models.GamesInfo.played_time))

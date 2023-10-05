@@ -86,7 +86,7 @@ class NewGame(BaseModel):
     #     from_attributes = True
 
 
-class StartGame(BaseModel):
+class NewGameUser(BaseModel):
     game: str
     platform: Union[str, None] = None
 
@@ -134,7 +134,9 @@ class TimeEntries(BaseModel):
     project: Union[str, None] = None
     project_id: Union[str, None] = None
     start: Union[str, None] = None
+    start_date: Union[str, None] = None
     end: Union[str, None] = None
+    end_date: Union[str, None] = None
     duration: Union[int, None] = None
 
     class Config:

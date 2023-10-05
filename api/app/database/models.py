@@ -150,7 +150,9 @@ class TimeEntries(Base):
     project = Column(String(255))
     project_id = Column(String(255))
     start = Column(String(255))
+    start_date = Column(String(255))
     end = Column(String(255))
+    end_date = Column(String(255))
     duration = Column(Integer)
     __table_args__ = (UniqueConstraint("id"),)
 

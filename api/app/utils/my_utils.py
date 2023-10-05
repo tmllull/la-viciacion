@@ -38,3 +38,22 @@ def convert_clockify_duration(duration):
         return segundos
     else:
         return 0
+
+
+def day_of_the_year(date):
+    date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+
+    # Obtiene el día numérico del año
+    return date.timetuple().tm_yday
+
+
+def date_from_day_of_the_year(day):
+    start_date = datetime.datetime(2023, 1, 1)
+    current_date = start_date + datetime.timedelta(days=day - 1)
+
+    # Obtiene el día numérico del año
+    return current_date.strftime("%Y-%m-%d")
+
+
+def date_from_datetime(datetime: str):
+    return datetime.split(" ")[0]

@@ -28,23 +28,28 @@ rawgio_search_game = (
 ########################
 
 
-async def init_data(db: Session):
-    logger.info("Init data...")
-    # sync_clockify_entries(db, "2023-01-01")
-    # await sync_games_from_clockify(db)
-    # sync_played_games(db)
-    # init_played_time_games(db)
-    # init_played_time_users(db)
-    # return
+# async def init_data(db: Session):
+#     logger.info("Init data...")
+#     # sync_clockify_entries(db, "2023-01-01")
+#     # await sync_games_from_clockify(db)
+#     # sync_played_games(db)
+#     # init_played_time_games(db)
+#     # init_played_time_users(db)
+#     # return
 
 
-async def sync_data(db: Session, date: str = None, silent: bool = False):
+async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Sync data...")
     start_time = time.time()
-    total_entries = sync_clockify_entries(db, date)
+    # users_db = users.get_users(db)
+    # for user in users_db:
+    #     logger.info("Updating played days for " + user.name)
+    #     update_played_days(db)
+    #     break
+    # return
+    total_entries = sync_clockify_entries(db, start_date)
     if total_entries < 1:
         return
-    # sync_played_games(db)
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -52,16 +57,13 @@ async def sync_data(db: Session, date: str = None, silent: bool = False):
     logger.info("Updating played time users...")
     played_time_users = time_entries.get_users_played_time(db)
     for user in played_time_users:
-        # logger.info("TBI")
         users.update_played_time(db, user[0], user[1])
-        # break
     logger.info("Updating played time game-user...")
     users_db = users.get_users(db)
     for user in users_db:
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
             users.update_played_time_game(db, user.id, game[0], game[1])
-
     await ranking_games_hours(db)
     await ranking_players_hours(db)
     # sync_played_games_user(db)
@@ -113,7 +115,48 @@ def check_streaks(db: Session):
     return
 
 
+def streak_days(db: Session):
+    """
+    TODO: To revise
+    """
+    entries = time_entries.get_time_entries(db)
+    logger.info("Total entries: " + str(entries.count()))
+    played_days = 0
+    last_played_day = 1
+    max_played_days = 0
+    last_played_date = ""
+    for entry in entries:
+        day_of_the_year = utils.day_of_the_year(str(entry.start))
+        if day_of_the_year == last_played_day + 1:
+            played_days += 1
+        else:
+            last_played_date = utils.date_from_day_of_the_year()
+            max_played_days = played_days
+            played_days = 0
+        # logger.info("Day of the year: " + str(utils.day_of_the_year(str(entry.start))))
+        break
+    # logger.info("Total entries: " + str(len(entries)))
+    return
+
+
 def update_played_days(db: Session):
+    entries = time_entries.get_time_entries(db)
+    logger.info("Total entries: " + str(entries.count()))
+    played_days = 0
+    last_played_day = 1
+    max_played_days = 0
+    last_played_date = ""
+    for entry in entries:
+        day_of_the_year = utils.day_of_the_year(str(entry.start))
+        if day_of_the_year == last_played_day + 1:
+            played_days += 1
+        else:
+            last_played_date = utils.date_from_day_of_the_year()
+            max_played_days = played_days
+            played_days = 0
+        # logger.info("Day of the year: " + str(utils.day_of_the_year(str(entry.start))))
+        break
+    # logger.info("Total entries: " + str(len(entries)))
     return
 
 
@@ -382,19 +425,19 @@ async def ranking_players_hours(db: Session):
         logger.info(msg)
 
 
-def get_last_played_games(db: Session):
-    last_played = rankings.ranking_last_played_games(db)
-    games = []
-    games_temp = []
-    i = 1
-    for game in last_played:
-        if i == 10:
-            break
-        if game[0] not in games_temp:
-            games_temp.append(game[0])
-            games.append(game)
-            i += 1
-    return games
+# def get_last_played_games(db: Session):
+#     last_played = rankings.ranking_last_played_games(db)
+#     games = []
+#     games_temp = []
+#     i = 1
+#     for game in last_played:
+#         if i == 10:
+#             break
+#         if game[0] not in games_temp:
+#             games_temp.append(game[0])
+#             games.append(game)
+#             i += 1
+#     return games
 
 
 ####################
@@ -413,66 +456,8 @@ def sync_clockify_entries(db: Session, date: str = None):
         for user in users_db:
             entries = clockify_api.get_time_entries(user.clockify_id, date)
             total_entries += len(entries)
-            sync_clockify_entries_db(db, user.id, entries)
+            time_entries.sync_clockify_entries_db(db, user.id, entries)
         return total_entries
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))
         raise e
-
-
-def sync_clockify_entries_db(db: Session, user_id, entries):
-    user = users.get_user(db, user=user_id)
-    logger.info("Sync " + str(len(entries)) + " entries for user " + str(user.name))
-    for entry in entries:
-        try:
-            start = entry["timeInterval"]["start"]
-            end = entry["timeInterval"]["end"]
-            duration = entry["timeInterval"]["duration"]
-            if end is None:
-                end = ""
-            if duration is None:
-                duration = ""
-            start = utils.change_timezone_clockify(start)
-            if end != "":
-                end = utils.change_timezone_clockify(end)
-            # project_name = clockify_api.get_project(entry["projectId"])["name"]
-            project_name = games.get_game_by_clockify_id(db, entry["projectId"])
-            stmt = select(models.TimeEntries).where(
-                models.TimeEntries.id == entry["id"]
-            )
-            exists = db.execute(stmt).first()
-            if not exists:
-                new_entry = models.TimeEntries(
-                    id=entry["id"],
-                    user=user.name,
-                    user_id=user.id,
-                    user_clockify_id=user.clockify_id,
-                    project=project_name,
-                    project_id=entry["projectId"],
-                    start=start,
-                    end=end,
-                    duration=utils.convert_clockify_duration(duration),
-                )
-                db.add(new_entry)
-            else:
-                stmt = (
-                    update(models.TimeEntries)
-                    .where(models.TimeEntries.id == entry["id"])
-                    .values(
-                        user=user.name,
-                        project=project_name,
-                        project_id=entry["projectId"],
-                        start=start,
-                        end=end,
-                        duration=utils.convert_clockify_duration(duration),
-                    )
-                )
-                db.execute(stmt)
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            logger.info("Error adding new entry " + str(entry) + ": " + str(e))
-            raise e
-        # logger.info(entry["id"])
-        # exit()
-    return

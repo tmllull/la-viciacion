@@ -33,14 +33,14 @@ def hello_world():
     return "Hello world!"
 
 
-@app.get("/init-data")
-async def sync_data(db: Session = Depends(get_db)):
-    try:
-        await actions.init_data(db)
-        # actions.sync_clockify_entries(db, date)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return "Init completed!"
+# @app.get("/init-data")
+# async def sync_data(db: Session = Depends(get_db)):
+#     try:
+#         await actions.init_data(db)
+#         # actions.sync_clockify_entries(db, date)
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+#     return "Init completed!"
 
 
 @app.get("/sync-data")
@@ -61,11 +61,11 @@ async def sync_data(
 
 
 @app.get("/users/", tags=["Users"], response_model=list[schemas.User])
-def get_users(limit: int = 10000, db: Session = Depends(get_db)):
+def get_users(db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    users_db = users.get_users(db, limit)
+    users_db = users.get_users(db)
     return users_db
 
 
@@ -97,17 +97,20 @@ def get_user(user: Union[int, str], db: Session = Depends(get_db)):
 #     return "TBI"
 
 
-@app.post("/users/{username}/new_game", tags=["Users"])
-def add_game(username: str, game: schemas.StartGame, db: Session = Depends(get_db)):
+@app.post("/users/{user}/new_game", tags=["Users"])
+def add_game(
+    user: Union[str, int], game: schemas.NewGameUser, db: Session = Depends(get_db)
+):
     """
     TODO: Add description
     """
-    played_games = users.get_games(db, users.get_user(db, username).id)
+    user_id = users.get_user(db, user).id
+    played_games = users.get_games(db, user_id)
     for played_game in played_games:
         if played_game.game == game.game:
             raise HTTPException(status_code=400, detail="Game already exists")
 
-    return users.add_new_game(db=db, game=game, username=username)
+    return users.add_new_game(db=db, game=game, user_id=user_id)
 
 
 # @app.get("/users/{user_id}", response_model=schemas.User)
@@ -133,7 +136,7 @@ def add_game(username: str, game: schemas.StartGame, db: Session = Depends(get_d
 )
 def user_games_played(
     user: Union[int, str],
-    limit: int = 1000000,
+    limit: int = None,
     completed: bool = None,
     db: Session = Depends(get_db),
 ):

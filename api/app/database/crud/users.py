@@ -17,8 +17,8 @@ clockify = ClockifyApi()
 #################
 
 
-def get_users(db: Session, limit: int = 100) -> list[models.User]:
-    return db.query(models.User).limit(limit).all()
+def get_users(db: Session) -> list[models.User]:
+    return db.query(models.User)
 
 
 # def get_user(db: Session, user_id: int) -> models.User:
@@ -52,11 +52,11 @@ def create_user(db: Session, user: schemas.User):
     return {"message": "TBI"}
 
 
-def add_new_game(db: Session, game: schemas.StartGame, username: str):
+def add_new_game(db: Session, game: schemas.NewGameUser, user_id: int):
     logger.info("Adding new game")
     try:
         game_db = games.get_game_by_name(db, game.game)
-        user = get_user(db, username)
+        user = get_user(db, user_id)
         user_game = models.UsersGames(
             user=user.name,
             user_id=user.id,
@@ -73,28 +73,27 @@ def add_new_game(db: Session, game: schemas.StartGame, username: str):
     return {"message": "Game added to user list"}
 
 
-def update_game(db: Session, game_name, player, score, platform, seconds):
-    try:
-        stmt = (
-            update(models.UsersGames)
-            .where(
-                models.UsersGames.game == game_name,
-                models.UsersGames.player == player,
-            )
-            .values(
-                game=game_name,
-                player=player,
-                platform=platform,
-                score=score,
-                played_time=seconds,
-                # last_update=str(datetime.datetime.now()),
-            )
-        )
-        db.execute(stmt)
-        db.commit()
-        # session.close()
-    except Exception as e:
-        logger.info(e)
+# def update_game(db: Session, game: models.UsersGames):
+#     try:
+#         stmt = (
+#             update(models.UsersGames)
+#             .where(
+#                 models.UsersGames.game == game.game,
+#                 models.UsersGames.user_id == game.user_id,
+#             )
+#             .values(
+#                 game=game.game,
+#                 platform=game.platform,
+#                 score=game.score,
+#                 played_time=game.played_time,
+#                 # last_update=str(datetime.datetime.now()),
+#             )
+#         )
+#         db.execute(stmt)
+#         db.commit()
+#         # session.close()
+#     except Exception as e:
+#         logger.info(e)
 
 
 def update_played_time_game(db: Session, user_id: str, game: str, time: int):
@@ -119,7 +118,7 @@ def update_played_time_game(db: Session, user_id: str, game: str, time: int):
 
 
 def get_games(
-    db: Session, user_id, limit=10000, completed=None
+    db: Session, user_id, limit=None, completed=None
 ) -> list[models.UsersGames]:
     if completed != None:
         completed = 1 if completed == True else 0
@@ -133,12 +132,6 @@ def get_games(
 
 
 def get_game(db: Session, user_id, game) -> models.UsersGames:
-    # stmt = (
-    #         select(models.UsersGames.id)
-    #         .where(UsersGames.player == player)
-    #         .order_by(desc(UsersGames.row))
-    #     )
-    #     return session.execute(stmt).first()
     return db.query(models.UsersGames.id).filter_by(user_id=user_id, game=game).first()
 
 

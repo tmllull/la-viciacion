@@ -139,8 +139,8 @@ class ClockifyApi:
             "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
         )
 
-    def get_time_entries(self, user_id, start_date=None):
-        if user_id is None:
+    def get_time_entries(self, clockify_id, start_date=None):
+        if clockify_id is None:
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ
         try:
@@ -161,7 +161,7 @@ class ClockifyApi:
         while has_entries:
             page += 1
             endpoint = "/workspaces/{}/user/{}/time-entries?page-size=500&page={}&start={}".format(
-                config.CLOCKIFY_WORKSPACE, user_id, page, start
+                config.CLOCKIFY_WORKSPACE, clockify_id, page, start
             )
             response = self.send_clockify_request(
                 self.GET, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY

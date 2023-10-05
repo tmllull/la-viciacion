@@ -125,10 +125,11 @@ class UserAchievements(Base):
     __tablename__ = "users_achievements"
 
     id = Column(Integer, primary_key=True)
-    player = Column(String(255))
-    achievement = Column(String(255))
+    user = Column(String(255))
+    user_id = Column(Integer)
+    achievement_id = Column(Integer)
     date = Column(Date)
-    __table_args__ = (UniqueConstraint("player", "achievement"),)
+    __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
 
 
 class Achievement(Base):

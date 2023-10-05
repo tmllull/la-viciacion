@@ -61,42 +61,9 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Elapsed time: " + str(end_time - start_time))
 
 
-async def sync_games_from_clockify(db: Session):
-    logger.info("Adding games...")
-    games_db = games.get_all_played_games(db)
-    for game in games_db:
-        if not games.get_game_by_name(db, game[0]):
-            game_info = await get_game_info(game[0])
-            game_data = {
-                "name": game[0],
-                "dev": game_info[""],
-                "release_date": game_info[""],
-                "steam_id": game_info[""],
-                "image_url": game_info[""],
-                "genres": game_info[""],
-                "avg_time": game_info[""],
-                "clockify_id": game_info[""],
-            }
-            await games.new_game(db, game_data)
-
-
-def check_ranking_played_hours(db: Session):
-    # result = crud.user_get_total_played_time(db)
-    # for data in result:
-    #     logger.info(data)
-    return
-
-
-def check_ranking_played_games(db: Session):
-    return
-
-
-def check_ranking_completed_games(db: Session):
-    return
-
-
-def check_streaks(db: Session):
-    return
+def update_played_days(db: Session, user_id: str):
+    played_days = time_entries.get_played_days(db, user_id)
+    users.update_played_days(db, user_id, played_days)
 
 
 def streak_days(db: Session):
@@ -119,52 +86,6 @@ def streak_days(db: Session):
     #         played_days = 0
     #     break
     return
-
-
-def update_played_days(db: Session, user_id: str):
-    played_days = time_entries.get_played_days(db, user_id)
-    users.update_played_days(db, user_id, played_days)
-
-
-async def search_game_info_by_name(game: str):
-    try:
-        logger.info("Adding game " + game)
-        released = ""
-        genres = ""
-        steam_id = ""
-        rawg_info, hltb_info = await get_game_info(game)
-        if rawg_info is not None:
-            try:
-                steam_id = hltb_info["profile_steam"]
-            except Exception:
-                steam_id = ""
-            if rawg_info["released"] is not None:
-                released = datetime.datetime.strptime(
-                    rawg_info["released"], "%Y-%m-%d"
-                ).date()
-            else:
-                released = None
-            for genre in rawg_info["genres"]:
-                genres += genre["name"] + ","
-            genres = genres[:-1]
-        game_name = rawg_info["name"]
-        dev = ""
-        picture_url = rawg_info["background_image"]
-        if hltb_info is not None:
-            dev = hltb_info["profile_dev"]
-        game_info = {
-            "name": game_name,
-            "dev": dev,
-            "release_date": released,
-            "steam_id": steam_id,
-            "image_url": picture_url,
-            "genres": genres,
-            "avg_time": utils.convert_hours_minutes_to_seconds(hltb_info["main_story"]),
-            "clockify_id": None,
-        }
-        return game_info
-    except Exception as e:
-        logger.exception(e)
 
 
 async def get_game_info(game):

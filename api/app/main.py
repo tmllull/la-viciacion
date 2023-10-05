@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .config import Config
 from .database import models, schemas
-from .database.crud import games, users
+from .database.crud import games, rankings, time_entries, users
 from .database.database import SessionLocal, engine
 from .utils import actions as actions
 from .utils import logger as logger
@@ -33,23 +33,12 @@ def hello_world():
     return "Hello world!"
 
 
-# @app.get("/init-data")
-# async def sync_data(db: Session = Depends(get_db)):
-#     try:
-#         await actions.init_data(db)
-#         # actions.sync_clockify_entries(db, date)
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
-#     return "Init completed!"
-
-
 @app.get("/sync-data")
 async def sync_data(
     start_date: str = None, silent: bool = False, db: Session = Depends(get_db)
 ):
     try:
         await actions.sync_data(db, start_date, silent)
-        # actions.sync_clockify_entries(db, date)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"
@@ -63,7 +52,7 @@ async def sync_data(
 @app.get("/users/", tags=["Users"], response_model=list[schemas.User])
 def get_users(db: Session = Depends(get_db)):
     """
-    TODO: Add description
+    Get all users
     """
     users_db = users.get_users(db)
     return users_db
@@ -71,6 +60,9 @@ def get_users(db: Session = Depends(get_db)):
 
 @app.get("/users/{user}", tags=["Users"])
 def get_user(user: Union[int, str], db: Session = Depends(get_db)):
+    """
+    Get user by Telegram username or Telegram ID
+    """
     user_db = users.get_user(db, user=user)
     if user_db is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -87,14 +79,6 @@ def get_user(user: Union[int, str], db: Session = Depends(get_db)):
 #     if db_user:
 #         raise HTTPException(status_code=400, detail="Email already registered")
 #     return crud.create_user(db=db, user=user)
-
-
-# @app.put("/users/", tags=["Users"], response_model=schemas.User)
-# def update_user(user: schemas.User, db: Session = Depends(get_db)):
-#     """
-#     TODO: Add description
-#     """
-#     return "TBI"
 
 
 @app.post("/users/{user}/new_game", tags=["Users"])
@@ -116,22 +100,6 @@ def add_game(
         raise HTTPException(status_code=500, detail="Error adding new game user")
 
 
-# @app.get("/users/{user_id}", response_model=schemas.User)
-# def read_user(user_id: int, db: Session = Depends(get_db)):
-#     db_user = crud.get_user(db, user_id=user_id)
-#     if db_user is None:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     return db_user
-
-
-# @app.get(
-#     "/users/{user_id}/hours",
-#     tags=["Users"],
-# )
-# def user_played_hours(user_id: int, db: Session = Depends(get_db)):
-#     return "TBI"
-
-
 @app.get(
     "/users/{user}/games/played",
     tags=["Users"],
@@ -151,7 +119,7 @@ def user_games_played(
 @app.put("/users/{user}/complete-game", tags=["Users"])
 async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)):
     """
-    TODO: Add description
+    Complete game by user
     """
     num_completed_games = users.complete_game(
         db, users.get_user(db, user).id, game_name
@@ -162,48 +130,6 @@ async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)
     return {"completed_games": num_completed_games, "avg_time": avg_time}
 
 
-# @app.get("/users/{user_id}/games/played/most", tags=["Users"])
-# def user_games_played_most(
-#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
-# ):
-#     return "TBI"
-
-
-# @app.get("/users/{user_id}/games/played/last", tags=["Users"])
-# def user_games_played_last(
-#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
-# ):
-#     return "TBI"
-
-
-# @app.get("/users/{user_id}/games/completed", tags=["Users"])
-# def user_games_completed(
-#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
-# ):
-#     return "TBI"
-
-
-# @app.get("/users/{user_id}/streak/current", tags=["Users"])
-# def user_streak_current(
-#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
-# ):
-#     return "TBI"
-
-
-# @app.get("/users/{user_id}/streak/best", tags=["Users"])
-# def user_streak_best(
-#     user_id: int,  limit: int = 10000, db: Session = Depends(get_db)
-# ):
-#     return "TBI"
-
-
-# @app.post("/users/{user_id}/items/", response_model=schemas.Item)
-# def create_item_for_user(
-#     user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)
-# ):
-#     return crud.create_user_item(db=db, item=item, user_id=user_id)
-
-
 #######################
 ######## GAMES ########
 #######################
@@ -212,7 +138,7 @@ async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)
 @app.get("/games/", tags=["Games"], response_model=list[schemas.GamesInfo])
 def get_games(limit: int = 10000, db: Session = Depends(get_db)):
     """
-    TODO: Add description
+    Get all games from DB
     """
     games_db = games.get_games(db, limit)
     return games_db
@@ -221,9 +147,8 @@ def get_games(limit: int = 10000, db: Session = Depends(get_db)):
 @app.get("/games/{name}", tags=["Games"], response_model=schemas.GamesInfo)
 async def get_game_by_name(name: str, db: Session = Depends(get_db)):
     """
-    TODO: Add description
+    Get game from DB by name
     """
-    # await actions.search_game_info_by_name(name)
     game_db = games.get_game_by_name(db, name)
     if game_db is None:
         raise HTTPException(status_code=404, detail="Game not exists")
@@ -234,9 +159,8 @@ async def get_game_by_name(name: str, db: Session = Depends(get_db)):
 @app.get("/games/rawg/{name}", tags=["Games"])
 async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
     """
-    TODO: Add description
+    Get game info from RAWG and HLTB (not from DB)
     """
-    # await actions.search_game_info_by_name(name)
     game_info = await actions.get_game_info(name)
     return game_info
 
@@ -244,7 +168,7 @@ async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
 @app.post("/games/", tags=["Games"], response_model=schemas.GamesInfo)
 def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
-    TODO: Add description
+    Create new game
     """
     if games.get_game_by_name(db, game.name):
         raise HTTPException(status_code=400, detail="Game already in DB")
@@ -255,23 +179,21 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 ######## RANKINGS ########
 ##########################
 
-# @app.get("/items/", response_model=list[schemas.Item])
-# def read_items( limit: int = 10000, db: Session = Depends(get_db)):
-#     items = crud.get_items(db,  limit=limit)
-#     return items
+
+@app.get("/rankings/played-hours", tags=["Rankings"])
+def rankings_played_hours(db: Session = Depends(get_db)):
+    return rankings.get_current_ranking_hours_players(db)
+
+
+@app.get("/rankings/played-days", tags=["Rankings"])
+def rankings_played_days(db: Session = Depends(get_db)):
+    return rankings.get_current_ranking_days_players(db)
 
 
 # @app.get("/rankings/", tags=["Rankings"])
 # def rankings( limit: int = 10000, db: Session = Depends(get_db)):
 #     items = crud.get_items(db,  limit=limit)
 #     return items
-
-
-# @app.get("/rankings/played-days", tags=["Rankings"])
-# def rankings_played_days(
-#      limit: int = 10000, db: Session = Depends(get_db)
-# ):
-#     return "TBI"
 
 
 # @app.get("/rankings/played-hours", tags=["Rankings"])

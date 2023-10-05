@@ -118,8 +118,9 @@ class UsersGames(UsersGamesBase):
 
 class UserAchievements(BaseModel):
     id: Union[int, None] = None
-    player: Union[str, None] = None
-    achievement: Union[str, None] = None
+    user: Union[str, None] = None
+    user_id: Union[int, None] = None
+    achievement_id: Union[int, None] = None
     date: Union[datetime.date, None] = None
 
     class Config:

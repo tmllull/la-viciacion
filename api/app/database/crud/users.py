@@ -18,28 +18,27 @@ clockify = ClockifyApi()
 
 
 def get_users(db: Session) -> list[models.User]:
+    """Get all users
+
+    Args:
+        db (Session): DB Session
+
+    Returns:
+        list[models.User]: List of all users
+    """
     return db.query(models.User)
 
 
-# def get_user(db: Session, user_id: int) -> models.User:
-#     return db.query(models.User).filter(models.User.id == user_id).first()
-
-
 def get_user(db: Session, user: Union[int, str]) -> models.User:
-    # Check ID
-    db_user = db.query(models.User).filter(models.User.id == user).first()
     # Check tg_id
+    db_user = db.query(models.User).filter(models.User.telegram_id == user).first()
     if db_user is None:
-        db_user = db.query(models.User).filter(models.User.telegram_id == user).first()
+        # Check tg_username
+        db_user = (
+            db.query(models.User).filter(models.User.telegram_username == user).first()
+        )
         if db_user is None:
-            # Check tg_username
-            db_user = (
-                db.query(models.User)
-                .filter(models.User.telegram_username == user)
-                .first()
-            )
-            if db_user is None:
-                return None
+            return None
     return db_user
 
 
@@ -52,8 +51,10 @@ def create_user(db: Session, user: schemas.User):
     return {"message": "TBI"}
 
 
-def add_new_game(db: Session, game: schemas.NewGameUser, user_id: int):
-    logger.info("Adding new game")
+def add_new_game(
+    db: Session, game: schemas.NewGameUser, user_id: int
+) -> models.UsersGames:
+    logger.info("Adding new game...")
     try:
         game_db = games.get_game_by_name(db, game.game)
         user = get_user(db, user_id)
@@ -68,10 +69,11 @@ def add_new_game(db: Session, game: schemas.NewGameUser, user_id: int):
         )
         db.add(user_game)
         db.commit()
+        db.refresh(user_game)
+        return user_game
     except Exception as e:
         logger.info("Error adding new game user: " + str(e))
         raise Exception(e)
-    return {"message": "Game added to user list"}
 
 
 # def update_game(db: Session, game: models.UsersGames):

@@ -49,7 +49,6 @@ def new_game(db: Session, game: schemas.NewGame):
             clockify_id=game.clockify_id,
             genres=game.genres,
             avg_time=game.avg_time,
-            last_ranking=1000000000,
             current_ranking=1000000000,
         )
         db.add(game)

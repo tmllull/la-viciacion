@@ -70,6 +70,7 @@ def add_new_game(db: Session, game: schemas.NewGameUser, user_id: int):
         db.commit()
     except Exception as e:
         logger.info("Error adding new game user: " + str(e))
+        raise Exception(e)
     return {"message": "Game added to user list"}
 
 

@@ -197,7 +197,9 @@ class ExcelRoutes:
                     )
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
                     response = requests.request("GET", url, headers=headers, json=data)
-                clockify_id = response.json()[0]["id"]
+                    clockify_id = response.json()[0]["id"]
+                else:
+                    clockify_id = response.json()["id"]
                 release_date = str(
                     datetime.strptime(
                         context.user_data[RELEASE_DATE], "%d-%m-%Y"

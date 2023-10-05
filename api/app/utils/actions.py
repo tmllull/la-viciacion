@@ -61,11 +61,6 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Elapsed time: " + str(end_time - start_time))
 
 
-# def check_rankings(db: Session):
-#     sync_clockify_entries(db, "2023-01-01")
-#     return
-
-
 async def sync_games_from_clockify(db: Session):
     logger.info("Adding games...")
     games_db = games.get_all_played_games(db)
@@ -108,23 +103,21 @@ def streak_days(db: Session):
     """
     TODO: To revise
     """
-    entries = time_entries.get_time_entries(db)
-    logger.info("Total entries: " + str(entries.count()))
-    played_days = 0
-    last_played_day = 1
-    max_played_days = 0
-    last_played_date = ""
-    for entry in entries:
-        day_of_the_year = utils.day_of_the_year(str(entry.start))
-        if day_of_the_year == last_played_day + 1:
-            played_days += 1
-        else:
-            last_played_date = utils.date_from_day_of_the_year()
-            max_played_days = played_days
-            played_days = 0
-        # logger.info("Day of the year: " + str(utils.day_of_the_year(str(entry.start))))
-        break
-    # logger.info("Total entries: " + str(len(entries)))
+    # entries = time_entries.get_time_entries(db)
+    # logger.info("Total entries: " + str(entries.count()))
+    # played_days = 0
+    # last_played_day = 1
+    # max_played_days = 0
+    # last_played_date = ""
+    # for entry in entries:
+    #     day_of_the_year = utils.day_of_the_year(str(entry.start))
+    #     if day_of_the_year == last_played_day + 1:
+    #         played_days += 1
+    #     else:
+    #         last_played_date = utils.date_from_day_of_the_year()
+    #         max_played_days = played_days
+    #         played_days = 0
+    #     break
     return
 
 
@@ -139,7 +132,7 @@ async def search_game_info_by_name(game: str):
         released = ""
         genres = ""
         steam_id = ""
-        rawg_info, hltb_info, hltb_main_story = await get_game_info(game)
+        rawg_info, hltb_info = await get_game_info(game)
         if rawg_info is not None:
             try:
                 steam_id = hltb_info["profile_steam"]
@@ -166,7 +159,7 @@ async def search_game_info_by_name(game: str):
             "steam_id": steam_id,
             "image_url": picture_url,
             "genres": genres,
-            "avg_time": utils.convert_hours_minutes_to_seconds(hltb_main_story),
+            "avg_time": utils.convert_hours_minutes_to_seconds(hltb_info["main_story"]),
             "clockify_id": None,
         }
         return game_info

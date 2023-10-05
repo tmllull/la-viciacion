@@ -110,7 +110,10 @@ def add_game(
         if played_game.game == game.game:
             raise HTTPException(status_code=400, detail="Game already exists")
 
-    return users.add_new_game(db=db, game=game, user_id=user_id)
+    try:
+        users.add_new_game(db=db, game=game, user_id=user_id)
+    except:
+        raise HTTPException(status_code=500, detail="Error adding new game user")
 
 
 # @app.get("/users/{user_id}", response_model=schemas.User)

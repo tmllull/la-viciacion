@@ -1,8 +1,15 @@
 import datetime
+import json
 import re
 
 import pytz
+import requests
 from dateutil.parser import isoparse
+from howlongtobeatpy import HowLongToBeat
+
+from ..config import Config
+
+config = Config()
 
 
 def convert_time_to_hours(seconds) -> str:
@@ -57,3 +64,23 @@ def date_from_day_of_the_year(day):
 
 def date_from_datetime(datetime: str):
     return datetime.split(" ")[0]
+
+
+async def get_game_info(game):
+    # Rawg
+    game_request = requests.get(config.RAWG_URL + game)
+    try:
+        rawg_content = json.loads(game_request.content)["results"][0]
+    except Exception:
+        rawg_content = None
+    # HLTB
+    game = game.replace(":", "")
+    game = game.replace("/", "")
+    results_list = await HowLongToBeat().async_search(game)
+    if results_list is not None and len(results_list) > 0:
+        best_element = max(results_list, key=lambda element: element.similarity)
+        hltb_content = best_element.json_content
+    else:
+        hltb_content = None
+
+    return {"rawg": rawg_content, "hltb": hltb_content}

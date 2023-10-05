@@ -21,10 +21,6 @@ from utils.config import Config
 config = Config()
 clockify = ClockifyApi()
 
-rawgio_search_game = (
-    "https://api.rawg.io/api/games?key=bc7e0ee53f654393835ad0fa3b23a8cf&page=1&search="
-)
-
 
 class MyUtils:
     """_summary_"""
@@ -86,29 +82,29 @@ class MyUtils:
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
 
-    async def get_game_info(self, game):
-        # logger.info("TBI")
-        # return
-        # Rawg
-        game_request = requests.get(rawgio_search_game + game)
-        try:
-            rawg_content = json.loads(game_request.content)["results"][0]
-        except Exception:
-            rawg_content = None
-        # HLTB
-        game = game.replace(":", "")
-        game = game.replace("/", "")
-        results_list = await HowLongToBeat().async_search(game)
-        if results_list is not None and len(results_list) > 0:
-            best_element = max(results_list, key=lambda element: element.similarity)
-            hltb_content, hltb_main_history = (
-                best_element.json_content,
-                best_element.main_story,
-            )
-        else:
-            hltb_content = hltb_main_history = None
+    # async def get_game_info(self, game):
+    #     # logger.info("TBI")
+    #     # return
+    #     # Rawg
+    #     game_request = requests.get(rawgio_search_game + game)
+    #     try:
+    #         rawg_content = json.loads(game_request.content)["results"][0]
+    #     except Exception:
+    #         rawg_content = None
+    #     # HLTB
+    #     game = game.replace(":", "")
+    #     game = game.replace("/", "")
+    #     results_list = await HowLongToBeat().async_search(game)
+    #     if results_list is not None and len(results_list) > 0:
+    #         best_element = max(results_list, key=lambda element: element.similarity)
+    #         hltb_content, hltb_main_history = (
+    #             best_element.json_content,
+    #             best_element.main_story,
+    #         )
+    #     else:
+    #         hltb_content = hltb_main_history = None
 
-        return rawg_content, hltb_content, hltb_main_history
+    #     return rawg_content, hltb_content, hltb_main_history
 
     def calculate_total_time(self, row, player=None, game=None):
         logger.info("TBI")

@@ -6,7 +6,7 @@ from dotenv import dotenv_values
 
 
 class Config:
-    def __init__(self, silent: bool = False):
+    def __init__(self):
         try:
             self.ALLOWED_USERS = json.loads(os.environ["ALLOWED_USERS"])
             self.ALLOWED_USERS_RESET = json.loads(os.environ["ALLOWED_USERS_RESET"])
@@ -28,6 +28,7 @@ class Config:
             self.N8N_WH_ADD_GAME = os.environ["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = os.environ["HEALTHCHECKS"]
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
+            self.RAWG_URL = os.environ["RAWG_URL"]
 
         except Exception:
             # Load .env
@@ -52,7 +53,4 @@ class Config:
             self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.HEALTHCHECKS = config["HEALTHCHECKS"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
-        self.TAG_USERS = "Users"
-        self.TAG_RANKINGS = "Rankings"
-        self.TAG_ACHIEVEMENTS = "Achievements"
-        self.silent = silent
+            self.RAWG_URL = config["RAWG_URL"]

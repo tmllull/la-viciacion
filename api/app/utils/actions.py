@@ -5,7 +5,6 @@ import time
 from typing import Union
 
 import requests
-from howlongtobeatpy import HowLongToBeat
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
@@ -19,9 +18,6 @@ from .clockify_api import ClockifyApi
 clockify_api = ClockifyApi()
 config = Config(False)
 
-rawgio_search_game = (
-    "https://api.rawg.io/api/games?key=bc7e0ee53f654393835ad0fa3b23a8cf&page=1&search="
-)
 
 ########################
 ##### BASIC ROUTES #####
@@ -34,7 +30,8 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     users_db = users.get_users(db)
     logger.info("Updating played days...")
     for user in users_db:
-        update_played_days(db, user.id)
+        played_days = time_entries.get_played_days(db, user.id)
+        users.update_played_days(db, user.id, played_days)
     logger.info("Sync clockify entries...")
     total_entries = sync_clockify_entries(db, start_date)
     if total_entries < 1:
@@ -61,11 +58,6 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Elapsed time: " + str(end_time - start_time))
 
 
-def update_played_days(db: Session, user_id: str):
-    played_days = time_entries.get_played_days(db, user_id)
-    users.update_played_days(db, user_id, played_days)
-
-
 def streak_days(db: Session):
     """
     TODO: To revise
@@ -86,26 +78,6 @@ def streak_days(db: Session):
     #         played_days = 0
     #     break
     return
-
-
-async def get_game_info(game):
-    # Rawg
-    game_request = requests.get(rawgio_search_game + game)
-    try:
-        rawg_content = json.loads(game_request.content)["results"][0]
-    except Exception:
-        rawg_content = None
-    # HLTB
-    game = game.replace(":", "")
-    game = game.replace("/", "")
-    results_list = await HowLongToBeat().async_search(game)
-    if results_list is not None and len(results_list) > 0:
-        best_element = max(results_list, key=lambda element: element.similarity)
-        hltb_content = best_element.json_content
-    else:
-        hltb_content = None
-
-    return {"rawg": rawg_content, "hltb": hltb_content}
 
 
 def sync_played_games(db: Session, start_date: str = None):

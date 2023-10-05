@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timedelta
 
-import gspread
 import requests
 import telegram
 import utils.keyboard as kb
@@ -16,8 +15,6 @@ from utils.my_utils import MyUtils
 utils = MyUtils()
 config = Config()
 clockify = ClockifyApi()
-# gc = gspread.service_account(filename="la-viciacion-bot-google.json")
-# sh = gc.open("Registro de Juegos 2023")
 
 (
     GAME,
@@ -34,7 +31,7 @@ clockify = ClockifyApi()
 ) = range(20, 31)
 
 
-class ExcelRoutes:
+class DataRoutes:
     async def update_info(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
@@ -279,8 +276,6 @@ class ExcelRoutes:
     ) -> int:
         logger.info("Complete game...")
         username = update.message.from_user.username
-        # await utils.response_conversation(update, context, "TBI")
-        # return
         games = requests.get(
             config.API_URL + "/users/" + username + "/games/played?completed=false"
         ).json()
@@ -328,11 +323,6 @@ class ExcelRoutes:
             if "Sí" in str(update.message.text):
                 logger.info("Complete game confirmed")
                 username = context.user_data["username"]
-
-                # game_row = result.fetchone()[0]
-                # row_num = game_row + 2
-                # await utils.response_conversation(update, context, "TBI")
-                # return
                 response = requests.put(
                     config.API_URL
                     + "/users/"
@@ -534,10 +524,7 @@ class ExcelRoutes:
             if "Sí" in str(update.message.text):
                 logger.info("Add time confirmed")
                 username = update.message.from_user.username
-                col_num = int(datetime.now().strftime("%j")) + 9
 
-                # game_row = result.fetchone()[0]
-                # row_num = game_row + 2
                 await update.message.reply_text(
                     "TBI", reply_markup=ReplyKeyboardRemove()
                 )
@@ -711,7 +698,7 @@ class ExcelRoutes:
             await update.message.reply_text("Algo ha salido mal")
         return ConversationHandler.END
 
-    async def cancel_excel(
+    async def cancel_data(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Closing excel menu...")

@@ -16,7 +16,7 @@ from . import my_utils as utils
 from .clockify_api import ClockifyApi
 
 clockify_api = ClockifyApi()
-config = Config(False)
+config = Config()
 
 
 ########################
@@ -28,15 +28,15 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Sync data...")
     start_time = time.time()
     users_db = users.get_users(db)
-    logger.info("Updating played days...")
-    for user in users_db:
-        played_days = time_entries.get_played_days(db, user.id)
-        users.update_played_days(db, user.id, played_days)
     logger.info("Sync clockify entries...")
     total_entries = sync_clockify_entries(db, start_date)
     if total_entries < 1:
         logger.info("No one played today")
         return
+    logger.info("Updating played days...")
+    for user in users_db:
+        played_days = time_entries.get_played_days(db, user.id)
+        users.update_played_days(db, user.id, played_days)
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -315,7 +315,7 @@ def sync_clockify_entries(db: Session, date: str = None):
         for user in users_db:
             entries = clockify_api.get_time_entries(user.clockify_id, date)
             total_entries += len(entries)
-            time_entries.sync_clockify_entries_db(db, user.id, entries)
+            time_entries.sync_clockify_entries_db(db, user, entries)
         return total_entries
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))

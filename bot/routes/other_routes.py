@@ -12,6 +12,7 @@ from telegram import (
 )
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.action_logs import ActionLogs
+from utils.logger import logger
 from utils.my_utils import MyUtils
 
 utils = MyUtils()
@@ -62,7 +63,6 @@ class OtherRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         utils.log("Info game")
-        # db.log(context.user_data["user"], ActionLogs.INFO_GAME)
         msg = (
             'Por favor, introduce el nombre del juego empezando por "/"'
             "(tardaré unos segundos en buscarlo, no me seas ansia. Ah, y /cancel para cancelar):"
@@ -73,6 +73,8 @@ class OtherRoutes:
     async def info_game_response(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
+        await utils.response_conversation(update, context, "TBI")
+        return
         game_orig = update.message.text
         utils.log("Received game " + game_orig)
         user = update.message.from_user.first_name
@@ -185,7 +187,7 @@ class OtherRoutes:
                 and utils.send(90)
                 and update.message.from_user.username != "netyaco"
             ):
-                utils.log("Bot not works trigger")
+                logger.info("Bot not works trigger")
                 await utils.reply_message(
                     update,
                     context,

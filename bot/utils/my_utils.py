@@ -6,7 +6,6 @@ import random
 import re
 import sys
 
-import gspread
 import requests
 import telegram
 import utils.logger as logger
@@ -27,8 +26,6 @@ class MyUtils:
 
     def __init__(self, silent=None):
         self.bot = Bot(config.TELEGRAM_TOKEN)
-        self.gc = gspread.service_account(filename="la-viciacion-bot-google.json")
-        self.sh = self.gc.open("Registro de Juegos 2023")
         self.silent = silent
         # Conversation routes
         (
@@ -203,6 +200,8 @@ class MyUtils:
             await self.reply_message(update, context, msgs.forbiden)
 
     def convert_time_to_hours(self, seconds):
+        if seconds is None:
+            return "0h0m"
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         return f"{hours}h{minutes}m"
@@ -250,6 +249,25 @@ class MyUtils:
             .replace("]", "\]")
         )
         return text
+
+    def platform(self, platform: str):
+        if "switch" in platform:
+            platform = platform.replace("switch", "Switch")
+        if "nintendo" in platform:
+            platform = platform.replace("nintendo", "Nintendo")
+        if "steam" in platform:
+            platform = platform.replace("steam", "Steam")
+        if "playstation" in platform:
+            platform = platform.replace("playstation", "playStation")
+        if "Playstation" in platform:
+            platform = platform.replace("Playstation", "playStation")
+        if "xbox" in platform.lower():
+            platform = platform.replace("xbox", "Xbox")
+        if "pc" in platform.lower():
+            platform = platform.replace("pc", "PC")
+        if "Pc" in platform.lower():
+            platform = platform.replace("Pc", "PC")
+        return platform
 
     async def add_or_update_game_user(self, game, player, score, platform, i, seconds):
         logger.info("TBI")

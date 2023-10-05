@@ -83,8 +83,7 @@ def get_played_days(db: Session, user_id: int) -> list[models.TimeEntries]:
     )
 
 
-def sync_clockify_entries_db(db: Session, user_id, entries):
-    user = users.get_user(db, user=user_id)
+def sync_clockify_entries_db(db: Session, user: models.User, entries):
     logger.info("Sync " + str(len(entries)) + " entries for user " + str(user.name))
     for entry in entries:
         try:
@@ -103,7 +102,8 @@ def sync_clockify_entries_db(db: Session, user_id, entries):
                 end = utils.change_timezone_clockify(end)
                 end_date = utils.date_from_datetime(end)
             # project_name = clockify_api.get_project(entry["projectId"])["name"]
-            project_name = games.get_game_by_clockify_id(db, entry["projectId"]).name
+            project = games.get_game_by_clockify_id(db, entry["projectId"])
+            project_name = project.name
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
             )

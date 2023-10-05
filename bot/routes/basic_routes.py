@@ -6,7 +6,6 @@ import utils.logger as logger
 import utils.messages as msgs
 from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
 from utils.config import Config
 from utils.my_utils import MyUtils
 
@@ -19,13 +18,13 @@ class BasicRoutes:
         logger.info(update.message.from_user.username + " has started conversation...")
         user = utils.check_valid_chat(update)
         if user:
-            # logger.info(user)
             tg_info = update.message.from_user
             context.user_data["username"] = tg_info.username
             context.user_data["user"] = tg_info.first_name
-            context.user_data["userid"] = tg_info.id
+            context.user_data["user_id"] = tg_info.id
+            context.user_data["is_admin"] = user["is_admin"]
             logger.info("User " + tg_info.username + " started the conversation.")
-            if user["is_admin"]:
+            if context.user_data["is_admin"]:
                 keyboard = kb.ADMIN_MENU
             else:
                 keyboard = kb.MAIN_MENU
@@ -42,7 +41,7 @@ class BasicRoutes:
         query = update.callback_query
         logger.info("Back")
         await query.answer()
-        if context.user_data["userid"] in config.ADMIN_USERS:
+        if context.user_data["is_admin"]:
             keyboard = kb.ADMIN_MENU
         else:
             keyboard = kb.MAIN_MENU

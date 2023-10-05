@@ -147,7 +147,8 @@ class ClockifyApi:
             if start_date is None:
                 date = datetime.datetime.now()
                 date = date.replace(hour=0, minute=0, second=0)
-                start = date - datetime.timedelta(days=1)
+                # start = date - datetime.timedelta(days=1)
+                start = date - datetime.timedelta()
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             else:
                 date = datetime.datetime.strptime(start_date, "%Y-%m-%d")

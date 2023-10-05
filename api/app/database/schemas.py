@@ -29,7 +29,6 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    id: int
     name: str
     telegram_username: str
     telegram_id: Union[str, None] = None
@@ -63,8 +62,8 @@ class GamesInfo(GamesInfoBase):
     steam_id: Union[str, None] = None
     image_url: Union[str, None] = None
     genres: Union[str, None] = None
-    played_time: Union[int, None] = None
-    avg_time: Union[int, None] = None
+    played_time: Union[int, None] = 0
+    avg_time: Union[int, None] = 0
     current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
 

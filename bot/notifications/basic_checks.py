@@ -56,17 +56,23 @@ class BasicChecks:
         # except Exception as e:
         #     logger.info("Error on sync clockify entries: " + str(e))
 
-    def platform(self, platform):
+    def platform(self, platform: str):
         if "switch" in platform:
             platform = platform.replace("switch", "Switch")
+        if "nintendo" in platform:
+            platform = platform.replace("nintendo", "Nintendo")
         if "steam" in platform:
             platform = platform.replace("steam", "Steam")
         if "playstation" in platform:
             platform = platform.replace("playstation", "playStation")
         if "Playstation" in platform:
-            platform = platform.replace("Playstation", "PlayStation")
-        if "xbox" in platform:
+            platform = platform.replace("Playstation", "playStation")
+        if "xbox" in platform.lower():
             platform = platform.replace("xbox", "Xbox")
+        if "pc" in platform.lower():
+            platform = platform.replace("pc", "PC")
+        if "Pc" in platform.lower():
+            platform = platform.replace("Pc", "PC")
         return platform
 
     def played_today(self, player, data_path):

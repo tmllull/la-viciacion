@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     container_name: laviciacion-bot
     image: laviciacion-bot
-    env_file: bot/.env
+    env_file: bot/app/.env
     volumes:
      - ./bot:/app
   

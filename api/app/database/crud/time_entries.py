@@ -74,16 +74,13 @@ def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEnt
         )
 
 
-def get_played_days(db: Session, start_date: str = None) -> list[models.TimeEntries]:
-    if start_date is None:
-        return db.query(models.TimeEntries).order_by(models.TimeEntries.user_id)
-    else:
-        logger.info(start_date)
-        return (
-            db.query(models.TimeEntries)
-            .filter(models.TimeEntries.start >= start_date)
-            .order_by(models.TimeEntries.user_id)
-        )
+def get_played_days(db: Session, user_id: int) -> list[models.TimeEntries]:
+    return (
+        db.query(models.TimeEntries.start_date)
+        .filter(models.TimeEntries.user_id == user_id)
+        .group_by(models.TimeEntries.start_date)
+        .count()
+    )
 
 
 def sync_clockify_entries_db(db: Session, user_id, entries):

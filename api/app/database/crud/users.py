@@ -135,11 +135,11 @@ def get_game(db: Session, user_id, game) -> models.UsersGames:
     return db.query(models.UsersGames.id).filter_by(user_id=user_id, game=game).first()
 
 
-def update_played_days(db: Session, player, played_days):
+def update_played_days(db: Session, user_id: int, played_days):
     try:
         stmt = (
             update(models.User)
-            .where(models.User.name == player)
+            .where(models.User.id == user_id)
             .values(played_days=played_days)
         )
         db.execute(stmt)

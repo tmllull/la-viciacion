@@ -28,27 +28,17 @@ rawgio_search_game = (
 ########################
 
 
-# async def init_data(db: Session):
-#     logger.info("Init data...")
-#     # sync_clockify_entries(db, "2023-01-01")
-#     # await sync_games_from_clockify(db)
-#     # sync_played_games(db)
-#     # init_played_time_games(db)
-#     # init_played_time_users(db)
-#     # return
-
-
 async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Sync data...")
     start_time = time.time()
-    # users_db = users.get_users(db)
-    # for user in users_db:
-    #     logger.info("Updating played days for " + user.name)
-    #     update_played_days(db)
-    #     break
-    # return
+    users_db = users.get_users(db)
+    logger.info("Updating played days...")
+    for user in users_db:
+        update_played_days(db, user.id)
+    logger.info("Sync clockify entries...")
     total_entries = sync_clockify_entries(db, start_date)
     if total_entries < 1:
+        logger.info("No one played today")
         return
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
@@ -59,7 +49,6 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     for user in played_time_users:
         users.update_played_time(db, user[0], user[1])
     logger.info("Updating played time game-user...")
-    users_db = users.get_users(db)
     for user in users_db:
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
@@ -139,25 +128,9 @@ def streak_days(db: Session):
     return
 
 
-def update_played_days(db: Session):
-    entries = time_entries.get_time_entries(db)
-    logger.info("Total entries: " + str(entries.count()))
-    played_days = 0
-    last_played_day = 1
-    max_played_days = 0
-    last_played_date = ""
-    for entry in entries:
-        day_of_the_year = utils.day_of_the_year(str(entry.start))
-        if day_of_the_year == last_played_day + 1:
-            played_days += 1
-        else:
-            last_played_date = utils.date_from_day_of_the_year()
-            max_played_days = played_days
-            played_days = 0
-        # logger.info("Day of the year: " + str(utils.day_of_the_year(str(entry.start))))
-        break
-    # logger.info("Total entries: " + str(len(entries)))
-    return
+def update_played_days(db: Session, user_id: str):
+    played_days = time_entries.get_played_days(db, user_id)
+    users.update_played_days(db, user_id, played_days)
 
 
 async def search_game_info_by_name(game: str):

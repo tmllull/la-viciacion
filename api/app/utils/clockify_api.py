@@ -139,39 +139,40 @@ class ClockifyApi:
             "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
         )
 
-    def get_time_entries(self, clockify_id, start_date=None):
-        if clockify_id is None:
+    def get_time_entries(self, clockify_user_id, start_date=None):
+        if clockify_user_id is None:
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ
         try:
             if start_date is None:
                 date = datetime.datetime.now()
+                date = date.replace(hour=0, minute=0, second=0)
                 start = date - datetime.timedelta(days=1)
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             else:
                 date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-                start = date - datetime.timedelta(days=1)
+                start = date - datetime.timedelta()
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+            page = 0
+            entries = []
+            has_entries = True
+            while has_entries:
+                page += 1
+                endpoint = "/workspaces/{}/user/{}/time-entries?page-size=500&page={}&start={}".format(
+                    config.CLOCKIFY_WORKSPACE, clockify_user_id, page, start
+                )
+                response = self.send_clockify_request(
+                    self.GET, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
+                )
+                if len(response.json()) > 0:
+                    for entry in response.json():
+                        entries.append(entry)
+                else:
+                    has_entries = False
+            return entries
         except Exception as e:
             logger.info("Error getting time entries: " + str(e))
             raise e
-        page = 0
-        entries = []
-        has_entries = True
-        while has_entries:
-            page += 1
-            endpoint = "/workspaces/{}/user/{}/time-entries?page-size=500&page={}&start={}".format(
-                config.CLOCKIFY_WORKSPACE, clockify_id, page, start
-            )
-            response = self.send_clockify_request(
-                self.GET, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
-            )
-            if len(response.json()) > 0:
-                for entry in response.json():
-                    entries.append(entry)
-            else:
-                has_entries = False
-        return entries
 
     def add_time_entry(self, player, date, time):
         return

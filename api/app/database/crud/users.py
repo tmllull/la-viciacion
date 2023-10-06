@@ -4,6 +4,7 @@ from typing import Union
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
+from ...config import Config
 from ...database import models, schemas
 from ...utils import logger
 from ...utils import my_utils as utils
@@ -11,10 +12,22 @@ from ...utils.clockify_api import ClockifyApi
 from . import games
 
 clockify = ClockifyApi()
+config = Config()
 
 #################
 ##### USERS #####
 #################
+
+
+def create_admin_user(db: Session, username: str):
+    try:
+        db_user = models.User(telegram_username=username, is_admin=1)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        logger.info("Admin user created")
+    except Exception as e:
+        logger.info(e)
 
 
 def get_users(db: Session) -> list[models.User]:
@@ -29,26 +42,50 @@ def get_users(db: Session) -> list[models.User]:
     return db.query(models.User)
 
 
-def get_user(db: Session, user: Union[int, str]) -> models.User:
+def get_user(
+    db: Session, username: str, user: schemas.TelegramUser = None
+) -> models.User:
     # Check tg_id
-    db_user = db.query(models.User).filter(models.User.telegram_id == user).first()
+    # db_user = (
+    #     db.query(models.User)
+    #     .filter(models.User.telegram_id == user.telegram_id)
+    #     .first()
+    # )
+    # if db_user is None:
+    #     # Check tg_username
+    db_user = (
+        db.query(models.User).filter(models.User.telegram_username == username).first()
+    )
     if db_user is None:
-        # Check tg_username
-        db_user = (
-            db.query(models.User).filter(models.User.telegram_username == user).first()
-        )
-        if db_user is None:
-            return None
+        return None
+    else:
+        if user is not None:
+            logger.info(user)
+            stmt = (
+                update(models.User)
+                .where(models.User.telegram_username == username)
+                .values(telegram_id=user.telegram_id, name=user.telegram_name)
+            )
+            db.execute(stmt)
+            db.commit()
+            return (
+                db.query(models.User)
+                .filter(models.User.telegram_username == username)
+                .first()
+            )
+
     return db_user
 
 
-def create_user(db: Session, user: schemas.User):
+def create_user(db: Session, username: str):
     # fake_hashed_password = user.password + "notreallyhashed"
-    # db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
-    # db.add(db_user)
-    # db.commit()
-    # db.refresh(db_user)
-    return {"message": "TBI"}
+    try:
+        db_user = models.User(telegram_username=username)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except Exception as e:
+        logger.info(e)
 
 
 def add_new_game(
@@ -191,7 +228,7 @@ def top_games(db: Session, player, limit: int = 10):
 #         raise e
 
 
-def streak(db: Session, player):
+def get_streaks(db: Session, player):
     try:
         return db.query(
             models.User.current_streak,
@@ -243,7 +280,30 @@ def complete_game(db: Session, user, game_name):
         )
     except Exception as e:
         db.rollback()
-        raise Exception("Error checking achievement:", str(e))
+        raise Exception("Error completing game:", str(e))
+
+
+def update_streaks(db: Session, user_id, current_streak, best_streak, best_streak_date):
+    try:
+        logger.info("Update streaks...")
+        stmt = (
+            update(models.User)
+            .where(models.User.id == user_id)
+            .values(
+                current_streak=current_streak,
+                best_streak=best_streak,
+                best_streak_date=best_streak_date,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+
+        # completed_games_count = (
+        #     db.query(models.UsersGames.game).filter_by(user=player, completed=1).count()
+        # )
+    except Exception as e:
+        db.rollback()
+        raise Exception("Error updating streaks:", str(e))
 
 
 # def set_user_achievement(db: Session, player, achievement):

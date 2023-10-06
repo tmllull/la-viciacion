@@ -29,15 +29,13 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    name: str
+    name: str = "noname"
     telegram_username: str
-    telegram_id: Union[str, None] = None
+    telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     played_time: Union[int, None] = None
     clockify_id: Union[str, None] = None
     current_ranking_hours: Union[int, None] = None
-    last_streak: Union[int, None] = None
-    last_streak_date: Union[datetime.date, None] = None
     current_streak: Union[int, None] = None
     best_streak: Union[int, None] = None
     best_streak_date: Union[datetime.date, None] = None
@@ -46,6 +44,11 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class TelegramUser(BaseModel):
+    telegram_name: str
+    telegram_id: int
 
 
 class GamesInfoBase(BaseModel):

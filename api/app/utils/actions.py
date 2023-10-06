@@ -44,11 +44,14 @@ async def sync_data(
         users.update_played_days(db, user.id, len(played_days))
     logger.info("Updating streaks...")
     for user in users_db:
-        final_date, total_days_streak, current_streak = streak_days(db, user)
+        best_streak_date, best_streak, current_streak = streak_days(db, user)
         # logger.info(user.name)
-        logger.info("Final date: " + str(final_date))
-        logger.info("Total days: " + str(len(total_days_streak)))
+        logger.info("Final date: " + str(best_streak_date))
+        logger.info("Total days: " + str(len(best_streak)))
         logger.info("Current: " + str(current_streak))
+        users.update_streaks(
+            db, user.id, current_streak, len(best_streak), best_streak_date
+        )
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -85,9 +88,9 @@ def streak_days(db: Session, user: models.User):
 
     # Variables para realizar un seguimiento de la secuencia actual
     current_streak = []
-    max_streak = []
+    best_streak = []
     total_days_streak = 0
-    final_date = None
+    best_date = None
 
     # Itera a través de las fechas
     for date in played_days:
@@ -99,31 +102,31 @@ def streak_days(db: Session, user: models.User):
                 current_streak.append(date)
                 total_days_streak += 1
             else:
-                if len(current_streak) > len(max_streak):
-                    max_streak = current_streak.copy()
-                    final_date = max_streak[-1]
+                if len(current_streak) > len(best_streak):
+                    best_streak = current_streak.copy()
+                    best_date = best_streak[-1]
                 current_streak = [date]
                 total_days_streak = 1
 
     # Comprueba si la secuencia actual es más larga que la máxima encontrada hasta ahora
-    if len(current_streak) > len(max_streak):
-        max_streak = current_streak.copy()
-        final_date = max_streak[-1]
-        total_days_streak = len(max_streak)
+    if len(current_streak) > len(best_streak):
+        best_streak = current_streak.copy()
+        best_date = best_streak[-1]
+        total_days_streak = len(best_streak)
 
     # print("La secuencia máxima de días consecutivos es:")
-    # if len(max_streak) > 1:
-    #     for date in max_streak:
+    # if len(best_streak) > 1:
+    #     for date in best_streak:
     #         print(date.strftime("%Y-%m-%d"))
 
-    # print("La date que terminó esa secuencia es:", final_date.strftime("%Y-%m-%d"))
+    # print("La date que terminó esa secuencia es:", best_date.strftime("%Y-%m-%d"))
     # print(
     #     "El total de días consecutivos en la secuencia máxima es:",
     #     total_days_streak,
     # )
-    if final_date is None:
-        final_date = ""
-    return final_date, max_streak, len(current_streak)
+    if best_date is None:
+        best_date = ""
+    return best_date, best_streak, len(current_streak)
 
 
 # def sync_played_games(db: Session, start_date: str = None):

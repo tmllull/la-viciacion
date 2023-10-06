@@ -25,25 +25,26 @@ def get_achievements_list(db: Session):
 
 
 def lose_streak(db: Session, player, streak, date=None):
-    if streak == 0:
-        stmt = select(models.User.last_streak).where(models.User.name == player)
-        last = db.execute(stmt).first()
-        if last[0] != None and last[0] != 0:
-            stmt = (
-                update(models.User)
-                .where(models.User.name == player)
-                .values(last_streak=streak, last_streak_date=date)
-            )
-            db.execute(stmt)
-            db.commit()
-            return last
-    stmt = (
-        update(models.User)
-        .where(models.User.name == player)
-        .values(last_streak=streak, last_streak_date=date)
-    )
-    db.execute(stmt)
-    db.commit()
+    logger.info("TBI")
+    # if streak == 0:
+    #     stmt = select(models.User.current_streak).where(models.User.name == player)
+    #     last = db.execute(stmt).first()
+    #     if last[0] != None and last[0] != 0:
+    #         stmt = (
+    #             update(models.User)
+    #             .where(models.User.name == player)
+    #             .values(current_streak=streak)
+    #         )
+    #         db.execute(stmt)
+    #         db.commit()
+    #         return last
+    # stmt = (
+    #     update(models.User)
+    #     .where(models.User.name == player)
+    #     .values(last_streak=streak)
+    # )
+    # db.execute(stmt)
+    # db.commit()
     return False
 
 

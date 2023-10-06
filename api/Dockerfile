@@ -1,8 +1,10 @@
 FROM python:3.9
 
-WORKDIR /app
+WORKDIR /
 
 COPY . .
+
+COPY ../.env /api/app
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 

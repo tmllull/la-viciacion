@@ -42,7 +42,8 @@ async def sync_data(
     db: Session = Depends(get_db),
 ):
     try:
-        await actions.sync_data(db, start_date, silent, force_update)
+        users.create_admin_user(db, config.ADMIN_USERS[0])
+        # await actions.sync_data(db, start_date, silent, force_update)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"
@@ -62,12 +63,17 @@ def get_users(db: Session = Depends(get_db)):
     return users_db
 
 
-@app.get("/users/{user}", tags=["Users"], response_model=schemas.User)
-def get_user(user: Union[int, str], db: Session = Depends(get_db)):
+@app.post("/users/{username}", tags=["Users"], response_model=schemas.User)
+def get_user(
+    username: str, user: schemas.TelegramUser = None, db: Session = Depends(get_db)
+):
     """
-    Get user by Telegram username or Telegram ID
+    Get user by Telegram username
     """
-    user_db = users.get_user(db, user=user)
+    logger.info("PRE GET USER")
+    logger.info(user)
+    user_db = users.get_user(db, username, user)
+    logger.info(user_db)
     if user_db is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user_db

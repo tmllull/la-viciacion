@@ -137,6 +137,7 @@ class MyUtils:
         return total_time, format_time, seconds, hours, minutes
 
     def check_valid_chat(self, update: Update) -> bool:
+        first_name = update.message.from_user.first_name
         username = update.message.from_user.username
         user_id = update.message.from_user.id
         chat_id = update.message.chat_id
@@ -145,7 +146,10 @@ class MyUtils:
                 return False
             else:
                 return True
-        response = requests.get(config.API_URL + "/users/" + username)
+        user = {"telegram_name": first_name, "telegram_id": user_id}
+        response = requests.request(
+            "POST", config.API_URL + "/users/" + username, json=user
+        )
         if response.status_code == 200:
             return response.json()
         else:

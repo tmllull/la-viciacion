@@ -8,16 +8,9 @@ from routes.my_routes import MyRoutes
 from routes.other_routes import OtherRoutes
 from routes.ranking_routes import RankingRoutes
 from telegram import BotCommand, Update
-from telegram.ext import (
-    Application,
-    ApplicationBuilder,
-    CallbackQueryHandler,
-    CommandHandler,
-    ContextTypes,
-    ConversationHandler,
-    MessageHandler,
-    filters,
-)
+from telegram.ext import (Application, ApplicationBuilder,
+                          CallbackQueryHandler, CommandHandler, ContextTypes,
+                          ConversationHandler, MessageHandler, filters)
 from utils.config import Config
 from utils.my_utils import MyUtils
 
@@ -165,7 +158,7 @@ def main() -> None:
                     filters.Regex("^(🆕 Añadir juego)$"), data_routes.add_game
                 ),
                 MessageHandler(
-                    filters.Regex("^(⏲ Añadir tiempo)$"), data_routes.update_time
+                    filters.Regex("^(⏲ Añadir tiempo)$"), data_routes.add_time
                 ),
                 MessageHandler(
                     filters.Regex("^(✅ Completar juego)$"), data_routes.complete_game
@@ -184,17 +177,17 @@ def main() -> None:
             ],
             utils.EXCEL_TIME_SELECT_GAME: [
                 MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
-                MessageHandler(None, data_routes.update_time_game_select),
+                MessageHandler(None, data_routes.add_time_game_select),
             ],
             utils.EXCEL_ADD_TIME: [
-                MessageHandler(None, data_routes.update_time_time_select),
+                MessageHandler(None, data_routes.add_time_time_select),
             ],
             utils.EXCEL_CONFIRM_TIME: [
                 MessageHandler(
-                    filters.Regex(FILTER_YES), data_routes.update_time_confirmation
+                    filters.Regex(FILTER_YES), data_routes.add_time_confirmation
                 ),
                 MessageHandler(
-                    filters.Regex(FILTER_NO), data_routes.update_time_confirmation
+                    filters.Regex(FILTER_NO), data_routes.add_time_confirmation
                 ),
                 MessageHandler(None, data_routes.cancel_data),
             ],

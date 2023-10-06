@@ -438,9 +438,11 @@ class DataRoutes:
             await update.message.reply_text("Algo ha salido mal")
         return ConversationHandler.END
 
-    async def update_time(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
+    ####################
+    ##### ADD TIME #####
+    ####################
+
+    async def add_time(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info("Add time to game...")
         username = update.message.from_user.username
         await utils.response_conversation(update, context, "TBI")
@@ -464,7 +466,7 @@ class DataRoutes:
         )
         return utils.EXCEL_TIME_SELECT_GAME
 
-    async def update_time_game_select(
+    async def add_time_game_select(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Received game")
@@ -476,7 +478,7 @@ class DataRoutes:
         )
         return utils.EXCEL_ADD_TIME
 
-    async def update_time_time_select(
+    async def add_time_time_select(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Received time")
@@ -517,7 +519,7 @@ class DataRoutes:
         )
         return utils.EXCEL_CONFIRM_TIME
 
-    async def update_time_confirmation(
+    async def add_time_confirmation(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         try:

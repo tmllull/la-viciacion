@@ -150,10 +150,10 @@ class OtherRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         if utils.check_valid_chat(update):
-            if "silksong" in update.message.text.lower() and utils.send(90):
+            if "silksong" in update.message.text.lower() and utils.random_send(90):
                 utils.log("Silksong trigger")
                 await utils.reply_message(update, context, msgs.silksong_message())
-            if "sanderson" in update.message.text.lower() and utils.send(80):
+            if "sanderson" in update.message.text.lower() and utils.random_send(80):
                 utils.log("Sanderson trigger")
                 await utils.reply_message(
                     update,
@@ -184,7 +184,7 @@ class OtherRoutes:
                     or " retrasado" in update.message.text.lower()
                     or " retraso" in update.message.text.lower()
                 )
-                and utils.send(90)
+                and utils.random_send(90)
                 and update.message.from_user.username != "netyaco"
             ):
                 logger.info("Bot not works trigger")

@@ -106,7 +106,6 @@ def get_played_days(db: Session, user_id: int) -> list[models.TimeEntries]:
 
 
 def sync_clockify_entries_db(db: Session, user: models.User, entries):
-    logger.info("Sync " + str(len(entries)) + " entries for user " + str(user.name))
     for entry in entries:
         try:
             start = entry["timeInterval"]["start"]

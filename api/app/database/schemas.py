@@ -29,7 +29,7 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    name: str = "noname"
+    name: Union[str, None] = None
     telegram_username: str
     telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None

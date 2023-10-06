@@ -49,7 +49,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255))
+    name = Column(String(255), default="noname")
     telegram_username = Column(String(255))
     telegram_id = Column(Integer)
     clockify_id = Column(String(255))
@@ -61,7 +61,7 @@ class User(Base):
     best_streak_date = Column(Date)
     played_days = Column(Integer)
     unplayed_streak = Column(Integer)
-    __table_args__ = (UniqueConstraint("id"),)
+    __table_args__ = (UniqueConstraint("telegram_username"),)
 
 
 class RankingUsers(Base):

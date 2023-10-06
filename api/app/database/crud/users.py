@@ -24,10 +24,11 @@ def create_admin_user(db: Session, username: str):
         db_user = models.User(telegram_username=username, is_admin=1)
         db.add(db_user)
         db.commit()
-        db.refresh(db_user)
         logger.info("Admin user created")
     except Exception as e:
-        logger.info(e)
+        db.rollback()
+        if "Duplicate entry" not in str(e):
+            logger.info(e)
 
 
 def get_users(db: Session) -> list[models.User]:

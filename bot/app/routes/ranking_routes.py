@@ -55,15 +55,11 @@ class RankingRoutes:
         ranking_players = requests.get(config.API_URL + "/rankings?type=days").json()
         msg = "Así está el ranking de días de vicio:\n"
         for i, elem in enumerate(ranking_players):
-            msg = (
-                msg
-                + str(i + 1)
-                + ". "
-                + elem
-                + ": "
-                + str(ranking_players[elem])
-                + "\n"
-            )
+            if ranking_players[elem] is None:
+                days = 0
+            else:
+                days = ranking_players[elem]
+            msg = msg + str(i + 1) + ". " + elem + ": " + str(days) + "\n"
         await utils.response_conversation(update, context, msg)
 
     # async def ranking_platform(

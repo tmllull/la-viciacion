@@ -42,8 +42,9 @@ async def sync_data(
     db: Session = Depends(get_db),
 ):
     try:
-        users.create_admin_user(db, config.ADMIN_USERS[0])
-        # await actions.sync_data(db, start_date, silent, force_update)
+        for admin in config.ADMIN_USERS:
+            users.create_admin_user(db, admin)
+        await actions.sync_data(db, start_date, silent, force_update)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"

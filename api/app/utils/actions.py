@@ -34,24 +34,28 @@ async def sync_data(
     start_time = time.time()
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
-    total_entries = sync_clockify_entries(db, start_date)
-    if total_entries < 1 and not force_update:
-        logger.info("No one played today")
-        return
-    logger.info("Updating played days...")
     for user in users_db:
+        total_entries = sync_clockify_entries(db, user, start_date)
+        if total_entries < 1 and not force_update:
+            logger.info(user.name + " not played today")
+            continue
+        logger.info("Updating played days...")
+        # for user in users_db:
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
-    logger.info("Updating streaks...")
-    for user in users_db:
+        logger.info("Updating streaks...")
+        # for user in users_db:
         best_streak_date, best_streak, current_streak = streak_days(db, user)
         # logger.info(user.name)
-        logger.info("Final date: " + str(best_streak_date))
-        logger.info("Total days: " + str(len(best_streak)))
-        logger.info("Current: " + str(current_streak))
+        # logger.info("Final date: " + str(best_streak_date))
+        # logger.info("Total days: " + str(len(best_streak)))
+        # logger.info("Current: " + str(current_streak))
         users.update_streaks(
             db, user.id, current_streak, len(best_streak), best_streak_date
         )
+        played_time_games = time_entries.get_user_games_played_time(db, user.id)
+        for game in played_time_games:
+            users.u
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -61,10 +65,10 @@ async def sync_data(
     for user in played_time_users:
         users.update_played_time(db, user[0], user[1])
     logger.info("Updating played time game-user...")
-    for user in users_db:
-        played_time_games = time_entries.get_user_games_played_time(db, user.id)
-        for game in played_time_games:
-            users.update_played_time_game(db, user.id, game[0], game[1])
+    # for user in users_db:
+    #     played_time_games = time_entries.get_user_games_played_time(db, user.id)
+    #     for game in played_time_games:
+    #         users.update_played_time_game(db, user.id, game[0], game[1])
     await ranking_games_hours(db)
     await ranking_players_hours(db)
     # sync_played_games_user(db)
@@ -353,18 +357,23 @@ async def ranking_players_hours(db: Session):
 ####################
 
 
-def sync_clockify_entries(db: Session, date: str = None):
-    users_db = users.get_users(db)
-    if date is None:
-        logger.info("Syncing last time entries...")
-    else:
-        logger.info("Syncing time entries from " + date + "...")
-    total_entries = 0
+def sync_clockify_entries(db: Session, user: models.User, date: str = None):
+    # users_db = users.get_users(db)
+    # if date is None:
+    #     logger.info("Syncing last time entries...")
+    # else:
+    #     logger.info("Syncing time entries from " + date + "...")
+    # total_entries = 0
     try:
-        for user in users_db:
-            entries = clockify_api.get_time_entries(user.clockify_id, date)
-            total_entries += len(entries)
-            time_entries.sync_clockify_entries_db(db, user, entries)
+        # for user in users_db:
+        entries = clockify_api.get_time_entries(user.clockify_id, date)
+        total_entries = len(entries)
+        logger.info(
+            "Sync " + str(total_entries) + " entries for user " + str(user.name)
+        )
+        if total_entries == 0:
+            return 0
+        time_entries.sync_clockify_entries_db(db, user, entries)
         return total_entries
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))

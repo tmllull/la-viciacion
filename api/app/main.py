@@ -36,10 +36,13 @@ def hello_world():
 
 @app.get("/sync-data")
 async def sync_data(
-    start_date: str = None, silent: bool = False, db: Session = Depends(get_db)
+    start_date: str = None,
+    silent: bool = False,
+    force_update: bool = False,
+    db: Session = Depends(get_db),
 ):
     try:
-        await actions.sync_data(db, start_date, silent)
+        await actions.sync_data(db, start_date, silent, force_update)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"
@@ -50,7 +53,7 @@ async def sync_data(
 ######################
 
 
-@app.get("/users/", tags=["Users"], response_model=list[schemas.User])
+@app.get("/users", tags=["Users"], response_model=list[schemas.User])
 def get_users(db: Session = Depends(get_db)):
     """
     Get all users
@@ -70,7 +73,7 @@ def get_user(user: Union[int, str], db: Session = Depends(get_db)):
     return user_db
 
 
-# @app.post("/users/", tags=["Users"], response_model=schemas.User)
+# @app.post("/users", tags=["Users"], response_model=schemas.User)
 # def create_user(user: schemas.User, db: Session = Depends(get_db)):
 #     """
 #     TODO: Add description
@@ -138,7 +141,7 @@ async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)
 #######################
 
 
-@app.get("/games/", tags=["Games"], response_model=list[schemas.GamesInfo])
+@app.get("/games", tags=["Games"], response_model=list[schemas.GamesInfo])
 def get_games(limit: int = 10000, db: Session = Depends(get_db)):
     """
     Get all games from DB
@@ -168,7 +171,7 @@ async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
     return game_info
 
 
-@app.post("/games/", tags=["Games"], response_model=schemas.GamesInfo)
+@app.post("/games", tags=["Games"], response_model=schemas.GamesInfo, status_code=201)
 def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
     Create new game
@@ -183,11 +186,24 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 ##########################
 
 
-@app.get("/rankings/played-hours", tags=["Rankings"])
-def rankings_played_hours(db: Session = Depends(get_db)):
-    return rankings.get_current_ranking_hours_players(db)
+@app.get("/rankings", tags=["Rankings"])
+def rankings_played_hours(type: str = None, db: Session = Depends(get_db)):
+    if type is None:
+        return {"message": "Return all rankings TBI"}
+    else:
+        if type == "hours":
+            return rankings.get_current_ranking_hours_players(db)
+        elif type == "days":
+            return rankings.get_current_ranking_days_players(db)
+        else:
+            return {"message": "More rankings in coming"}
 
 
-@app.get("/rankings/played-days", tags=["Rankings"])
-def rankings_played_days(db: Session = Depends(get_db)):
-    return rankings.get_current_ranking_days_players(db)
+# @app.get("/rankings/played-hours", tags=["Rankings"])
+# def rankings_played_hours(db: Session = Depends(get_db)):
+#     return rankings.get_current_ranking_hours_players(db)
+
+
+# @app.get("/rankings/played-days", tags=["Rankings"])
+# def rankings_played_days(db: Session = Depends(get_db)):
+#     return rankings.get_current_ranking_days_players(db)

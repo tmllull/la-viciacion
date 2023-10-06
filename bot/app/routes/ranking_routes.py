@@ -32,7 +32,7 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking hours")
-        ranking_players = requests.get(config.API_URL + "/rankings/played-hours").json()
+        ranking_players = requests.get(config.API_URL + "/rankings?type=hours").json()
 
         msg = "Así está el ranking de horas de vicio:\n"
         for i, elem in enumerate(ranking_players):
@@ -52,7 +52,7 @@ class RankingRoutes:
     ) -> None:
         logger.info("Ranking days")
         # db.log(context.user_data["user"], ActionLogs.RANKING_DAYS)
-        ranking_players = requests.get(config.API_URL + "/rankings/played-days").json()
+        ranking_players = requests.get(config.API_URL + "/rankings?type=days").json()
         msg = "Así está el ranking de días de vicio:\n"
         for i, elem in enumerate(ranking_players):
             msg = (
@@ -149,8 +149,6 @@ class RankingRoutes:
         await utils.response_conversation(update, context, "TBI")
         return
         played_games = requests.get(config.API_URL + "/???").json()
-
-        # db.log(context.user_data["user"], ActionLogs.RANKING_PLAYED)
         msg = "Ranking de juegos jugados:\n"
         for player in played_games:
             msg = msg + str(player[0]) + ": " + str(player[1]) + "\n"

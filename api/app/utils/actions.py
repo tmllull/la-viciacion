@@ -24,19 +24,31 @@ config = Config()
 ########################
 
 
-async def sync_data(db: Session, start_date: str = None, silent: bool = False):
+async def sync_data(
+    db: Session,
+    start_date: str = None,
+    silent: bool = False,
+    force_update: bool = False,
+):
     logger.info("Sync data...")
     start_time = time.time()
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     total_entries = sync_clockify_entries(db, start_date)
-    if total_entries < 1:
+    if total_entries < 1 and not force_update:
         logger.info("No one played today")
         return
     logger.info("Updating played days...")
     for user in users_db:
         played_days = time_entries.get_played_days(db, user.id)
-        users.update_played_days(db, user.id, played_days)
+        users.update_played_days(db, user.id, len(played_days))
+    logger.info("Updating streaks...")
+    for user in users_db:
+        final_date, total_days_streak, current_streak = streak_days(db, user)
+        # logger.info(user.name)
+        logger.info("Final date: " + str(final_date))
+        logger.info("Total days: " + str(len(total_days_streak)))
+        logger.info("Current: " + str(current_streak))
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -58,51 +70,85 @@ async def sync_data(db: Session, start_date: str = None, silent: bool = False):
     logger.info("Elapsed time: " + str(end_time - start_time))
 
 
-def streak_days(db: Session):
+def streak_days(db: Session, user: models.User):
     """
     TODO: To revise
     """
-    # entries = time_entries.get_time_entries(db)
-    # logger.info("Total entries: " + str(entries.count()))
-    # played_days = 0
-    # last_played_day = 1
-    # max_played_days = 0
-    # last_played_date = ""
-    # for entry in entries:
-    #     day_of_the_year = utils.day_of_the_year(str(entry.start))
-    #     if day_of_the_year == last_played_day + 1:
-    #         played_days += 1
-    #     else:
-    #         last_played_date = utils.date_from_day_of_the_year()
-    #         max_played_days = played_days
-    #         played_days = 0
-    #     break
-    return
+    logger.info("Checking streaks for " + user.name)
+    played_days = time_entries.get_played_days(db, user.id)
+
+    # Convierte las fechas de texto a objetos datetime
+    played_days = [datetime.datetime.strptime(date, "%Y-%m-%d") for date in played_days]
+
+    # Ordena la lista de fechas
+    played_days.sort()
+
+    # Variables para realizar un seguimiento de la secuencia actual
+    current_streak = []
+    max_streak = []
+    total_days_streak = 0
+    final_date = None
+
+    # Itera a través de las fechas
+    for date in played_days:
+        if not current_streak:
+            current_streak.append(date)
+            total_days_streak = 1
+        else:
+            if date == current_streak[-1] + datetime.timedelta(days=1):
+                current_streak.append(date)
+                total_days_streak += 1
+            else:
+                if len(current_streak) > len(max_streak):
+                    max_streak = current_streak.copy()
+                    final_date = max_streak[-1]
+                current_streak = [date]
+                total_days_streak = 1
+
+    # Comprueba si la secuencia actual es más larga que la máxima encontrada hasta ahora
+    if len(current_streak) > len(max_streak):
+        max_streak = current_streak.copy()
+        final_date = max_streak[-1]
+        total_days_streak = len(max_streak)
+
+    # print("La secuencia máxima de días consecutivos es:")
+    # if len(max_streak) > 1:
+    #     for date in max_streak:
+    #         print(date.strftime("%Y-%m-%d"))
+
+    # print("La date que terminó esa secuencia es:", final_date.strftime("%Y-%m-%d"))
+    # print(
+    #     "El total de días consecutivos en la secuencia máxima es:",
+    #     total_days_streak,
+    # )
+    if final_date is None:
+        final_date = ""
+    return final_date, max_streak, len(current_streak)
 
 
-def sync_played_games(db: Session, start_date: str = None):
-    logger.info("Sync played games (To Revise)...")
-    if start_date is None:
-        date = datetime.datetime.now()
-        start = date - datetime.timedelta(days=1)
-        start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
-    else:
-        date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-        start = date - datetime.timedelta(days=1)
-        start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
-    time_entries_db = time_entries.get_time_entries(db, start_date)
-    logger.info("TIMEENTRIES: " + str(len(time_entries_db)))
-    for time_entry in time_entries_db:
-        # already_played = crud.user_get_game(db, time_entry.user_id, time_entry.project)
-        if users.get_game(db, time_entry.user_id, time_entry.project) is None:
-            start_game = models.UsersGames(
-                game=time_entry.project,
-                user=time_entry.user,
-                user_id=time_entry.user_id,
-            )
-            db.add(start_game)
-            db.commit()
-            # crud.user_add_new_game()
+# def sync_played_games(db: Session, start_date: str = None):
+#     logger.info("Sync played games (To Revise)...")
+#     if start_date is None:
+#         date = datetime.datetime.now()
+#         start = date - datetime.timedelta(days=1)
+#         start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+#     else:
+#         date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+#         start = date - datetime.timedelta(days=1)
+#         start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+#     time_entries_db = time_entries.get_time_entries(db, start_date)
+#     logger.info("TIMEENTRIES: " + str(len(time_entries_db)))
+#     for time_entry in time_entries_db:
+#         # already_played = crud.user_get_game(db, time_entry.user_id, time_entry.project)
+#         if users.get_game(db, time_entry.user_id, time_entry.project) is None:
+#             start_game = models.UsersGames(
+#                 game=time_entry.project,
+#                 user=time_entry.user,
+#                 user_id=time_entry.user_id,
+#             )
+#             db.add(start_game)
+#             db.commit()
+#             # crud.user_add_new_game()
 
 
 # def sync_played_games_user(db: Session):

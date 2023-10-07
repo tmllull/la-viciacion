@@ -154,6 +154,14 @@ class TimeEntries(Base):
     __table_args__ = (UniqueConstraint("id"),)
 
 
+class ClockifyTags(Base):
+    __tablename__ = "clockify_tags"
+
+    id = Column(String(255), primary_key=True)
+    name = Column(String(255))
+    __table_args__ = (UniqueConstraint("id"),)
+
+
 class Logs(Base):
     __tablename__ = "logs"
 

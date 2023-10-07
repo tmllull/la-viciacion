@@ -177,3 +177,12 @@ class ClockifyApi:
 
     def add_time_entry(self, player, date, time):
         return
+
+    def get_tags(self):
+        response = self.send_clockify_request(
+            "GET",
+            "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/tags",
+            None,
+            config.CLOCKIFY_ADMIN_API_KEY,
+        )
+        return response.json()

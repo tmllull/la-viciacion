@@ -129,7 +129,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
         steam_id=str(steam_id),
         image_url=image_url,
         genres=genres,
-        mean_time=convert_hours_minutes_to_seconds(avg_time),
+        avg_time=avg_time,
         clockify_id=project_id,
     )
     return new_game

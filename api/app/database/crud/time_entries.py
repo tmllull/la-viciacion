@@ -10,7 +10,7 @@ from ...utils import logger
 from ...utils import my_utils as utils
 from ...utils.clockify_api import ClockifyApi
 from .. import models, schemas
-from . import games, users
+from . import clockify, games, users
 
 clockify_api = ClockifyApi()
 
@@ -102,12 +102,17 @@ def get_played_days(db: Session, user_id: int) -> list:
 
 async def sync_clockify_entries_db(db: Session, user: models.User, entries):
     for entry in entries:
+        if entry["projectId"] is None:
+            continue
+        # if user.id == 8:
+        #     logger.info(entry)
         try:
             start = entry["timeInterval"]["start"]
             end = entry["timeInterval"]["end"]
             duration = entry["timeInterval"]["duration"]
-            start_date = ""
-            end_date = ""
+            platform = "TBD"
+            if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
+                platform = clockify.get_tag_id(db, entry["tagIds"][0])[0]
             if end is None:
                 end = ""
             if duration is None:
@@ -128,7 +133,9 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 games.new_game(db, new_game)
             already_playing = users.get_game(db, user.id, project_name)
             if not already_playing:
-                new_user_game = schemas.NewGameUser(game=project_name, platform="TBD")
+                new_user_game = schemas.NewGameUser(
+                    game=project_name, platform=platform
+                )
                 users.add_new_game(db, new_user_game, user)
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
@@ -165,6 +172,10 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                     )
                 )
                 db.execute(stmt)
+                update_game = models.UsersGames(platform=platform)
+                users.update_game(db, update_game, already_playing.id)
+                # TODO: implement update user_games to add tags just in case
+
             db.commit()
         except Exception as e:
             db.rollback()

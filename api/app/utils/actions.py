@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from ..config import Config
 from ..database import crud, models, schemas
-from ..database.crud import games, rankings, time_entries, users
+from ..database.crud import clockify, games, rankings, time_entries, users
 from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
@@ -32,6 +32,9 @@ async def sync_data(
 ):
     logger.info("Sync data...")
     start_time = time.time()
+    if force_update:
+        start_date = "2023-01-01"
+    clockify.sync_clockify_tags(db)
     users_db = users.get_users(db)
     # if force_update:
     #     start_date = "2023-01-01"
@@ -49,7 +52,7 @@ async def sync_data(
     logger.info("Sync clockify entries...")
     for user in users_db:
         total_entries = await sync_clockify_entries(db, user, start_date)
-        if total_entries < 1 and not force_update:
+        if total_entries < 1:
             logger.info(user.name + " not played today")
             continue
         logger.info("Updating played days...")
@@ -382,14 +385,7 @@ async def ranking_players_hours(db: Session):
 
 
 async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
-    # users_db = users.get_users(db)
-    # if date is None:
-    #     logger.info("Syncing last time entries...")
-    # else:
-    #     logger.info("Syncing time entries from " + date + "...")
-    # total_entries = 0
     try:
-        # for user in users_db:
         entries = clockify_api.get_time_entries(user.clockify_id, date)
         total_entries = len(entries)
         logger.info(

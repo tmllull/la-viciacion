@@ -71,10 +71,7 @@ def get_user(
     """
     Get user by Telegram username
     """
-    logger.info("PRE GET USER")
-    logger.info(user)
     user_db = users.get_user(db, username, user)
-    logger.info(user_db)
     if user_db is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user_db
@@ -92,37 +89,37 @@ def get_user(
 #     return crud.create_user(db=db, user=user)
 
 
-@app.post("/users/{user}/new_game", tags=["Users"], response_model=schemas.UsersGames)
-def add_game(
-    user: Union[str, int], game: schemas.NewGameUser, db: Session = Depends(get_db)
-):
+@app.post(
+    "/users/{username}/new_game", tags=["Users"], response_model=schemas.UsersGames
+)
+def add_game(username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)):
     """
     TODO: Add description
     """
-    user_id = users.get_user(db, user).id
-    played_games = users.get_games(db, user_id)
+    user = users.get_user(db, username)
+    played_games = users.get_games(db, user.id)
     for played_game in played_games:
         if played_game.game == game.game:
             raise HTTPException(status_code=400, detail="Game already exists")
     # TODO: Revise this exception and response codes
     try:
-        return users.add_new_game(db=db, game=game, user_id=user_id)
+        return users.add_new_game(db=db, game=game, user=user)
     except Exception:
         raise HTTPException(status_code=500, detail="Error adding new game user")
 
 
 @app.get(
-    "/users/{user}/games/played",
+    "/users/{username}/games/played",
     tags=["Users"],
     response_model=list[schemas.UsersGames],
 )
 def user_games_played(
-    user: Union[int, str],
+    username: str,
     limit: int = None,
     completed: bool = None,
     db: Session = Depends(get_db),
 ):
-    user_id = users.get_user(db, user=user).id
+    user_id = users.get_user(db, username=username).id
     played_games = users.get_games(db, user_id, limit, completed)
     return played_games
 

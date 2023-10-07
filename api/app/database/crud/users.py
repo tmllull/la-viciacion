@@ -1,7 +1,7 @@
 import datetime
 from typing import Union
 
-from sqlalchemy import asc, create_engine, desc, func, select, text, update
+from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
 from sqlalchemy.orm import Session
 
 from ...config import Config
@@ -119,6 +119,29 @@ def add_new_game(
     except Exception as e:
         logger.info("Error adding new game user: " + str(e))
         raise Exception(e)
+
+
+def update_game(db: Session, game: schemas.UsersGames, entry_id) -> models.UsersGames:
+    try:
+        # logger.info("Updating entry")
+        # logger.info(entry_id)
+        # logger.info(game.platform)
+        stmt = (
+            update(models.UsersGames)
+            .where(
+                models.UsersGames.id == entry_id,
+                or_(
+                    models.UsersGames.platform == "TBD",
+                    models.UsersGames.platform == None,
+                ),
+            )
+            .values(platform=game.platform)
+        )
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        logger.info(e)
+        raise e
 
 
 # def update_game(db: Session, game: models.UsersGames):

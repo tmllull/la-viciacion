@@ -51,7 +51,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), default="noname")
     telegram_username = Column(String(255))
-    telegram_id = Column(Integer)
+    telegram_id = Column(String(255))
     clockify_id = Column(String(255))
     is_admin = Column(Integer)
     played_time = Column(Integer)
@@ -115,7 +115,7 @@ class UsersGames(Base):
     completed_date = Column(Date)
     score = Column(Float)
     played_time = Column(Integer)
-    completion_time = Column(String(255))
+    completion_time = Column(Integer)
     __table_args__ = (UniqueConstraint("user_id", "game", "platform"),)
 
 
@@ -148,10 +148,8 @@ class TimeEntries(Base):
     user_clockify_id = Column(String(255))
     project = Column(String(255))
     project_id = Column(String(255))
-    start = Column(String(255))
-    start_date = Column(String(255))
-    end = Column(String(255))
-    end_date = Column(String(255))
+    start = Column(DateTime)
+    end = Column(DateTime)
     duration = Column(Integer)
     __table_args__ = (UniqueConstraint("id"),)
 

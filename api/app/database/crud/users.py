@@ -21,10 +21,18 @@ config = Config()
 
 def create_admin_user(db: Session, username: str):
     try:
-        db_user = models.User(telegram_username=username, is_admin=1)
-        db.add(db_user)
-        db.commit()
-        logger.info("Admin user created")
+        db_user = (
+            db.query(models.User)
+            .filter(models.User.telegram_username == username)
+            .first()
+        )
+        if db_user is None:
+            db_user = models.User(telegram_username=username, is_admin=1)
+            db.add(db_user)
+            db.commit()
+            logger.info("Admin user created")
+        else:
+            logger.info("Admin user already exists")
     except Exception as e:
         db.rollback()
         if "Duplicate entry" not in str(e):
@@ -90,12 +98,11 @@ def create_user(db: Session, username: str):
 
 
 def add_new_game(
-    db: Session, game: schemas.NewGameUser, user_id: int
+    db: Session, game: schemas.NewGameUser, user: models.User
 ) -> models.UsersGames:
-    logger.info("Adding new game...")
+    logger.info("Adding new user game...")
     try:
         game_db = games.get_game_by_name(db, game.game)
-        user = get_user(db, user_id)
         user_game = models.UsersGames(
             user=user.name,
             user_id=user.id,
@@ -304,6 +311,7 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
         # )
     except Exception as e:
         db.rollback()
+        logger.info(e)
         raise Exception("Error updating streaks:", str(e))
 
 

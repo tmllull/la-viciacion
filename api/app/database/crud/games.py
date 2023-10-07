@@ -39,6 +39,7 @@ def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
 
 
 def new_game(db: Session, game: schemas.NewGame):
+    logger.info("Adding new game to DB: " + game.name)
     try:
         game = models.GamesInfo(
             name=game.name,
@@ -56,7 +57,7 @@ def new_game(db: Session, game: schemas.NewGame):
         db.refresh(game)
         return game
     except Exception as e:
-        if "UNIQUE constraint failed" in str(e):
+        if "Duplicate" in str(e):
             db.rollback()
         else:
             logger.info("Error adding new game: " + str(e))
@@ -129,7 +130,7 @@ def update_game(db: Session, game: models.GamesInfo):
                 dev=game.dev,
                 steam_id=game.steam_id,
                 image_url=game.image_url,
-                release_date=game.released,
+                release_date=game.release_date,
                 clockify_id=game.clockify_id,
                 genres=game.genres,
                 avg_time=game.avg_time,

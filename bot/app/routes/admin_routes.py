@@ -5,7 +5,6 @@ import utils.logger as logger
 import utils.messages as msgs
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
 from utils.config import Config
 from utils.my_utils import MyUtils
 

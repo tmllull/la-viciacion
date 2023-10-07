@@ -7,7 +7,6 @@ import utils.keyboard as kb
 import utils.logger as logger
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
 from utils.my_utils import MyUtils

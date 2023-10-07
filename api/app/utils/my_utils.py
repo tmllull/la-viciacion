@@ -8,6 +8,8 @@ from dateutil.parser import isoparse
 from howlongtobeatpy import HowLongToBeat
 
 from ..config import Config
+from ..database import schemas
+from ..utils import logger
 
 config = Config()
 
@@ -27,6 +29,7 @@ def convert_hours_minutes_to_seconds(time) -> int:
 def change_timezone_clockify(time) -> str:
     date_time = isoparse(time)
     spain_timezone = pytz.timezone("Europe/Madrid")
+    # return spain_timezone
     return str(date_time.astimezone(spain_timezone).strftime("%Y-%m-%d %H:%M:%S"))
 
 
@@ -84,3 +87,49 @@ async def get_game_info(game):
         hltb_content = None
 
     return {"rawg": rawg_content, "hltb": hltb_content}
+
+
+async def get_new_game_info(game) -> schemas.NewGame:
+    game_name = game["name"]
+    project_id = game["id"]
+    released = ""
+    genres = ""
+    steam_id = ""
+    dev = ""
+    avg_time = 0
+    game_info = await get_game_info(game_name)
+    rawg_info = game_info["rawg"]
+    hltb_info = game_info["hltb"]
+    game_name = rawg_info["name"]
+    released = rawg_info["released"]
+    if hltb_info is None:
+        steam_id = 0
+        dev = "-"
+        avg_time = 0
+    else:
+        steam_id = hltb_info["profile_steam"]
+        dev = hltb_info["profile_dev"]
+        avg_time = hltb_info["comp_main"]
+    if steam_id == 0:
+        steam_id = ""
+    if released is not None:
+        release_date = datetime.datetime.strptime(released, "%Y-%m-%d")
+        # released = datetime.datetime.strftime(release_date, "%d-%m-%Y")
+    else:
+        release_date = None
+    genres = ""
+    for genre in rawg_info["genres"]:
+        genres += genre["name"] + ","
+    genres = genres[:-1]
+    image_url = rawg_info["background_image"]
+    new_game = schemas.NewGame(
+        name=game_name,
+        dev=dev,
+        release_date=release_date,
+        steam_id=str(steam_id),
+        image_url=image_url,
+        genres=genres,
+        mean_time=convert_hours_minutes_to_seconds(avg_time),
+        clockify_id=project_id,
+    )
+    return new_game

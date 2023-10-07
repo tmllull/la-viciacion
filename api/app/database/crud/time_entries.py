@@ -12,7 +12,7 @@ from ...utils.clockify_api import ClockifyApi
 from .. import models, schemas
 from . import games, users
 
-clockify = ClockifyApi()
+clockify_api = ClockifyApi()
 
 
 def get_users_played_time(db: Session):
@@ -22,16 +22,16 @@ def get_users_played_time(db: Session):
     return db.execute(stmt)
 
 
-def get_user_played_time(db: Session, user_id: str) -> list[models.TimeEntries]:
+def get_user_played_time(db: Session, user_id: str):
     stmt = (
         select(
             models.TimeEntries.user_id,
             func.sum(models.TimeEntries.duration),
         )
         .where(models.TimeEntries.user_id == user_id)
-        .group_by(models.TimeEntries.project)
+        .group_by(models.TimeEntries.user_id)
     )
-    return db.execute(stmt)
+    return db.execute(stmt).first()
 
 
 def get_games_played_time(db: Session):
@@ -74,19 +74,21 @@ def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEnt
         )
 
 
-def get_played_days(db: Session, user_id: int) -> list[models.TimeEntries]:
+def get_played_days(db: Session, user_id: int) -> list:
     played_days = []
+    # query = db.query(func.DATE(models.TimeEntries.start)).distinct().count()
     played_start_days = (
-        db.query(models.TimeEntries.start_date)
+        db.query(func.DATE(models.TimeEntries.start))
         .filter(models.TimeEntries.user_id == user_id)
-        .group_by(models.TimeEntries.start_date)
+        .distinct()
     )
     for played_day in played_start_days:
         played_days.append(played_day[0])
+    # logger.info(played_days)
     played_end_days = (
-        db.query(models.TimeEntries.end_date)
+        db.query(func.DATE(models.TimeEntries.end))
         .filter(models.TimeEntries.user_id == user_id)
-        .group_by(models.TimeEntries.end_date)
+        .distinct()
     )
     for played_day in played_end_days:
         if (
@@ -95,17 +97,10 @@ def get_played_days(db: Session, user_id: int) -> list[models.TimeEntries]:
             and played_day[0] not in played_days
         ):
             played_days.append(played_day[0])
-    return played_days
-    # return played_start_days.count()
-    # return (
-    #     db.query(models.TimeEntries.start_date)
-    #     .filter(models.TimeEntries.user_id == user_id)
-    #     .group_by(models.TimeEntries.start_date)
-    #     .count()
-    # )
+    return sorted(played_days)
 
 
-def sync_clockify_entries_db(db: Session, user: models.User, entries):
+async def sync_clockify_entries_db(db: Session, user: models.User, entries):
     for entry in entries:
         try:
             start = entry["timeInterval"]["start"]
@@ -118,13 +113,23 @@ def sync_clockify_entries_db(db: Session, user: models.User, entries):
             if duration is None:
                 duration = ""
             start = utils.change_timezone_clockify(start)
-            start_date = utils.date_from_datetime(start)
+            # start_date = utils.date_from_datetime(start)
             if end != "":
                 end = utils.change_timezone_clockify(end)
-                end_date = utils.date_from_datetime(end)
+                # end_date = utils.date_from_datetime(end)
             # project_name = clockify_api.get_project(entry["projectId"])["name"]
             project = games.get_game_by_clockify_id(db, entry["projectId"])
-            project_name = project.name
+            if project is not None:
+                project_name = project.name
+            else:
+                project = clockify_api.get_project(entry["projectId"])
+                project_name = project["name"]
+                new_game = await utils.get_new_game_info(project)
+                games.new_game(db, new_game)
+            already_playing = users.get_game(db, user.id, project_name)
+            if not already_playing:
+                new_user_game = schemas.NewGameUser(game=project_name, platform="TBD")
+                users.add_new_game(db, new_user_game, user)
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
             )
@@ -138,9 +143,9 @@ def sync_clockify_entries_db(db: Session, user: models.User, entries):
                     project=project_name,
                     project_id=entry["projectId"],
                     start=start,
-                    start_date=start_date,
+                    # start_date=start_date,
                     end=end,
-                    end_date=end_date,
+                    # end_date=end_date,
                     duration=utils.convert_clockify_duration(duration),
                 )
                 db.add(new_entry)
@@ -153,9 +158,9 @@ def sync_clockify_entries_db(db: Session, user: models.User, entries):
                         project=project_name,
                         project_id=entry["projectId"],
                         start=start,
-                        start_date=start_date,
+                        # start_date=start_date,
                         end=end,
-                        end_date=end_date,
+                        # end_date=end_date,
                         duration=utils.convert_clockify_duration(duration),
                     )
                 )
@@ -163,8 +168,13 @@ def sync_clockify_entries_db(db: Session, user: models.User, entries):
             db.commit()
         except Exception as e:
             db.rollback()
-            logger.info("Error adding new entry " + str(entry) + ": " + str(e))
+            logger.info("Error adding entry " + str(entry) + ": " + str(e))
             raise e
         # logger.info(entry["id"])
         # exit()
     return
+
+
+def get_all_played_games(db: Session):
+    stmt = select(models.TimeEntries.project, models.TimeEntries.project_id)
+    return db.execute(stmt)

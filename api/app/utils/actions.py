@@ -33,9 +33,22 @@ async def sync_data(
     logger.info("Sync data...")
     start_time = time.time()
     users_db = users.get_users(db)
+    # if force_update:
+    #     start_date = "2023-01-01"
+    #     logger.info("Syncing all time entries...")
+    #     # sync_all_clockify_entries(db, start_date)
+    #     logger.info("Updating all time entries...")
+    #     games_clockify = time_entries.get_all_played_games(db)
+    #     for game in games_clockify:
+    #         if not games.get_game_by_name(db, game[0]):
+    #             new_game = await utils.get_new_game_info(game[0])
+    #             games.new_game(db, new_game)
+    #             # await add_new_game(db, game)
+    #     for user in users_db:
+    #         await sync_clockify_entries(db, user, start_date)
     logger.info("Sync clockify entries...")
     for user in users_db:
-        total_entries = sync_clockify_entries(db, user, start_date)
+        total_entries = await sync_clockify_entries(db, user, start_date)
         if total_entries < 1 and not force_update:
             logger.info(user.name + " not played today")
             continue
@@ -43,6 +56,7 @@ async def sync_data(
         # for user in users_db:
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
+        # return
         logger.info("Updating streaks...")
         # for user in users_db:
         best_streak_date, best_streak, current_streak = streak_days(db, user)
@@ -50,12 +64,14 @@ async def sync_data(
         # logger.info("Final date: " + str(best_streak_date))
         # logger.info("Total days: " + str(len(best_streak)))
         # logger.info("Current: " + str(current_streak))
-        users.update_streaks(
-            db, user.id, current_streak, len(best_streak), best_streak_date
-        )
+        users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
+        logger.info("Updating played time games...")
         for game in played_time_games:
-            users.u
+            users.update_played_time_game(db, user.id, game[0], game[1])
+        logger.info("Updating played time...")
+        played_time = time_entries.get_user_played_time(db, user.id)
+        users.update_played_time(db, user.id, played_time[1])
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
@@ -64,7 +80,8 @@ async def sync_data(
     played_time_users = time_entries.get_users_played_time(db)
     for user in played_time_users:
         users.update_played_time(db, user[0], user[1])
-    logger.info("Updating played time game-user...")
+    # return
+    # logger.info("Updating played time game-user...")
     # for user in users_db:
     #     played_time_games = time_entries.get_user_games_played_time(db, user.id)
     #     for game in played_time_games:
@@ -77,60 +94,67 @@ async def sync_data(
     logger.info("Elapsed time: " + str(end_time - start_time))
 
 
+# async def add_new_game(db: Session, game):
+#     try:
+#         logger.info("Adding game " + game[0])
+#         new_game = utils.get_new_game_info(game[0])
+#         games.new_game(db, new_game)
+#         # clockify_project = clockify.add_project(game)
+#         # logger.info(clockify_project)
+#     except Exception as e:
+#         if "Duplicate" not in str(e):
+#             logger.exception(e)
+
+
+async def sync_games_from_clockify(db: Session):
+    games_db = games.get_all_played_games(db)
+    logger.info("Adding games...")
+    for game in games_db:
+        if not games.get_game_by_name(db, game[0]):
+            await games.new_game(db, game)
+
+
 def streak_days(db: Session, user: models.User):
     """
     TODO: To revise
     """
     logger.info("Checking streaks for " + user.name)
-    played_days = time_entries.get_played_days(db, user.id)
+    played_dates = time_entries.get_played_days(db, user.id)
+    # return
 
-    # Convierte las fechas de texto a objetos datetime
-    played_days = [datetime.datetime.strptime(date, "%Y-%m-%d") for date in played_days]
+    max_streak = 0
+    start_streak_date = None
+    end_streak_date = None
+    current_streak = 0
 
-    # Ordena la lista de fechas
-    played_days.sort()
-
-    # Variables para realizar un seguimiento de la secuencia actual
-    current_streak = []
-    best_streak = []
-    total_days_streak = 0
-    best_date = None
-
-    # Itera a través de las fechas
-    for date in played_days:
-        if not current_streak:
-            current_streak.append(date)
-            total_days_streak = 1
+    for i in range(1, len(played_dates)):
+        # Check diff between current and last date
+        diff = (played_dates[i] - played_dates[i - 1]).days
+        if diff == 1:
+            if current_streak == 0:
+                start_streak_date = played_dates[i - 1]
+            current_streak += 1
         else:
-            if date == current_streak[-1] + datetime.timedelta(days=1):
-                current_streak.append(date)
-                total_days_streak += 1
-            else:
-                if len(current_streak) > len(best_streak):
-                    best_streak = current_streak.copy()
-                    best_date = best_streak[-1]
-                current_streak = [date]
-                total_days_streak = 1
+            if current_streak > max_streak:
+                max_streak = current_streak
+                end_streak_date = played_dates[i - 1]
+            current_streak = 0
 
-    # Comprueba si la secuencia actual es más larga que la máxima encontrada hasta ahora
-    if len(current_streak) > len(best_streak):
-        best_streak = current_streak.copy()
-        best_date = best_streak[-1]
-        total_days_streak = len(best_streak)
+    # Check today to add this day to the streak
+    today = datetime.date.today()
+    if (today - played_dates[-1]).days == 1:
+        current_streak += 1
 
-    # print("La secuencia máxima de días consecutivos es:")
-    # if len(best_streak) > 1:
-    #     for date in best_streak:
-    #         print(date.strftime("%Y-%m-%d"))
+    # Check if current streak (with today) is longer than best (without today)
+    if current_streak > max_streak:
+        max_streak = current_streak
+        end_streak_date = played_dates[-1]
 
-    # print("La date que terminó esa secuencia es:", best_date.strftime("%Y-%m-%d"))
-    # print(
-    #     "El total de días consecutivos en la secuencia máxima es:",
-    #     total_days_streak,
-    # )
-    if best_date is None:
-        best_date = ""
-    return best_date, best_streak, len(current_streak)
+    # Check is there is more than 1 day without play
+    if (today - played_dates[-1]).days > 1:
+        current_streak = 0
+
+    return end_streak_date, max_streak, current_streak
 
 
 # def sync_played_games(db: Session, start_date: str = None):
@@ -357,7 +381,7 @@ async def ranking_players_hours(db: Session):
 ####################
 
 
-def sync_clockify_entries(db: Session, user: models.User, date: str = None):
+async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
     # users_db = users.get_users(db)
     # if date is None:
     #     logger.info("Syncing last time entries...")
@@ -373,8 +397,19 @@ def sync_clockify_entries(db: Session, user: models.User, date: str = None):
         )
         if total_entries == 0:
             return 0
-        time_entries.sync_clockify_entries_db(db, user, entries)
+        await time_entries.sync_clockify_entries_db(db, user, entries)
         return total_entries
+    except Exception as e:
+        logger.info("Error syncing clockify entries: " + str(e))
+        raise e
+
+
+def sync_all_clockify_entries(db: Session, date: str = None):
+    users_db = users.get_users(db)
+    try:
+        for user in users_db:
+            entries = clockify_api.get_time_entries(user.clockify_id, date)
+            time_entries.sync_clockify_entries_db(db, user, entries)
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))
         raise e

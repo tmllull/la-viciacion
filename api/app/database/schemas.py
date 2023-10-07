@@ -31,7 +31,7 @@ class UserBase(BaseModel):
 class User(UserBase):
     name: Union[str, None] = None
     telegram_username: str
-    telegram_id: Union[int, None] = None
+    telegram_id: Union[str, None] = None
     is_admin: Union[int, None] = None
     played_time: Union[int, None] = None
     clockify_id: Union[str, None] = None
@@ -136,10 +136,8 @@ class TimeEntries(BaseModel):
     user_clockify_id: Union[str, None] = None
     project: Union[str, None] = None
     project_id: Union[str, None] = None
-    start: Union[str, None] = None
-    start_date: Union[str, None] = None
-    end: Union[str, None] = None
-    end_date: Union[str, None] = None
+    start: Union[datetime.date, None] = None
+    end: Union[datetime.date, None] = None
     duration: Union[int, None] = None
 
     class Config:

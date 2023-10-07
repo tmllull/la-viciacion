@@ -8,9 +8,16 @@ from routes.my_routes import MyRoutes
 from routes.other_routes import OtherRoutes
 from routes.ranking_routes import RankingRoutes
 from telegram import BotCommand, Update
-from telegram.ext import (Application, ApplicationBuilder,
-                          CallbackQueryHandler, CommandHandler, ContextTypes,
-                          ConversationHandler, MessageHandler, filters)
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 from utils.config import Config
 from utils.my_utils import MyUtils
 
@@ -67,7 +74,7 @@ def main() -> None:
                 CallbackQueryHandler(
                     data_routes.update_info, pattern="^" + "update_info" + "$"
                 ),
-                CallbackQueryHandler(basic_routes.status, pattern="^" + "status" + "$"),
+                # CallbackQueryHandler(basic_routes.status, pattern="^" + "status" + "$"),
                 CallbackQueryHandler(basic_routes.end, pattern="^" + "cancel" + "$"),
             ],
             utils.INFO_GAME: [
@@ -266,7 +273,7 @@ def main() -> None:
     app.add_handler(conv_handler)
     app.add_handler(CommandHandler("start", utils.start))
     app.add_handler(CommandHandler("help", utils.help))
-    app.add_handler(MessageHandler(None, other_routes.random_response))
+    # app.add_handler(MessageHandler(None, other_routes.random_response))
 
     app.run_polling()
 

@@ -11,7 +11,6 @@ from telegram import (
     Update,
 )
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
 from utils.logger import logger
 from utils.my_utils import MyUtils
 
@@ -19,46 +18,6 @@ utils = MyUtils()
 
 
 class OtherRoutes:
-    # async def recommender(
-    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    # ) -> None:
-    #     utils.log("Recommender")
-    #     #db.log(context.user_data["user"], ActionLogs.RECOMMENDER)
-    #     query = update.callback_query
-    #     username = query.from_user.username
-    #     db.cursor.execute(dbq.total_games)
-    #     total_games = db.cursor.fetchone()[0]
-    #     db.cursor.execute(
-    #         dbq.games_not_played_by_user, (utils.ALLOWED_USERS[username],)
-    #     )
-    #     games_temp = db.cursor.fetchall()
-    #     db.cursor.execute(dbq.played_games, (utils.ALLOWED_USERS[username],))
-    #     played_games_temp = db.cursor.fetchall()
-    #     played_games = []
-    #     for game in played_games_temp:
-    #         played_games.append(game[0])
-    #     # logger.info(str(played_games))
-    #     random.shuffle(games_temp)
-    #     games = []
-    #     for game_temp in games_temp:
-    #         if not any(game_temp[0] == game[0] for game in games):
-    #             games.append(game_temp)
-    #     random.shuffle(games)
-    #     msg = (
-    #         "Aquí tienes una lista de 5 juegos (de los "
-    #         + str(total_games)
-    #         + " que conozco) a los que no has jugado:\n"
-    #     )
-    #     i = 0
-    #     for game in games:
-    #         if game[0] not in played_games and game[0] not in msg:
-    #             i += 1
-    #             msg = msg + game[0] + " (by " + game[1] + ")\n"
-    #         if i >= 5:
-    #             break
-
-    #     return await utils.response_conversation(update, context, msg)
-
     async def info_game(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
@@ -150,46 +109,7 @@ class OtherRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         if utils.check_valid_chat(update):
-            if "silksong" in update.message.text.lower() and utils.random_send(90):
-                utils.log("Silksong trigger")
-                await utils.reply_message(update, context, msgs.silksong_message())
-            if "sanderson" in update.message.text.lower() and utils.random_send(80):
-                utils.log("Sanderson trigger")
+            if "SPECIAL WORD" in update.message.text.lower() and utils.random_send(90):
                 await utils.reply_message(
-                    update,
-                    context,
-                    msgs.sanderson_message(update.message.from_user.full_name),
-                )
-            if (
-                "bot" in update.message.text.lower()
-                and (
-                    " roto" in update.message.text.lower()
-                    or " no funciona" in update.message.text.lower()
-                    or " de los cojones" in update.message.text.lower()
-                    or " inútil" in update.message.text.lower()
-                    or " inutil" in update.message.text.lower()
-                    or " tonto" in update.message.text.lower()
-                    or " mierda" in update.message.text.lower()
-                    or " no se entera" in update.message.text.lower()
-                    or " no vale" in update.message.text.lower()
-                    or " puto" in update.message.text.lower()
-                    or " no sabe" in update.message.text.lower()
-                    or " no sirve" in update.message.text.lower()
-                    or " cascao" in update.message.text.lower()
-                    or " jodido" in update.message.text.lower()
-                    or " jodio" in update.message.text.lower()
-                    or " va mal" in update.message.text.lower()
-                    or " funciona mal" in update.message.text.lower()
-                    or " rompido" in update.message.text.lower()
-                    or " retrasado" in update.message.text.lower()
-                    or " retraso" in update.message.text.lower()
-                )
-                and utils.random_send(90)
-                and update.message.from_user.username != "netyaco"
-            ):
-                logger.info("Bot not works trigger")
-                await utils.reply_message(
-                    update,
-                    context,
-                    msgs.bot_not_works_message(update.message.from_user.full_name),
+                    update, context, "put random message from another function"
                 )

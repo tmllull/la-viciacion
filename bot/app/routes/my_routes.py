@@ -10,7 +10,6 @@ from telegram import (
     Update,
 )
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
 from utils.config import Config
 from utils.my_utils import MyUtils
 
@@ -33,7 +32,6 @@ class MyRoutes:
 
     async def my_games(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info("My games")
-        # db.log(context.user_data["user"], ActionLogs.MY_GAMES)
         query = update.callback_query
         username = query.from_user.username
         await utils.response_conversation(update, context, "TBI")
@@ -68,7 +66,6 @@ class MyRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("My top games")
-        # db.log(context.user_data["user"], ActionLogs.MY_TOP_GAMES)
         query = update.callback_query
         username = query.from_user.username
         msg = "Este es tu *top 10*\n"
@@ -85,7 +82,6 @@ class MyRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("My completed games")
-        # db.log(context.user_data["user"], ActionLogs.MY_COMPLETED_GAMES)
         query = update.callback_query
         username = query.from_user.username
         await utils.response_conversation(update, context, "TBI")

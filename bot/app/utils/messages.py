@@ -7,7 +7,7 @@ import random
 
 def played_42_games(player):
     return (
-        "*💥💥🏆🏆La respuesta🏆🏆💥💥*\n\n"
+        "*La respuesta🏆🏆n\n"
         + "*"
         + player
         + "* ha jugado a la mágica cifra de 42 juegos. "
@@ -18,7 +18,7 @@ def played_42_games(player):
 
 def played_100_games(player):
     return (
-        "*💥💥🏆🏆100 juegos (jugados)🏆🏆💥💥*\n\n"
+        "*100 juegos (jugados)*\n\n"
         + "A 100 juegos acaba de jugar *"
         + player
         + "*."
@@ -28,7 +28,7 @@ def played_100_games(player):
 
 def completed_42_games(player):
     return (
-        "*💥💥🏆🏆La respuesta (de verdad)🏆🏆💥💥*\n\n"
+        "*La respuesta (de verdad)🏆🏆n\n"
         + "Si empezar 42 juegos ya es todo un logro, no hablemos de acabar 42. "
         + "Ha quedado patente que a *"
         + player
@@ -70,7 +70,7 @@ def played_12h_day(player):
 
 def played_16h_day(player):
     return (
-        "💥💥🏆🏆No paro ni a cagar🏆🏆💥💥*\n\n"
+        "No paro ni a cagar🏆🏆n\n"
         + "De las 24h del día, 8 se deberían dedicar a dormir, y las otras 16 a hacer cosas. "
         + "*"
         + player
@@ -111,7 +111,7 @@ def played_5_games_day(player):
 
 def played_10_games_day(player):
     return (
-        "*💥💥🏆🏆Indecisión x2🏆🏆💥💥*\n\n"
+        "*Indecisión x2*\n\n"
         + "AAAHHHRRRGGG, sigo sin saber a qué jugar. *"
         + player
         + "* ha acumulado tantos juegos en su biblioteca que salta de uno "
@@ -205,43 +205,3 @@ def start(name):
         + "si quieres usarlos es necesario que tengas un nick en Telegram (y se "
         + "lo comuniques mi creador para que te añada a la lista de personas humanas fiables)."
     )
-
-
-def silksong_message():
-    messages = [
-        "Sale antes un Zelda en PC que el Silksong.",
-        "¿Silksong? 😂😂😂😂.",
-        "Cuando los de FromSoftware añadan un modo fácil a lo mejor sale el Silksong.",
-        "¿Te dice algo la palabra 'Abandoned'?",
-        "Por más que lo nombres no saldrá antes.",
-        "No sé de qué hablas, pero es leer Silksong y se me saltan las lágrimas (pero de la risa).",
-    ]
-    return random.choice(messages)
-
-
-def sanderson_message(user):
-    messages = [
-        "😠",
-        "🤨",
-        user + " frunció el ceño mientras decía eso.",
-        "Dijo " + user + " con el ceño fruncido.",
-        "Soltó " + user + " mientras fruncía el ceño.",
-        "Dijo " + user + " frunciendo el ceño.",
-    ]
-    return random.choice(messages)
-
-
-def bot_not_works_message(user):
-    messages = [
-        "¿Qué hablas? A ver si vas a ser tú que no tienes ni puta idea.",
-        "Menos quejas y más comprensión. Uno hace lo que puede, ¿vale?",
-        "Mucha queja pero poco aporte.",
-        "Lo de 'crítica constructiva' no está en tu vocabulario, ¿no?",
-        "Cállate.",
-        "Vaya, ahora " + user + " va de guay. Ponte tú a hacerlo y luego me cuentas.",
-        "Bla, bla, bla. Sólo quejas",
-        "¿Y? ¿Acaso tú no te equivocas nunca?",
-        "Pues hazlo tú.",
-        "Qué fácil es criticar el trabajo de los demás.",
-    ]
-    return random.choice(messages)

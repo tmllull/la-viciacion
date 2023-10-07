@@ -54,14 +54,6 @@ def get_users(db: Session) -> list[models.User]:
 def get_user(
     db: Session, username: str, user: schemas.TelegramUser = None
 ) -> models.User:
-    # Check tg_id
-    # db_user = (
-    #     db.query(models.User)
-    #     .filter(models.User.telegram_id == user.telegram_id)
-    #     .first()
-    # )
-    # if db_user is None:
-    #     # Check tg_username
     db_user = (
         db.query(models.User).filter(models.User.telegram_username == username).first()
     )
@@ -87,7 +79,6 @@ def get_user(
 
 
 def create_user(db: Session, username: str):
-    # fake_hashed_password = user.password + "notreallyhashed"
     try:
         db_user = models.User(telegram_username=username)
         db.add(db_user)
@@ -123,9 +114,6 @@ def add_new_game(
 
 def update_game(db: Session, game: schemas.UsersGames, entry_id) -> models.UsersGames:
     try:
-        # logger.info("Updating entry")
-        # logger.info(entry_id)
-        # logger.info(game.platform)
         stmt = (
             update(models.UsersGames)
             .where(
@@ -144,29 +132,6 @@ def update_game(db: Session, game: schemas.UsersGames, entry_id) -> models.Users
         raise e
 
 
-# def update_game(db: Session, game: models.UsersGames):
-#     try:
-#         stmt = (
-#             update(models.UsersGames)
-#             .where(
-#                 models.UsersGames.game == game.game,
-#                 models.UsersGames.user_id == game.user_id,
-#             )
-#             .values(
-#                 game=game.game,
-#                 platform=game.platform,
-#                 score=game.score,
-#                 played_time=game.played_time,
-#                 # last_update=str(datetime.datetime.now()),
-#             )
-#         )
-#         db.execute(stmt)
-#         db.commit()
-#         # session.close()
-#     except Exception as e:
-#         logger.info(e)
-
-
 def update_played_time_game(db: Session, user_id: str, game: str, time: int):
     stmt = (
         update(models.UsersGames)
@@ -178,14 +143,6 @@ def update_played_time_game(db: Session, user_id: str, game: str, time: int):
     )
     db.execute(stmt)
     db.commit()
-
-
-# def user_played_time(db: Session):
-#     stmt = select(
-#         models.UsersGames.player, func.sum(models.UsersGames.played_time)
-#     ).group_by(models.UsersGames.player)
-#     result = db.execute(stmt)
-#     return result
 
 
 def get_games(
@@ -248,17 +205,6 @@ def top_games(db: Session, player, limit: int = 10):
         raise e
 
 
-# def get_achievements(db: Session, player):
-#     try:
-#         stmt = select(models.UserAchievements.achievement).where(
-#             models.UserAchievements.player == player
-#         )
-#         return db.execute(stmt).fetchall()
-#     except Exception as e:
-#         logger.info(e)
-#         raise e
-
-
 def get_streaks(db: Session, player):
     try:
         return db.query(
@@ -299,11 +245,6 @@ def complete_game(db: Session, user, game_name):
         db.execute(stmt)
         db.commit()
         logger.info("Game completed")
-
-        # completed_games_count = (
-        #     db.query(models.UsersGames.game).filter_by(user=player, completed=1).count()
-        # )
-
         return (
             db.query(models.UsersGames.game)
             .filter_by(user_id=user, completed=1)
@@ -328,29 +269,10 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
         )
         db.execute(stmt)
         db.commit()
-
-        # completed_games_count = (
-        #     db.query(models.UsersGames.game).filter_by(user=player, completed=1).count()
-        # )
     except Exception as e:
         db.rollback()
         logger.info(e)
         raise Exception("Error updating streaks:", str(e))
-
-
-# def set_user_achievement(db: Session, player, achievement):
-#     try:
-#         ach = models.UserAchievements(player=player, achievement=achievement)
-#         db.add(ach)
-#         db.commit()
-#         return False
-#     except Exception as e:
-#         db.rollback()
-#         if "Duplicate entry" in str(e) or "UNIQUE" in str(e):
-#             # logger.info("Logro '" + achievement + "' ya desbloqueado")
-#             return True
-#         else:
-#             raise Exception("Error checking achievement:", e)
 
 
 def get_most_played_time(db: Session, limit: int = None) -> list[models.User]:

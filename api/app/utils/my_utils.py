@@ -36,32 +36,27 @@ def change_timezone_clockify(time) -> str:
 def convert_clockify_duration(duration):
     match = re.match(r"PT(\d+H)?(\d+M)?", duration)
     if match:
-        horas_str = match.group(1)
-        minutos_str = match.group(2)
+        hours_str = match.group(1)
+        mins_str = match.group(2)
 
-        horas = int(horas_str[:-1]) if horas_str else 0
-        minutos = int(minutos_str[:-1]) if minutos_str else 0
+        hours = int(hours_str[:-1]) if hours_str else 0
+        mins = int(mins_str[:-1]) if mins_str else 0
 
-        # Convertir horas y minutos a segundos
-        segundos = horas * 3600 + minutos * 60
+        secs = hours * 3600 + mins * 60
 
-        return segundos
+        return secs
     else:
         return 0
 
 
 def day_of_the_year(date):
     date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-
-    # Obtiene el día numérico del año
     return date.timetuple().tm_yday
 
 
 def date_from_day_of_the_year(day):
     start_date = datetime.datetime(2023, 1, 1)
     current_date = start_date + datetime.timedelta(days=day - 1)
-
-    # Obtiene el día numérico del año
     return current_date.strftime("%Y-%m-%d")
 
 

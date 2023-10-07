@@ -76,7 +76,6 @@ def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEnt
 
 def get_played_days(db: Session, user_id: int) -> list:
     played_days = []
-    # query = db.query(func.DATE(models.TimeEntries.start)).distinct().count()
     played_start_days = (
         db.query(func.DATE(models.TimeEntries.start))
         .filter(models.TimeEntries.user_id == user_id)
@@ -84,7 +83,6 @@ def get_played_days(db: Session, user_id: int) -> list:
     )
     for played_day in played_start_days:
         played_days.append(played_day[0])
-    # logger.info(played_days)
     played_end_days = (
         db.query(func.DATE(models.TimeEntries.end))
         .filter(models.TimeEntries.user_id == user_id)
@@ -104,8 +102,6 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
     for entry in entries:
         if entry["projectId"] is None:
             continue
-        # if user.id == 8:
-        #     logger.info(entry)
         try:
             start = entry["timeInterval"]["start"]
             end = entry["timeInterval"]["end"]
@@ -118,11 +114,8 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             if duration is None:
                 duration = ""
             start = utils.change_timezone_clockify(start)
-            # start_date = utils.date_from_datetime(start)
             if end != "":
                 end = utils.change_timezone_clockify(end)
-                # end_date = utils.date_from_datetime(end)
-            # project_name = clockify_api.get_project(entry["projectId"])["name"]
             project = games.get_game_by_clockify_id(db, entry["projectId"])
             if project is not None:
                 project_name = project.name
@@ -150,9 +143,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                     project=project_name,
                     project_id=entry["projectId"],
                     start=start,
-                    # start_date=start_date,
                     end=end,
-                    # end_date=end_date,
                     duration=utils.convert_clockify_duration(duration),
                 )
                 db.add(new_entry)
@@ -165,24 +156,19 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                         project=project_name,
                         project_id=entry["projectId"],
                         start=start,
-                        # start_date=start_date,
                         end=end,
-                        # end_date=end_date,
                         duration=utils.convert_clockify_duration(duration),
                     )
                 )
                 db.execute(stmt)
                 update_game = models.UsersGames(platform=platform)
                 users.update_game(db, update_game, already_playing.id)
-                # TODO: implement update user_games to add tags just in case
 
             db.commit()
         except Exception as e:
             db.rollback()
             logger.info("Error adding entry " + str(entry) + ": " + str(e))
             raise e
-        # logger.info(entry["id"])
-        # exit()
     return
 
 

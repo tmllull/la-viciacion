@@ -27,11 +27,6 @@ class ClockifyApi:
             url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
             headers = {"X-API-KEY": api_key}
             payload = data
-
-            # logger.info("Request: {0}: {1}".format(method, url))
-            # logger.info("Headers: {0}".format(headers))
-            # logger.info("Payload: {0}".format(payload))
-
             try:
                 if payload is not None:
                     request = requests.request(
@@ -47,11 +42,6 @@ class ClockifyApi:
                 logger.debug(
                     "Error({}): {}".format(request.status_code, request.content)
                 )
-                # logger.debug(request.content)
-            # else:
-            #     logger.debug(
-            #         "Error({}): {}".format(request.status_code, request.content)
-            #     )
             return request
 
     def add_project(self, project_name):
@@ -64,7 +54,6 @@ class ClockifyApi:
         return response.json()
 
     def get_project(self, project_id):
-        # https://api.clockify.me/api/v1/workspaces/{workspaceId}/projects/{projectId}
         method = self.GET
         endpoint = "/workspaces/{}/projects/{}".format(
             config.CLOCKIFY_WORKSPACE, project_id
@@ -90,7 +79,6 @@ class ClockifyApi:
                 return response.json()[0].get("id")
             else:
                 Exception(game_name + " not exists")
-                # exit()
 
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
         method = None
@@ -147,7 +135,6 @@ class ClockifyApi:
             if start_date is None:
                 date = datetime.datetime.now()
                 date = date.replace(hour=0, minute=0, second=0)
-                # start = date - datetime.timedelta(days=1)
                 start = date - datetime.timedelta()
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             else:

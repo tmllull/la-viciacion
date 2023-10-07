@@ -30,12 +30,7 @@ def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
 
 
 def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
-    # logger.info("Searching project: " + id)
     return db.query(models.GamesInfo).filter(models.GamesInfo.clockify_id == id).first()
-
-
-# def new_game_by_name(db: Session, game: str):
-#     return
 
 
 def new_game(db: Session, game: schemas.NewGame):
@@ -62,41 +57,6 @@ def new_game(db: Session, game: schemas.NewGame):
         else:
             logger.info("Error adding new game: " + str(e))
             raise e
-
-
-# def add_new_game(
-#     db: Session,
-#     game,
-#     dev=None,
-#     steam_id=None,
-#     released=None,
-#     genres=None,
-#     avg_time=None,
-#     clockify_id=None,
-#     image_url=None,
-# ):
-#     try:
-#         game = models.GamesInfo(
-#             game=game,
-#             dev=dev,
-#             steam_id=steam_id,
-#             image_url=image_url,
-#             release_date=released,
-#             clockify_id=clockify_id,
-#             genres=genres,
-#             avg_time=avg_time,
-#             last_ranking=1000000000,
-#             current_ranking=1000000000,
-#         )
-#         db.add(game)
-#         db.commit()
-#         db.refresh(game)
-#     except Exception as e:
-#         if "UNIQUE constraint failed" in str(e):
-#             db.rollback()
-#         else:
-#             logger.info("Error adding new game: " + str(e))
-#             raise e
 
 
 def get_all_played_games(db: Session):

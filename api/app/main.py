@@ -38,13 +38,13 @@ def hello_world():
 async def sync_data(
     start_date: str = None,
     silent: bool = False,
-    force_update: bool = False,
+    sync_all: bool = False,
     db: Session = Depends(get_db),
 ):
     try:
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
-        await actions.sync_data(db, start_date, silent, force_update)
+        await actions.sync_data(db, start_date, silent, sync_all)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"

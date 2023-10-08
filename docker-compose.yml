@@ -9,8 +9,8 @@ services:
     container_name: laviciacion-bot
     image: laviciacion-bot
     env_file: .env
-    volumes:
-     - ./bot:/app
+    # volumes:
+    #  - ./bot:/app
   
   laviciacion-api:
     build: 
@@ -21,8 +21,8 @@ services:
     env_file: .env
     ports:
       - 5000:5000
-    volumes:
-      - ./api:/app
+    # volumes:
+    #   - ./api:/app
     depends_on:
       laviciacion-db:
         condition: service_healthy

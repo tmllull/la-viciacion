@@ -62,13 +62,18 @@ def get_user(
     else:
         if user is not None:
             logger.info(user)
-            stmt = (
-                update(models.User)
-                .where(models.User.telegram_username == username)
-                .values(telegram_id=user.telegram_id, name=user.telegram_name)
-            )
-            db.execute(stmt)
-            db.commit()
+            if (
+                user.telegram_id != 0
+                and user.telegram_name != "string"
+                and user.telegram_name != ""
+            ):
+                stmt = (
+                    update(models.User)
+                    .where(models.User.telegram_username == username)
+                    .values(telegram_id=user.telegram_id, name=user.telegram_name)
+                )
+                db.execute(stmt)
+                db.commit()
             return (
                 db.query(models.User)
                 .filter(models.User.telegram_username == username)

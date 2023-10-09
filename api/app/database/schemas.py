@@ -31,7 +31,7 @@ class UserBase(BaseModel):
 class User(UserBase):
     name: Union[str, None] = None
     telegram_username: str
-    telegram_id: Union[str, None] = None
+    telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     played_time: Union[int, None] = None
     clockify_id: Union[str, None] = None

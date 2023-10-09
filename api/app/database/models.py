@@ -1,5 +1,6 @@
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     Column,
     Date,
@@ -51,7 +52,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), default="noname")
     telegram_username = Column(String(255))
-    telegram_id = Column(String(255))
+    telegram_id = Column(BigInteger)
     clockify_id = Column(String(255))
     is_admin = Column(Integer)
     played_time = Column(Integer)

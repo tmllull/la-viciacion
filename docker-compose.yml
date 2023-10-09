@@ -29,6 +29,7 @@ services:
 
   laviciacion-db:
     image: mysql
+    container_name: laviciacion-db
     volumes:
       - ./db/data:/var/lib/mysql
       - ./db/certs:/etc/mysql/certs

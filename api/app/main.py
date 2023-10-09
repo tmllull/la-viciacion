@@ -69,7 +69,7 @@ def get_user(
     username: str, user: schemas.TelegramUser = None, db: Session = Depends(get_db)
 ):
     """
-    Get user by Telegram username
+    Get user by Telegram username and update the name and ID
     """
     user_db = users.get_user(db, username, user)
     if user_db is None:

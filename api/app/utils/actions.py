@@ -36,6 +36,7 @@ async def sync_data(
     start_time = time.time()
     if sync_all:
         start_date = config.START_DATE
+        config.silent = True
     clockify.sync_clockify_tags(db)
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
@@ -205,8 +206,8 @@ async def ranking_games_hours(db: Session):
                         break
                 i += 1
 
-                if not config.silent:
-                    await utils.send_message(msg)
+        if not config.silent:
+            await utils.send_message(msg)
             logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))

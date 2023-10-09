@@ -55,7 +55,7 @@ class MyUtils:
         async with self.bot:
             # msg = self.format_text_for_md2(msg)
             await self.bot.send_message(
-                chat_id=config.TELEGRAM_CHAT_ID,
+                chat_id=config.TELEGRAM_GROUP_ID,
                 text=msg,
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
@@ -73,7 +73,7 @@ class MyUtils:
         async with self.bot:
             # msg = self.format_text_for_md2(msg)
             await self.bot.send_photo(
-                chat_id=config.TELEGRAM_CHAT_ID,
+                chat_id=config.TELEGRAM_GROUP_ID,
                 caption=msg,
                 photo=picture_url,
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
@@ -85,7 +85,7 @@ class MyUtils:
         user_id = update.message.from_user.id
         chat_id = update.message.chat_id
         if chat_id < 0:
-            if chat_id != config.TELEGRAM_CHAT_ID:
+            if chat_id != config.TELEGRAM_GROUP_ID:
                 return False
             else:
                 return True

@@ -4,13 +4,18 @@ import re
 
 import pytz
 import requests
+import telegram
 from dateutil.parser import isoparse
 from howlongtobeatpy import HowLongToBeat
+from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..database import schemas
+from ..database import models, schemas
+from ..database.crud import time_entries
 from ..utils import logger
+from .clockify_api import ClockifyApi
 
+clockify_api = ClockifyApi()
 config = Config()
 
 
@@ -128,3 +133,30 @@ async def get_new_game_info(game) -> schemas.NewGame:
         clockify_id=project_id,
     )
     return new_game
+
+
+async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
+    try:
+        entries = clockify_api.get_time_entries(user.clockify_id, date)
+        total_entries = len(entries)
+        logger.info(
+            "Sync " + str(total_entries) + " entries for user " + str(user.name)
+        )
+        if total_entries == 0:
+            return 0
+        await time_entries.sync_clockify_entries_db(db, user, entries)
+        return total_entries
+    except Exception as e:
+        logger.info("Error syncing clockify entries: " + str(e))
+        raise e
+
+
+async def send_message(msg):
+    bot = telegram.Bot(config.TELEGRAM_TOKEN)
+    async with bot:
+        await bot.send_message(
+            text=msg,
+            chat_id=config.TELEGRAM_GROUP_ID,
+            parse_mode=telegram.constants.ParseMode.MARKDOWN,
+        )
+    print("Message sended successfully!")

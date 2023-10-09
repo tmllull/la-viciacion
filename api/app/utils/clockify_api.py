@@ -84,7 +84,7 @@ class ClockifyApi:
         method = None
         data = None
         now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        user = config.CLOCKIFY_USERS.get(user_id)
+        user = ""  # TODO: migrate to DB. config.CLOCKIFY_USERS.get(user_id)
         if api_key is None:
             return self.API_USER_NOT_ADDED
         else:
@@ -118,11 +118,15 @@ class ClockifyApi:
                 return self.GENERIC_ERROR
 
     def active_clockify_timer(self, game_name, user_id):
+        # TODO: TBI
+        return "TBI"
         return self.send_clockify_timer_request(
             "start", user_id, game_name, config.CLOCKIFY_USERS_API.get(user_id)
         )
 
     def stop_active_clockify_timer(self, user_id):
+        # TODO: TBI
+        return "TBI"
         return self.send_clockify_timer_request(
             "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
         )
@@ -135,7 +139,7 @@ class ClockifyApi:
             if start_date is None:
                 date = datetime.datetime.now()
                 date = date.replace(hour=0, minute=0, second=0)
-                start = date - datetime.timedelta()
+                start = date - datetime.timedelta(days=1)
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             else:
                 date = datetime.datetime.strptime(start_date, "%Y-%m-%d")

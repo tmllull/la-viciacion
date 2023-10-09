@@ -549,6 +549,8 @@ class DataRoutes:
     ) -> int:
         logger.info("Active timer select game....")
         username = update.message.from_user.username
+        # TODO: TBI
+        return "TBI"
         if username not in config.CLOCKIFY_USERS_API:
             await update.message.reply_text(
                 "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
@@ -639,6 +641,8 @@ class DataRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         logger.info("Stop timer...")
+        # TODO: TBI
+        return "TBI"
         username = update.message.from_user.username
         if username not in config.CLOCKIFY_USERS_API:
             await update.message.reply_text(

@@ -94,6 +94,8 @@ class ClockifyApi:
         method = None
         data = None
         now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        # TODO: TBI
+        return "TBI"
         user = config.CLOCKIFY_USERS.get(user_id)
         if api_key is None:
             return self.API_USER_NOT_ADDED
@@ -128,11 +130,15 @@ class ClockifyApi:
                 return self.GENERIC_ERROR
 
     def active_clockify_timer(self, game_name, user_id):
+        # TODO: TBI
+        return "TBI"
         return self.send_clockify_timer_request(
             "start", user_id, game_name, config.CLOCKIFY_USERS_API.get(user_id)
         )
 
     def stop_active_clockify_timer(self, user_id):
+        # TODO: TBI
+        return "TBI"
         return self.send_clockify_timer_request(
             "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
         )

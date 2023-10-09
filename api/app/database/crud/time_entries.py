@@ -109,13 +109,11 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             platform = "TBD"
             if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
                 platform = clockify.get_tag_id(db, entry["tagIds"][0])[0]
-            if end is None:
-                end = ""
-            if duration is None:
-                duration = ""
             start = utils.change_timezone_clockify(start)
-            if end != "":
+            if end is not None and end != "":
                 end = utils.change_timezone_clockify(end)
+            else:
+                end = None
             project = games.get_game_by_clockify_id(db, entry["projectId"])
             if project is not None:
                 project_name = project.name
@@ -135,31 +133,57 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             )
             exists = db.execute(stmt).first()
             if not exists:
-                new_entry = models.TimeEntries(
-                    id=entry["id"],
-                    user=user.name,
-                    user_id=user.id,
-                    user_clockify_id=user.clockify_id,
-                    project=project_name,
-                    project_id=entry["projectId"],
-                    start=start,
-                    end=end,
-                    duration=utils.convert_clockify_duration(duration),
-                )
-                db.add(new_entry)
-            else:
-                stmt = (
-                    update(models.TimeEntries)
-                    .where(models.TimeEntries.id == entry["id"])
-                    .values(
+                if end is not None:
+                    new_entry = models.TimeEntries(
+                        id=entry["id"],
                         user=user.name,
+                        user_id=user.id,
+                        user_clockify_id=user.clockify_id,
                         project=project_name,
                         project_id=entry["projectId"],
                         start=start,
                         end=end,
                         duration=utils.convert_clockify_duration(duration),
                     )
-                )
+                else:
+                    new_entry = models.TimeEntries(
+                        id=entry["id"],
+                        user=user.name,
+                        user_id=user.id,
+                        user_clockify_id=user.clockify_id,
+                        project=project_name,
+                        project_id=entry["projectId"],
+                        start=start,
+                        # duration=utils.convert_clockify_duration(duration),
+                    )
+                db.add(new_entry)
+            else:
+                if end is not None:
+                    stmt = (
+                        update(models.TimeEntries)
+                        .where(models.TimeEntries.id == entry["id"])
+                        .values(
+                            user=user.name,
+                            project=project_name,
+                            project_id=entry["projectId"],
+                            start=start,
+                            end=end,
+                            duration=utils.convert_clockify_duration(duration),
+                        )
+                    )
+                else:
+                    stmt = (
+                        update(models.TimeEntries)
+                        .where(models.TimeEntries.id == entry["id"])
+                        .values(
+                            user=user.name,
+                            project=project_name,
+                            project_id=entry["projectId"],
+                            start=start,
+                            # duration=utils.convert_clockify_duration(duration),
+                        )
+                    )
+
                 db.execute(stmt)
                 update_game = models.UsersGames(platform=platform)
                 users.update_game(db, update_game, already_playing.id)

@@ -61,23 +61,6 @@ class BasicRoutes:
         await query.edit_message_text(text="Taluego!")
         return ConversationHandler.END
 
-    # async def status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    #     logger.info("Getting status...")
-    #     response = requests.get(config.HEALTHCHECKS)
-    #     status_json = json.loads(response.text)
-    #     status = status_json["status"]
-    #     if status == "up":
-    #         status = "El gatete está en plena forma ✅"
-    #     elif status == "down":
-    #         status = "El gatete tiene algunos problemas ❌"
-    #     else:
-    #         status = "El gatete está trabajando, no le molestes ⏱"
-    #     logger.info("End conversation")
-    #     query = update.callback_query
-    #     await query.answer()
-    #     await query.edit_message_text(text=status)
-    #     return ConversationHandler.END
-
     async def unknown(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.user_data["error"] = "Meh"
         await update.message.reply_text(

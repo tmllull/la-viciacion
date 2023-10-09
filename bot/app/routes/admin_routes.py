@@ -73,7 +73,7 @@ class AdminRoutes:
             message = str(context.user_data["broadcast"])
             await utils.bot.send_message(
                 text=message,
-                chat_id=config.TELEGRAM_CHAT_ID,
+                chat_id=config.TELEGRAM_GROUP_ID,
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
         else:

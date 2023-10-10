@@ -18,10 +18,8 @@ clockify = ClockifyApi()
 #################
 
 
-def get_games(
-    db: Session, skip: int = 0, limit: int = 10000000
-) -> list[models.GamesInfo]:
-    return db.query(models.GamesInfo).offset(skip).limit(limit).all()
+def get_games(db: Session, limit: int = 10000000) -> list[models.GamesInfo]:
+    return db.query(models.GamesInfo).limit(limit)
 
 
 def get_game_by_name(db: Session, name: str) -> models.GamesInfo:

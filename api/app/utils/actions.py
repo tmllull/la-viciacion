@@ -41,9 +41,9 @@ async def sync_data(
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:
-        total_entries = await utils.sync_clockify_entries(db, user, start_date)
+        total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
         if total_entries < 1:
-            logger.info(user.name + " not played today")
+            logger.info(user.name + " not played in the last 24h")
             continue
         logger.info("Updating played days...")
         played_days = time_entries.get_played_days(db, user.id)
@@ -58,6 +58,8 @@ async def sync_data(
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
         users.update_played_time(db, user.id, played_time[1])
+        # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
+        # use 'entries'
     logger.info("Updating played time games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:

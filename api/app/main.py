@@ -1,6 +1,6 @@
 from typing import Union
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from .config import Config
@@ -64,8 +64,19 @@ def get_users(db: Session = Depends(get_db)):
     return users_db
 
 
+@app.get("/users/{username}", tags=["Users"], response_model=schemas.User)
+def get_user(username: str, db: Session = Depends(get_db)):
+    """
+    Get user by Telegram username
+    """
+    user_db = users.get_user(db, username)
+    if user_db is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_db
+
+
 @app.post("/users/{username}", tags=["Users"], response_model=schemas.User)
-def get_user(
+def get_and_update_user(
     username: str, user: schemas.TelegramUser = None, db: Session = Depends(get_db)
 ):
     """
@@ -150,6 +161,7 @@ def get_games(limit: int = 10000, db: Session = Depends(get_db)):
     """
     Get all games from DB
     """
+    logger.info("Getting games...")
     games_db = games.get_games(db, limit)
     return games_db
 
@@ -191,7 +203,15 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 
 
 @app.get("/rankings", tags=["Rankings"])
-def rankings_played_hours(type: str = None, db: Session = Depends(get_db)):
+def get_ranking(
+    type: str
+    | None = Query(
+        default=None,
+        title="Type of ranking",
+        description="Get ranking for defined type. Options: hour, days",
+    ),
+    db: Session = Depends(get_db),
+):
     if type is None:
         return {"message": "Return all rankings TBI"}
     else:

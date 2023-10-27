@@ -6,7 +6,6 @@ import random
 import re
 import sys
 
-import gspread
 import requests
 import telegram
 import utils.logger as logger
@@ -21,18 +20,12 @@ from utils.config import Config
 config = Config()
 clockify = ClockifyApi()
 
-rawgio_search_game = (
-    "https://api.rawg.io/api/games?key=bc7e0ee53f654393835ad0fa3b23a8cf&page=1&search="
-)
-
 
 class MyUtils:
     """_summary_"""
 
     def __init__(self, silent=None):
         self.bot = Bot(config.TELEGRAM_TOKEN)
-        self.gc = gspread.service_account(filename="la-viciacion-bot-google.json")
-        self.sh = self.gc.open("Registro de Juegos 2023")
         self.silent = silent
         # Conversation routes
         (
@@ -62,7 +55,7 @@ class MyUtils:
         async with self.bot:
             # msg = self.format_text_for_md2(msg)
             await self.bot.send_message(
-                chat_id=config.TELEGRAM_CHAT_ID,
+                chat_id=config.TELEGRAM_GROUP_ID,
                 text=msg,
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
@@ -80,95 +73,34 @@ class MyUtils:
         async with self.bot:
             # msg = self.format_text_for_md2(msg)
             await self.bot.send_photo(
-                chat_id=config.TELEGRAM_CHAT_ID,
+                chat_id=config.TELEGRAM_GROUP_ID,
                 caption=msg,
                 photo=picture_url,
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
 
-    async def get_game_info(self, game):
-        logger.info("TBI")
-        return
-        # Rawg
-        game_request = requests.get(rawgio_search_game + game)
-        try:
-            rawg_content = json.loads(game_request.content)["results"][0]
-        except Exception:
-            rawg_content = None
-        # HLTB
-        game = game.replace(":", "")
-        game = game.replace("/", "")
-        results_list = await HowLongToBeat().async_search(game)
-        if results_list is not None and len(results_list) > 0:
-            best_element = max(results_list, key=lambda element: element.similarity)
-            hltb_content, hltb_main_history = (
-                best_element.json_content,
-                best_element.main_story,
-            )
-        else:
-            hltb_content = hltb_main_history = None
-
-        return rawg_content, hltb_content, hltb_main_history
-
-    def calculate_total_time(self, row, player=None, game=None):
-        logger.info("TBI")
-        return
-        current_time = datetime.datetime.now()
-        current_date = datetime.date(
-            current_time.year, current_time.month, current_time.day
-        )
-        start_col = 9
-        today_days = int(current_date.strftime("%j"))
-        base_time = datetime.time(0, 0, 0)
-        h = base_time.hour
-        m = base_time.minute
-        for val in range(start_col, start_col + today_days + 2):
-            if type(row[val]) is datetime.time:
-                played_time = datetime.timedelta(
-                    hours=row[val].hour, minutes=row[val].minute
-                )
-                # TODO: TBI
-                # self.db.add_time_entry_from_excel(player, game, val, played_time)
-                # exit()
-                h = h + row[val].hour
-                m = m + row[val].minute
-        total_time = datetime.timedelta(hours=h, minutes=m)
-        days, hours, minutes = (
-            total_time.days,
-            total_time.seconds // 3600,
-            total_time.seconds // 60 % 60,
-        )
-        seconds = (days * 24 * 60 * 60) + total_time.seconds
-        hours = (days * 24) + hours
-        format_time = str(hours) + "h" + str(minutes) + "m"
-        return total_time, format_time, seconds, hours, minutes
-
     def check_valid_chat(self, update: Update) -> bool:
+        first_name = update.message.from_user.first_name
         username = update.message.from_user.username
         user_id = update.message.from_user.id
         chat_id = update.message.chat_id
         if chat_id < 0:
-            if chat_id != config.TELEGRAM_CHAT_ID:
+            if chat_id != config.TELEGRAM_GROUP_ID:
                 return False
             else:
                 return True
-        response = requests.get(config.API_URL + "/users/" + username)
+        user = {"telegram_name": first_name, "telegram_id": user_id}
+        response = requests.request(
+            "POST", config.API_URL + "/users/" + username, json=user
+        )
         if response.status_code == 200:
             return response.json()
         else:
             return False
-        # print(user.status_code)
-        # return True
-        # user = self.db.get_user(telegram_id=user_id, telegram_username=username)
-        # if not user:
-        #     logger.info(user)
-        #     return False
-        # return True
 
     async def reply_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, msg
     ) -> None:
-        # msg = self.format_text_for_md2(msg)
         await update.message.reply_text(
             msg,
             disable_notification=True,
@@ -182,7 +114,6 @@ class MyUtils:
     ):
         query = update.callback_query
         await query.answer()
-        # msg = self.format_text_for_md2(msg)
         await query.edit_message_text(
             msg, parse_mode=telegram.constants.ParseMode.MARKDOWN
         )
@@ -207,26 +138,18 @@ class MyUtils:
             await self.reply_message(update, context, msgs.forbiden)
 
     def convert_time_to_hours(self, seconds):
+        if seconds is None:
+            return "0h0m"
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         return f"{hours}h{minutes}m"
 
-    # def get_excel_column(self, worksheet, name):
-    #     for k in range(1, worksheet.col_count + 1):
-    #         col = worksheet.col_values(k)  # this reads all columns in each row
-    #         if col[0] == name:  # value 0 reads column A
-    #             return k
+    def convert_hours_minutes_to_seconds(self, time) -> int:
+        if time is None:
+            return 0
+        return time * 3600
 
-    # def get_excel_row(self, worksheet, name):
-    #     for k in range(1, worksheet.row_count + 1):
-    #         row = worksheet.row_values(k)  # this reads all columns in each row
-    #         if row[0] == name:  # value 0 reads column A
-    #             return k
-
-    # def get_last_row(self, worksheet):
-    #     return worksheet.col_values(1)
-
-    def send(self, percent):
+    def random_send(self, percent):
         return random.randrange(100) <= percent
 
     def format_text_for_md2(self, text):
@@ -250,23 +173,24 @@ class MyUtils:
         )
         return text
 
-    async def add_or_update_game_user(self, game, player, score, platform, i, seconds):
-        logger.info("TBI")
-        return
-        new_game = self.db.add_or_update_game_user(
-            game, player, score, platform, i, seconds
-        )
-        if new_game:
-            logger.info(player + " has started new game: " + game)
-            rawg_info, hltb_info, hltb_main_story = await self.get_game_info(game)
-            if rawg_info is not None:
-                picture_url = rawg_info["background_image"]
-                slug = rawg_info["slug"]
-            await self.notify_new_game(
-                player, game, slug, picture_url, platform, new_game
-            )
-        # else:
-        #     logger.info(game + " already on list")
+    def platform(self, platform: str):
+        if "switch" in platform:
+            platform = platform.replace("switch", "Switch")
+        if "nintendo" in platform:
+            platform = platform.replace("nintendo", "Nintendo")
+        if "steam" in platform:
+            platform = platform.replace("steam", "Steam")
+        if "playstation" in platform:
+            platform = platform.replace("playstation", "playStation")
+        if "Playstation" in platform:
+            platform = platform.replace("Playstation", "playStation")
+        if "xbox" in platform.lower():
+            platform = platform.replace("xbox", "Xbox")
+        if "pc" in platform.lower():
+            platform = platform.replace("pc", "PC")
+        if "Pc" in platform.lower():
+            platform = platform.replace("Pc", "PC")
+        return platform
 
     async def notify_new_game(
         self, player, game, slug, picture_url, platform, total_games

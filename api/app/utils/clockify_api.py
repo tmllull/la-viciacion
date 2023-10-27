@@ -27,11 +27,6 @@ class ClockifyApi:
             url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
             headers = {"X-API-KEY": api_key}
             payload = data
-
-            # logger.info("Request: {0}: {1}".format(method, url))
-            # logger.info("Headers: {0}".format(headers))
-            # logger.info("Payload: {0}".format(payload))
-
             try:
                 if payload is not None:
                     request = requests.request(
@@ -47,11 +42,6 @@ class ClockifyApi:
                 logger.debug(
                     "Error({}): {}".format(request.status_code, request.content)
                 )
-                # logger.debug(request.content)
-            # else:
-            #     logger.debug(
-            #         "Error({}): {}".format(request.status_code, request.content)
-            #     )
             return request
 
     def add_project(self, project_name):
@@ -64,7 +54,6 @@ class ClockifyApi:
         return response.json()
 
     def get_project(self, project_id):
-        # https://api.clockify.me/api/v1/workspaces/{workspaceId}/projects/{projectId}
         method = self.GET
         endpoint = "/workspaces/{}/projects/{}".format(
             config.CLOCKIFY_WORKSPACE, project_id
@@ -90,13 +79,12 @@ class ClockifyApi:
                 return response.json()[0].get("id")
             else:
                 Exception(game_name + " not exists")
-                # exit()
 
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
         method = None
         data = None
         now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        user = config.CLOCKIFY_USERS.get(user_id)
+        user = ""  # TODO: migrate to DB. config.CLOCKIFY_USERS.get(user_id)
         if api_key is None:
             return self.API_USER_NOT_ADDED
         else:
@@ -130,48 +118,62 @@ class ClockifyApi:
                 return self.GENERIC_ERROR
 
     def active_clockify_timer(self, game_name, user_id):
+        # TODO: TBI
+        return "TBI"
         return self.send_clockify_timer_request(
             "start", user_id, game_name, config.CLOCKIFY_USERS_API.get(user_id)
         )
 
     def stop_active_clockify_timer(self, user_id):
+        # TODO: TBI
+        return "TBI"
         return self.send_clockify_timer_request(
             "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
         )
 
-    def get_time_entries(self, user_id, start_date=None):
-        if user_id is None:
+    def get_time_entries(self, clockify_user_id, start_date=None):
+        if clockify_user_id is None:
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ
         try:
             if start_date is None:
                 date = datetime.datetime.now()
+                date = date.replace(hour=0, minute=0, second=0)
                 start = date - datetime.timedelta(days=1)
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
             else:
                 date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-                start = date - datetime.timedelta(days=1)
+                start = date - datetime.timedelta()
                 start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+            page = 0
+            entries = []
+            has_entries = True
+            while has_entries:
+                page += 1
+                endpoint = "/workspaces/{}/user/{}/time-entries?page-size=500&page={}&start={}".format(
+                    config.CLOCKIFY_WORKSPACE, clockify_user_id, page, start
+                )
+                response = self.send_clockify_request(
+                    self.GET, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
+                )
+                if len(response.json()) > 0:
+                    for entry in response.json():
+                        entries.append(entry)
+                else:
+                    has_entries = False
+            return entries
         except Exception as e:
             logger.info("Error getting time entries: " + str(e))
             raise e
-        page = 0
-        entries = []
-        has_entries = True
-        while has_entries:
-            page += 1
-            endpoint = "/workspaces/{}/user/{}/time-entries?page-size=500&page={}&start={}".format(
-                config.CLOCKIFY_WORKSPACE, user_id, page, start
-            )
-            response = self.send_clockify_request(
-                self.GET, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
-            )
-            if len(response.json()) > 0:
-                for entry in response.json():
-                    entries.append(entry)
-            else:
-                has_entries = False
-        return entries
 
     def add_time_entry(self, player, date, time):
         return
+
+    def get_tags(self):
+        response = self.send_clockify_request(
+            "GET",
+            "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/tags",
+            None,
+            config.CLOCKIFY_ADMIN_API_KEY,
+        )
+        return response.json()

@@ -1,3 +1,4 @@
+import requests
 import utils.keyboard as kb
 import utils.logger as logger
 from telegram import (
@@ -8,10 +9,11 @@ from telegram import (
     Update,
 )
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
+from utils.config import Config
 from utils.my_utils import MyUtils
 
 utils = MyUtils()
+config = Config()
 
 
 class RankingRoutes:
@@ -30,21 +32,34 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking hours")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        ranking_players = db.player_played_time()
-        ranking_players = dict(
-            sorted(ranking_players, key=lambda x: x[1], reverse=True)
-        )
+        ranking_players = requests.get(config.API_URL + "/rankings?type=hours").json()
+
         msg = "Así está el ranking de horas de vicio:\n"
         for i, elem in enumerate(ranking_players):
             msg = (
                 msg
+                + str(i + 1)
+                + ". "
                 + elem
                 + ": "
                 + str(utils.convert_time_to_hours(ranking_players[elem]))
                 + "\n"
             )
+        await utils.response_conversation(update, context, msg)
+
+    async def ranking_days(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        logger.info("Ranking days")
+        # db.log(context.user_data["user"], ActionLogs.RANKING_DAYS)
+        ranking_players = requests.get(config.API_URL + "/rankings?type=days").json()
+        msg = "Así está el ranking de días de vicio:\n"
+        for i, elem in enumerate(ranking_players):
+            if ranking_players[elem] is None:
+                days = 0
+            else:
+                days = ranking_players[elem]
+            msg = msg + str(i + 1) + ". " + elem + ": " + str(days) + "\n"
         await utils.response_conversation(update, context, msg)
 
     # async def ranking_platform(
@@ -64,19 +79,6 @@ class RankingRoutes:
     #         msg = msg + elem + ": " + str(result[elem]) + " juegos\n"
     #         i += 1
     #     await utils.response_conversation(update, context, msg)
-
-    async def ranking_days(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
-        logger.info("Ranking days")
-        # db.log(context.user_data["user"], ActionLogs.RANKING_DAYS)
-        await utils.response_conversation(update, context, "TBI")
-        return
-        ranking_played = db.ranking_days()
-        msg = "Así está el ranking de días de vicio:\n"
-        for elem in ranking_played:
-            msg = msg + elem[0] + ": " + str(elem[1]) + "\n"
-        await utils.response_conversation(update, context, msg)
 
     async def ranking_achievements(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -142,8 +144,7 @@ class RankingRoutes:
         logger.info("Ranking played")
         await utils.response_conversation(update, context, "TBI")
         return
-        # db.log(context.user_data["user"], ActionLogs.RANKING_PLAYED)
-        played_games = db.ranking_num_games()
+        played_games = requests.get(config.API_URL + "/???").json()
         msg = "Ranking de juegos jugados:\n"
         for player in played_games:
             msg = msg + str(player[0]) + ": " + str(player[1]) + "\n"
@@ -163,21 +164,6 @@ class RankingRoutes:
             msg = msg + str(player[0]) + ": " + str(player[1]) + "\n"
 
         await utils.response_conversation(update, context, msg)
-
-    # async def ranking_rated_games(
-    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    # ) -> None:
-    #     logger.info("Ranking rated games")
-    #     # db.log(context.user_data["user"], ActionLogs.RANKING_RATED_GAMES)
-    #     score = {}
-    #     db.cursor.execute(dbq.get_rated_games)
-    #     completed = db.cursor.fetchall()
-    #     msg = "Juegos mejor valorados:\n"
-    #     for row in completed:
-    #         score[row[0]] = row[1]
-    #     for game in score:
-    #         msg = msg + str(game) + " - " + str(score[game]) + "\n"
-    #     await utils.response_conversation(update, context, msg)
 
     async def ranking_debt(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE

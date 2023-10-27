@@ -5,7 +5,6 @@ import utils.logger as logger
 import utils.messages as msgs
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
-from utils.action_logs import ActionLogs
 from utils.config import Config
 from utils.my_utils import MyUtils
 
@@ -74,7 +73,7 @@ class AdminRoutes:
             message = str(context.user_data["broadcast"])
             await utils.bot.send_message(
                 text=message,
-                chat_id=config.TELEGRAM_CHAT_ID,
+                chat_id=config.TELEGRAM_GROUP_ID,
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
         else:

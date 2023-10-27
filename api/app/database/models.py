@@ -1,5 +1,6 @@
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     Column,
     Date,
@@ -49,21 +50,19 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255))
+    name = Column(String(255), default="noname")
     telegram_username = Column(String(255))
-    telegram_id = Column(String(255))
+    telegram_id = Column(BigInteger)
     clockify_id = Column(String(255))
     is_admin = Column(Integer)
-    last_ranking_hours = Column(Integer)
+    played_time = Column(Integer)
     current_ranking_hours = Column(Integer)
-    last_streak = Column(Integer)
-    last_streak_date = Column(Date)
     current_streak = Column(Integer)
     best_streak = Column(Integer)
     best_streak_date = Column(Date)
     played_days = Column(Integer)
     unplayed_streak = Column(Integer)
-    __table_args__ = (UniqueConstraint("id"),)
+    __table_args__ = (UniqueConstraint("telegram_username"),)
 
 
 class RankingUsers(Base):
@@ -90,48 +89,51 @@ class GamesInfo(Base):
     __tablename__ = "games_info"
 
     id = Column(Integer, primary_key=True)
-    game = Column(String(255))
+    name = Column(String(255))
     dev = Column(String(255))
     release_date = Column(Date)
     steam_id = Column(String(255))
     image_url = Column(String(255))
     genres = Column(String(255))
     played_time = Column(Integer)
-    mean_time = Column(String(255))
-    last_ranking = Column(Integer)
+    avg_time = Column(Integer)
     current_ranking = Column(Integer)
     clockify_id = Column(String(255))
-    __table_args__ = (UniqueConstraint("game"),)
+    __table_args__ = (UniqueConstraint("name"),)
 
 
 class UsersGames(Base):
     __tablename__ = "users_games"
 
     id = Column(Integer, primary_key=True)
-    player = Column(String(255))
+    user = Column(String(255))
+    user_id = Column(Integer)
     game = Column(String(255))
+    game_id = Column(Integer)
     started_date = Column(Date)
     platform = Column(String(255))
     completed = Column(Integer)
     completed_date = Column(Date)
     score = Column(Float)
     played_time = Column(Integer)
-    completion_time = Column(String(255))
-    __table_args__ = (UniqueConstraint("player", "game", "platform"),)
+    completion_time = Column(Integer)
+    __table_args__ = (UniqueConstraint("user_id", "game", "platform"),)
 
 
 class UserAchievements(Base):
     __tablename__ = "users_achievements"
 
     id = Column(Integer, primary_key=True)
-    player = Column(String(255))
-    achievement = Column(String(255))
+    user = Column(String(255))
+    user_id = Column(Integer)
+    achievement_id = Column(Integer)
     date = Column(Date)
-    __table_args__ = (UniqueConstraint("player", "achievement"),)
+    __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
 
 
 class Achievement(Base):
     __tablename__ = "achievements"
+
     id = Column(Integer, primary_key=True)
     achievement = Column(String(255))
     message = Column(String(255))
@@ -140,15 +142,24 @@ class Achievement(Base):
 
 class TimeEntries(Base):
     __tablename__ = "time_entries"
+
     id = Column(String(255), primary_key=True)
     user = Column(String(255))
     user_id = Column(String(255))
     user_clockify_id = Column(String(255))
     project = Column(String(255))
     project_id = Column(String(255))
-    start = Column(String(255))
-    end = Column(String(255))
+    start = Column(DateTime)
+    end = Column(DateTime)
     duration = Column(Integer)
+    __table_args__ = (UniqueConstraint("id"),)
+
+
+class ClockifyTags(Base):
+    __tablename__ = "clockify_tags"
+
+    id = Column(String(255), primary_key=True)
+    name = Column(String(255))
     __table_args__ = (UniqueConstraint("id"),)
 
 

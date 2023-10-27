@@ -20,9 +20,11 @@ class Config:
             self.MYSQL_PASSWORD = config["MYSQL_PASSWORD"]
             self.CLOCKIFY_BASEURL = config["CLOCKIFY_BASEURL"]
             self.CLOCKIFY_WORKSPACE = config["CLOCKIFY_WORKSPACE"]
+            self.DB_MODE = config["DB_MODE"]
+            self.N8N_BASE_URL = config["N8N_BASE_URL"]
+            self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
-            self.RAWG_URL = config["RAWG_URL"]
-            self.START_DATE = config["START_DATE"]
+            self.API_URL = config["API_URL"]
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -36,6 +38,4 @@ class Config:
             self.CLOCKIFY_BASEURL = os.environ["CLOCKIFY_BASEURL"]
             self.CLOCKIFY_WORKSPACE = os.environ["CLOCKIFY_WORKSPACE"]
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
-            self.RAWG_URL = os.environ["RAWG_URL"]
-            self.START_DATE = os.environ["START_DATE"]
-        self.silent = False
+            self.API_URL = os.environ["API_URL"]

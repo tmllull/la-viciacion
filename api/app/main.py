@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Union
 
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -36,9 +37,21 @@ def hello_world():
 
 @app.get("/sync-data")
 async def sync_data(
-    start_date: str = None,
-    silent: bool = False,
-    sync_all: bool = False,
+    start_date: str = Query(
+        default=None,
+        title="Start date",
+        description="Start date to sync data from clockify time entries",
+    ),
+    silent: bool = Query(
+        default=False,
+        title="Run in silent mode",
+        description="If True, notification will be disabled",
+    ),
+    sync_all: bool = Query(
+        default=False,
+        title="Sync all data",
+        description="If True, all data from 'START_DATE' defined on .env will be retrieved",
+    ),
     db: Session = Depends(get_db),
 ):
     try:
@@ -53,6 +66,10 @@ async def sync_data(
 ######################
 ######## USER ########
 ######################
+
+
+class RankingUsersTypes(str, Enum):
+    games = "games"
 
 
 @app.get("/users", tags=["Users"], response_model=list[schemas.User])
@@ -120,11 +137,11 @@ def add_game(username: str, game: schemas.NewGameUser, db: Session = Depends(get
 
 
 @app.get(
-    "/users/{username}/games/played",
+    "/users/{username}/games",
     tags=["Users"],
     response_model=list[schemas.UsersGames],
 )
-def user_games_played(
+def user_games(
     username: str,
     limit: int = None,
     completed: bool = None,
@@ -149,6 +166,16 @@ async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)
     avg_time = game_info["hltb"]["comp_main"]
     games.update_avg_time_game(db, game_name, avg_time)
     return {"completed_games": num_completed_games, "avg_time": avg_time}
+
+
+@app.get("/users/{username}/{ranking}", tags=["Users"])
+def user_games(
+    username: str,
+    ranking: RankingUsersTypes,
+    db: Session = Depends(get_db),
+):
+    user_id = users.get_user(db, username=username).id
+    return user_id
 
 
 #######################
@@ -202,25 +229,22 @@ def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 ##########################
 
 
-@app.get("/rankings", tags=["Rankings"])
+class RankingTypes(str, Enum):
+    hours = "hours"
+    days = "days"
+
+
+@app.get("/rankings/{ranking}", tags=["Rankings"])
 def get_ranking(
-    type: str
-    | None = Query(
-        default=None,
-        title="Type of ranking",
-        description="Get ranking for defined type. Options: hour, days",
-    ),
+    ranking: RankingTypes,
     db: Session = Depends(get_db),
 ):
-    if type is None:
-        return {"message": "Return all rankings TBI"}
+    if ranking == "hours":
+        return rankings.get_current_ranking_hours_players(db)
+    elif ranking == "days":
+        return rankings.get_current_ranking_days_players(db)
     else:
-        if type == "hours":
-            return rankings.get_current_ranking_hours_players(db)
-        elif type == "days":
-            return rankings.get_current_ranking_days_players(db)
-        else:
-            return {"message": "More rankings in coming"}
+        return {"message": "More rankings are coming"}
 
 
 # @app.get("/rankings/played-hours", tags=["Rankings"])

@@ -4,3 +4,4 @@ logs.log
 *.crt
 .gitlab-ci.yml
 db
+docker-compose.yml

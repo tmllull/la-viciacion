@@ -9,6 +9,7 @@ services:
     container_name: laviciacion-bot
     image: laviciacion-bot
     env_file: .env
+    restart: unless-stopped
     volumes:
      - ./bot:/app
   
@@ -23,6 +24,7 @@ services:
       - 5000:5000
     volumes:
       - ./api:/app
+    restart: unless-stopped
     depends_on:
       laviciacion-db:
         condition: service_healthy

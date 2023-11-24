@@ -184,16 +184,31 @@ def user_games(
 
 
 @app.get("/games", tags=["Games"], response_model=list[schemas.GamesInfo])
-def get_games(limit: int = 10000, db: Session = Depends(get_db)):
+def get_games(name: str = None, db: Session = Depends(get_db)):
     """
     Get all games from DB
     """
     logger.info("Getting games...")
-    games_db = games.get_games(db, limit)
+    if name is None:
+        games_db = games.get_games(db)
+    else:
+        games_db = games.get_game_by_name(db, name)
     return games_db
 
 
-@app.get("/games/{name}", tags=["Games"], response_model=schemas.GamesInfo)
+@app.get("/games/{game_id}", tags=["Games"], response_model=schemas.GamesInfo)
+async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
+    """
+    Get game from DB by id
+    """
+    game_db = games.get_game_by_id(db, game_id)
+    if game_db is None:
+        raise HTTPException(status_code=404, detail="Game not exists")
+
+    return game_db
+
+
+@app.get("/games/name/{name}", tags=["Games"], response_model=schemas.GamesInfo)
 async def get_game_by_name(name: str, db: Session = Depends(get_db)):
     """
     Get game from DB by name

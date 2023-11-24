@@ -20,15 +20,16 @@ from pydantic import BaseModel
 #         from_attributes = True
 
 
-class UserBase(BaseModel):
-    id: int
+# class UserBase(BaseModel):
+#     id: int
 
 
 # class UserCreate(UserBase):
 #     password: str
 
 
-class User(UserBase):
+class User(BaseModel):
+    id: int
     name: Union[str, None] = None
     telegram_username: str
     telegram_id: Union[int, None] = None
@@ -51,14 +52,15 @@ class TelegramUser(BaseModel):
     telegram_id: int
 
 
-class GamesInfoBase(BaseModel):
+# class GamesInfoBase(BaseModel):
+#     id: int
+
+#     class Config:
+#         from_attributes = True
+
+
+class GamesInfo(BaseModel):
     id: int
-
-    class Config:
-        from_attributes = True
-
-
-class GamesInfo(GamesInfoBase):
     name: str
     dev: Union[str, None] = None
     release_date: Union[datetime.date, str, None] = None
@@ -70,8 +72,8 @@ class GamesInfo(GamesInfoBase):
     current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
 
-    # class Config:
-    #     from_attributes = True
+    class Config:
+        from_attributes = True
 
 
 class NewGame(BaseModel):
@@ -105,6 +107,7 @@ class UsersGames(UsersGamesBase):
     user: Union[str, None] = None
     user_id: Union[int, None] = None
     game: Union[str, None] = None
+    game_id: Union[int, None] = None
     started_date: Union[datetime.date, None] = None
     platform: Union[str, None] = None
     completed: Union[int, None] = None

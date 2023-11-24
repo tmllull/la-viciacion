@@ -23,8 +23,13 @@ def get_games(db: Session, limit: int = 10000000) -> list[models.GamesInfo]:
 
 
 def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
-    logger.info("Searching game: " + name)
-    return db.query(models.GamesInfo).filter(models.GamesInfo.name == name).first()
+    logger.info("Searching game by name: " + name)
+    return db.query(models.GamesInfo).filter(models.GamesInfo.name == name)
+
+
+def get_game_by_id(db: Session, game_id: int) -> models.GamesInfo:
+    logger.info("Searching game by id: " + str(game_id))
+    return db.query(models.GamesInfo).filter(models.GamesInfo.id == game_id).first()
 
 
 def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:

@@ -93,11 +93,11 @@ def get_user(username: str, db: Session = Depends(get_db)):
 
 
 @app.post("/users/{username}", tags=["Users"], response_model=schemas.User)
-def get_and_update_user(
+def add_or_update_user(
     username: str, user: schemas.TelegramUser = None, db: Session = Depends(get_db)
 ):
     """
-    Get user by Telegram username and update the name and ID
+    TODO: REVISE THIS. Get user by Telegram username and update the name and ID
     """
     user_db = users.get_user(db, username, user)
     if user_db is None:
@@ -120,7 +120,9 @@ def get_and_update_user(
 @app.post(
     "/users/{username}/new_game", tags=["Users"], response_model=schemas.UsersGames
 )
-def add_game(username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)):
+def add_game_to_user(
+    username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)
+):
     """
     TODO: Add description
     """
@@ -153,14 +155,14 @@ def user_games(
 
 
 @app.put(
-    "/users/{user}/complete-game", tags=["Users"], response_model=schemas.UsersGames
+    "/users/{username}/complete-game", tags=["Users"], response_model=schemas.UsersGames
 )
-async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)):
+async def complete_game(username: str, game_name: str, db: Session = Depends(get_db)):
     """
-    Complete game by user
+    Complete game by username
     """
     num_completed_games = users.complete_game(
-        db, users.get_user(db, user).id, game_name
+        db, users.get_user(db, username).id, game_name
     )
     game_info = await utils.get_game_info(game_name)
     avg_time = game_info["hltb"]["comp_main"]
@@ -169,7 +171,7 @@ async def complete_game(user: str, game_name: str, db: Session = Depends(get_db)
 
 
 @app.get("/users/{username}/{ranking}", tags=["Users"])
-def user_games(
+def user_rankings(
     username: str,
     ranking: RankingUsersTypes,
     db: Session = Depends(get_db),
@@ -208,16 +210,16 @@ async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
     return game_db
 
 
-@app.get("/games/name/{name}", tags=["Games"], response_model=schemas.GamesInfo)
-async def get_game_by_name(name: str, db: Session = Depends(get_db)):
-    """
-    Get game from DB by name
-    """
-    game_db = games.get_game_by_name(db, name)
-    if game_db is None:
-        raise HTTPException(status_code=404, detail="Game not exists")
+# @app.get("/games/name/{name}", tags=["Games"], response_model=schemas.GamesInfo)
+# async def get_game_by_name(name: str, db: Session = Depends(get_db)):
+#     """
+#     Get game from DB by name
+#     """
+#     game_db = games.get_game_by_name(db, name)
+#     if game_db is None:
+#         raise HTTPException(status_code=404, detail="Game not exists")
 
-    return game_db
+#     return game_db
 
 
 @app.get("/games/rawg/{name}", tags=["Games"])

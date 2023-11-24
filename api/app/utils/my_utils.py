@@ -143,7 +143,7 @@ async def sync_clockify_entries(db: Session, user: models.User, date: str = None
             "Sync " + str(total_entries) + " entries for user " + str(user.name)
         )
         if total_entries == 0:
-            return 0
+            return 0, []
         await time_entries.sync_clockify_entries_db(db, user, entries)
         return total_entries, entries
     except Exception as e:

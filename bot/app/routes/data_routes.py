@@ -125,7 +125,7 @@ class DataRoutes:
                 config.API_URL
                 + "/users/"
                 + str(update.message.from_user.username)
-                + "/games/played"
+                + "/games"
             )
             played_games = response.json()
             context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
@@ -276,7 +276,7 @@ class DataRoutes:
         logger.info("Complete game...")
         username = update.message.from_user.username
         games = requests.get(
-            config.API_URL + "/users/" + username + "/games/played?completed=false"
+            config.API_URL + "/users/" + username + "/games?completed=false"
         ).json()
         keyboard = []
         for game in games:

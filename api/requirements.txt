@@ -15,5 +15,4 @@ howlongtobeatpy
 rawg
 pytz
 python_telegram_bot==20.1
-fastapi-versionizer
 fastapi-versioning

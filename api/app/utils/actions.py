@@ -9,8 +9,8 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
+from ..crud import clockify, games, rankings, time_entries, users
 from ..database import models, schemas
-from ..database.crud import clockify, games, rankings, time_entries, users
 from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi

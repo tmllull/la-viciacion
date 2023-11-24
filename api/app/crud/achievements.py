@@ -4,11 +4,11 @@ from typing import Union
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
-from ...utils import actions as actions
-from ...utils import logger
-from ...utils import my_utils as utils
-from ...utils.clockify_api import ClockifyApi
-from .. import models, schemas
+from ..database import models, schemas
+from ..utils import actions as actions
+from ..utils import logger
+from ..utils import my_utils as utils
+from ..utils.clockify_api import ClockifyApi
 
 clockify = ClockifyApi()
 

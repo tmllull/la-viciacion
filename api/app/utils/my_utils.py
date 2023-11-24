@@ -10,8 +10,8 @@ from howlongtobeatpy import HowLongToBeat
 from sqlalchemy.orm import Session
 
 from ..config import Config
+from ..crud import time_entries
 from ..database import models, schemas
-from ..database.crud import time_entries
 from ..utils import logger
 from .clockify_api import ClockifyApi
 

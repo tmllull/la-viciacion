@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
+from .. import auth
 from ..crud import rankings
 from ..database import models
 from ..database.database import SessionLocal, engine
@@ -16,6 +17,7 @@ router = APIRouter(
     prefix="/rankings",
     tags=["Rankings"],
     responses={404: {"description": "Not found"}},
+    dependencies=[Depends(auth.get_api_key)],
 )
 
 

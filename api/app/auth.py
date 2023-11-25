@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import Depends, Header, HTTPException, Security, status
 from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -11,9 +11,6 @@ from sqlalchemy.orm import Session
 from .config import Config
 
 config = Config()
-###########################
-#### OAUTH PROCESS ########
-###########################
 
 
 api_key_query = APIKeyQuery(name="api-key", auto_error=False)

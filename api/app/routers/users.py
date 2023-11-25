@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
+from .. import auth
 from ..crud import games, users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
@@ -17,6 +18,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
     responses={404: {"description": "Not found"}},
+    dependencies=[Depends(auth.get_api_key)],
 )
 
 

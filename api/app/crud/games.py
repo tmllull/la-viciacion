@@ -68,17 +68,17 @@ async def new_game(db: Session, game: schemas.NewGame):
             current_ranking=1000000000,
         )
     try:
-        game = models.GamesInfo(
-            name=game.name,
-            dev=game.dev,
-            steam_id=game.steam_id,
-            image_url=game.image_url,
-            release_date=game.release_date,
-            clockify_id=clockify_id,
-            genres=game.genres,
-            avg_time=game.avg_time,
-            current_ranking=1000000000,
-        )
+        # game = models.GamesInfo(
+        #     name=game.name,
+        #     dev=game.dev,
+        #     steam_id=game.steam_id,
+        #     image_url=game.image_url,
+        #     release_date=game.release_date,
+        #     clockify_id=clockify_id,
+        #     genres=game.genres,
+        #     avg_time=game.avg_time,
+        #     current_ranking=1000000000,
+        # )
         db.add(game)
         db.commit()
         db.refresh(game)

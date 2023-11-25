@@ -3,7 +3,10 @@ from fastapi_versioning import VersionedFastAPI
 
 from .routers import basic, games, statistics, users
 
-app = FastAPI()
+app = FastAPI(
+    title="LaViciacion API",
+    version="0.1.0",
+)
 
 app.include_router(basic.router)
 app.include_router(users.router)

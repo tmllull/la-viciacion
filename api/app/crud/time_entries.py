@@ -121,7 +121,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 project = clockify_api.get_project(entry["projectId"])
                 project_name = project["name"]
                 new_game = await utils.get_new_game_info(project)
-                games.new_game(db, new_game)
+                await games.new_game(db, new_game)
             already_playing = users.get_game(db, user.id, project_name)
             if not already_playing:
                 new_user_game = schemas.NewGameUser(

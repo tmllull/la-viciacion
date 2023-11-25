@@ -17,7 +17,7 @@ config = Config()
 router = APIRouter(
     tags=["Basic"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_api_key)],
+    # dependencies=[Depends(auth.get_api_key)],
 )
 
 
@@ -41,6 +41,7 @@ def hello_world():
 @router.get("/sync-data")
 @version(1)
 async def sync_data(
+    api_key: None = Security(auth.get_api_key),
     start_date: str = Query(
         default=None,
         title="Start date",

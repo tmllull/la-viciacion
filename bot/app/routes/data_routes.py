@@ -173,6 +173,7 @@ class DataRoutes:
                 + str(e).replace("(", "\(").replace(")", "\)"),
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
+            return ConversationHandler.END
 
     async def add_game_confirmation(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -185,14 +186,16 @@ class DataRoutes:
                 headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
                 data = {"name": context.user_data[GAME]}
                 # Add game as project on Clockify
-                response = requests.request("POST", url, headers=headers, json=data)
+                response = utils.make_request("POST", url, headers=headers, json=json)
                 if response.status_code == 400:
                     logger.info("Project exists on Clockify")
                     endpoint = "/workspaces/{}/projects?name={}".format(
                         config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
                     )
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-                    response = requests.request("GET", url, headers=headers, json=data)
+                    response = utils.make_request(
+                        "GET", url, headers=headers, json=data
+                    )
                     clockify_id = response.json()[0]["id"]
                 else:
                     clockify_id = response.json()["id"]
@@ -214,8 +217,9 @@ class DataRoutes:
                     "clockify_id": clockify_id,
                 }
                 logger.info("Adding game to DB...")
-                response = requests.request(
-                    "POST", config.API_URL + "/games", json=new_game
+                headers = {"x-api-key": config.API_KEY}
+                response = utils.make_request(
+                    "POST", config.API_URL + "/games", headers=headers, json=new_game
                 )
                 if response.status_code == 400:
                     logger.info("Game already exists on DB")
@@ -229,9 +233,11 @@ class DataRoutes:
                     "game": context.user_data[GAME],
                     "platform": context.user_data[PLATFORM],
                 }
-                response = requests.request(
+                headers = {"x-api-key": config.API_KEY}
+                response = utils.make_request(
                     "POST",
                     config.API_URL + "/users/" + username + "/new_game",
+                    headers=headers,
                     json=start_game,
                 )
                 if response.status_code == 200:

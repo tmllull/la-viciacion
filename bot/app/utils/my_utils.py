@@ -97,9 +97,6 @@ class MyUtils:
         url = config.API_URL + "/users/" + username
         headers = {"x-api-key": config.API_KEY}
         response = self.make_request("POST", url, headers=headers, json=user)
-        # response = requests.request(
-        #     "POST", config.API_URL + "/users/" + username, json=user
-        # )
         if response.status_code == 200:
             return response.json()
         else:

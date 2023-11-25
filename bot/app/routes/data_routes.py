@@ -89,11 +89,20 @@ class DataRoutes:
         try:
             context.user_data[PLATFORM] = update.message.text
             logger.info("Received platform: " + context.user_data[PLATFORM])
-            response = requests.get(
-                config.API_URL + "/games/rawg/" + str(context.user_data[GAME])
-            )
+            url = config.API_URL + "/games/rawg/" + str(context.user_data[GAME])
+            headers = {"x-api-key": config.API_KEY}
+            response = utils.make_request("GET", url=url, headers=headers)
             rawg_info = response.json()["rawg"]
             hltb_info = response.json()["hltb"]
+            if rawg_info is None or hltb_info is None:
+                logger.info(
+                    "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre"
+                )
+                await update.message.reply_text(
+                    "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre",
+                    parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                )
+                return ConversationHandler.END
             context.user_data[GAME] = rawg_info["name"]
             context.user_data[RELEASE_DATE] = rawg_info["released"]
             if hltb_info is None:
@@ -121,12 +130,13 @@ class DataRoutes:
             context.user_data[GENRES] = genres[:-1]
             context.user_data[MEAN_TIME] = hltb_info["comp_main"]
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
-            response = requests.get(
+            url = (
                 config.API_URL
                 + "/users/"
                 + str(update.message.from_user.username)
                 + "/games"
             )
+            response = utils.make_request("GET", url=url, headers=headers)
             played_games = response.json()
             context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
             for played_game in played_games:
@@ -173,6 +183,7 @@ class DataRoutes:
                 + str(e).replace("(", "\(").replace(")", "\)"),
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
+            return ConversationHandler.END
 
     async def add_game_confirmation(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -185,16 +196,19 @@ class DataRoutes:
                 headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
                 data = {"name": context.user_data[GAME]}
                 # Add game as project on Clockify
-                response = requests.request("POST", url, headers=headers, json=data)
+                response = utils.make_request("POST", url, headers=headers, json=data)
                 if response.status_code == 400:
                     logger.info("Project exists on Clockify")
                     endpoint = "/workspaces/{}/projects?name={}".format(
                         config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
                     )
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-                    response = requests.request("GET", url, headers=headers, json=data)
+                    response = utils.make_request(
+                        "GET", url, headers=headers, json=data
+                    )
                     clockify_id = response.json()[0]["id"]
                 else:
+                    logger.info("New project created on Clockify")
                     clockify_id = response.json()["id"]
                 release_date = str(
                     datetime.strptime(
@@ -214,8 +228,9 @@ class DataRoutes:
                     "clockify_id": clockify_id,
                 }
                 logger.info("Adding game to DB...")
-                response = requests.request(
-                    "POST", config.API_URL + "/games", json=new_game
+                headers = {"x-api-key": config.API_KEY}
+                response = utils.make_request(
+                    "POST", config.API_URL + "/games", headers=headers, json=new_game
                 )
                 if response.status_code == 400:
                     logger.info("Game already exists on DB")
@@ -229,9 +244,11 @@ class DataRoutes:
                     "game": context.user_data[GAME],
                     "platform": context.user_data[PLATFORM],
                 }
-                response = requests.request(
+                headers = {"x-api-key": config.API_KEY}
+                response = utils.make_request(
                     "POST",
                     config.API_URL + "/users/" + username + "/new_game",
+                    headers=headers,
                     json=start_game,
                 )
                 if response.status_code == 200:

@@ -25,6 +25,9 @@ class Config:
             self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
             self.API_URL = config["API_URL"]
+            self.API_KEY = config["API_KEY"]
+            self.SECRET_KEY = config["SECRET_KEY"]
+            self.ACCESS_TOKEN_EXPIRE_MINUTES = config["ACCESS_TOKEN_EXPIRE_MINUTES"]
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -39,3 +42,6 @@ class Config:
             self.CLOCKIFY_WORKSPACE = os.environ["CLOCKIFY_WORKSPACE"]
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
             self.API_URL = os.environ["API_URL"]
+            self.API_KEY = os.environ["API_KEY"]
+            self.SECRET_KEY = os.environ["SECRET_KEY"]
+            self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]

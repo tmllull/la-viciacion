@@ -51,6 +51,10 @@ class MyUtils:
             self.EXCEL_STOP_TIMER,
         ) = range(20)
 
+    def make_request(self, method, url, headers=None, json=None):
+        response = requests.request(method, url=url, headers=headers, json=json)
+        return response
+
     async def send_message(self, msg):
         async with self.bot:
             # msg = self.format_text_for_md2(msg)
@@ -90,9 +94,12 @@ class MyUtils:
             else:
                 return True
         user = {"telegram_name": first_name, "telegram_id": user_id}
-        response = requests.request(
-            "POST", config.API_URL + "/users/" + username, json=user
-        )
+        url = config.API_URL + "/users/" + username
+        headers = {"x-api-key": config.API_KEY}
+        response = self.make_request("POST", url, headers=headers, json=user)
+        # response = requests.request(
+        #     "POST", config.API_URL + "/users/" + username, json=user
+        # )
         if response.status_code == 200:
             return response.json()
         else:

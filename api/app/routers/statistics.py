@@ -14,8 +14,8 @@ from ..utils import logger as logger
 models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
-    prefix="/rankings",
-    tags=["Rankings"],
+    prefix="/statistics",
+    tags=["Statistics"],
     responses={404: {"description": "Not found"}},
     dependencies=[Depends(auth.get_api_key)],
 )
@@ -35,7 +35,7 @@ class RankingTypes(str, Enum):
     days = "days"
 
 
-@router.get("/{ranking}")
+@router.get("/rankings/{ranking}")
 @version(1)
 def get_ranking(
     ranking: RankingTypes,

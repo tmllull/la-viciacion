@@ -24,7 +24,7 @@ def get_games(db: Session, limit: int = 10000000) -> list[models.GamesInfo]:
 
 def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
     logger.info("Searching game by name: " + name)
-    return db.query(models.GamesInfo).filter(models.GamesInfo.name == name)
+    return db.query(models.GamesInfo).filter(models.GamesInfo.name == name).first()
 
 
 def get_game_by_id(db: Session, game_id: int) -> models.GamesInfo:
@@ -36,9 +36,26 @@ def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
     return db.query(models.GamesInfo).filter(models.GamesInfo.clockify_id == id).first()
 
 
-def new_game(db: Session, game: schemas.NewGame):
+async def new_game(db: Session, game: schemas.NewGame):
     logger.info("Adding new game to DB: " + game.name)
-    try:
+    if game.clockify_id is None or game.clockify_id == "string":
+        logger.info("No clockify ID. Adding to clockify...")
+        clockify_id = clockify.add_project(game.name)["id"]
+        new_game = {"name": game.name, "id": clockify_id}
+        game_info = await utils.get_new_game_info(new_game)
+        # logger.info(game_info)
+        game = models.GamesInfo(
+            name=game_info.name,
+            dev=game_info.dev,
+            steam_id=game_info.steam_id,
+            image_url=game_info.image_url,
+            release_date=game_info.release_date,
+            clockify_id=clockify_id,
+            genres=game_info.genres,
+            avg_time=game_info.avg_time,
+            current_ranking=1000000000,
+        )
+    else:
         game = models.GamesInfo(
             name=game.name,
             dev=game.dev,
@@ -46,6 +63,18 @@ def new_game(db: Session, game: schemas.NewGame):
             image_url=game.image_url,
             release_date=game.release_date,
             clockify_id=game.clockify_id,
+            genres=game.genres,
+            avg_time=game.avg_time,
+            current_ranking=1000000000,
+        )
+    try:
+        game = models.GamesInfo(
+            name=game.name,
+            dev=game.dev,
+            steam_id=game.steam_id,
+            image_url=game.image_url,
+            release_date=game.release_date,
+            clockify_id=clockify_id,
             genres=game.genres,
             avg_time=game.avg_time,
             current_ranking=1000000000,

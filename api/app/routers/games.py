@@ -16,7 +16,7 @@ router = APIRouter(
     prefix="/games",
     tags=["Games"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_api_key)],
+    # dependencies=[Depends(auth.get_api_key)],
 )
 
 
@@ -81,10 +81,11 @@ async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.GamesInfo, status_code=201)
 @version(1)
-def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
+async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
     Create new game
     """
+    logger.info(games.get_game_by_name(db, game.name))
     if games.get_game_by_name(db, game.name):
         raise HTTPException(status_code=400, detail="Game already in DB")
-    return games.new_game(db=db, game=game)
+    return await games.new_game(db=db, game=game)

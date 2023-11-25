@@ -25,7 +25,7 @@ def sync_clockify_tags(db: Session):
             db.rollback()
 
 
-def get_tag_id(db, tag_id):
+def get_tag_id(db: Session, tag_id):
     return (
         db.query(models.ClockifyTags.name)
         .filter(models.ClockifyTags.id == tag_id)

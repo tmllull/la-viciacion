@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import requests
 
@@ -53,7 +54,7 @@ class ClockifyApi:
         )
         return response.json()
 
-    def get_project(self, project_id):
+    def get_project(self, project_id) -> json:
         method = self.GET
         endpoint = "/workspaces/{}/projects/{}".format(
             config.CLOCKIFY_WORKSPACE, project_id

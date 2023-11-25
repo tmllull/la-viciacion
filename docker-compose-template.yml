@@ -12,6 +12,8 @@ services:
     restart: unless-stopped
     volumes:
      - ./bot:/app
+    networks:
+      - la-viciacion
   
   laviciacion-api:
     build: 
@@ -28,6 +30,8 @@ services:
     depends_on:
       laviciacion-db:
         condition: service_healthy
+    networks:
+      - la-viciacion
 
   laviciacion-db:
     image: mysql
@@ -49,8 +53,11 @@ services:
       timeout: 3s
       retries: 15
     restart: unless-stopped
-    ports:
-      - 3307:3306
+    networks:
+      - la-viciacion
+    # Uncomment the following options to expose DB ports to host
+    # ports:
+    #   - 3307:3306
 
   laviciacion-cert-gen:
     image: alpine
@@ -68,3 +75,8 @@ services:
         openssl req -new -x509 -key /certs/ca.key -out /certs/ca.crt -days 1095 -subj "/CN=Certificate Authority/O=myorg/C=US" &&
         chmod 600 /certs/* && chown 999:999 /certs/*
     restart: "no"
+    networks:
+      - la-viciacion
+
+networks:
+  la-viciacion:

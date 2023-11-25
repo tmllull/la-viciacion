@@ -23,6 +23,9 @@ class Config:
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
             self.RAWG_URL = config["RAWG_URL"]
             self.START_DATE = config["START_DATE"]
+            self.API_KEY = config["API_KEY"]
+            self.SECRET_KEY = config["SECRET_KEY"]
+            self.ACCESS_TOKEN_EXPIRE_MINUTES = config["ACCESS_TOKEN_EXPIRE_MINUTES"]
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -38,4 +41,7 @@ class Config:
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
             self.RAWG_URL = os.environ["RAWG_URL"]
             self.START_DATE = os.environ["START_DATE"]
+            self.API_KEY = os.environ["API_KEY"]
+            self.SECRET_KEY = os.environ["SECRET_KEY"]
+            self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
         self.silent = False

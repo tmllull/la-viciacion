@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
+from .. import auth
 from ..config import Config
 from ..crud import users
 from ..database import models
@@ -16,6 +17,7 @@ config = Config()
 router = APIRouter(
     tags=["Basic"],
     responses={404: {"description": "Not found"}},
+    dependencies=[Depends(auth.get_api_key)],
 )
 
 

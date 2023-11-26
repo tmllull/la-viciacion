@@ -40,7 +40,7 @@ class UserStatisticsTypes(str, Enum):
     days = "days"
 
 
-@router.get("/rankings/{ranking}")
+@router.get("/rankings")
 @version(1)
 def get_ranking_statistics(
     ranking: RankingStatisticsTypes,
@@ -54,7 +54,7 @@ def get_ranking_statistics(
         return {"message": "More rankings are coming"}
 
 
-@router.get("/users/{ranking}")
+@router.get("/users")
 @version(1)
 def get_user_statistics(
     ranking: UserStatisticsTypes,

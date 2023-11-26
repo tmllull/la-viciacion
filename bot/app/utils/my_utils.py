@@ -93,11 +93,13 @@ class MyUtils:
                 return False
             else:
                 return True
-        user = {"telegram_name": first_name, "telegram_id": user_id}
-        url = config.API_URL + "/users/" + username
         headers = {"x-api-key": config.API_KEY}
-        response = self.make_request("POST", url, headers=headers, json=user)
+        url = config.API_URL + "/users/" + username
+        response = self.make_request("GET", url, headers=headers)
         if response.status_code == 200:
+            user = {"telegram_username": username, "telegram_id": user_id}
+            url = config.API_URL + "/users"
+            response = self.make_request("PUT", url, headers=headers, json=user)
             return response.json()
         else:
             return False

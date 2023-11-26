@@ -34,7 +34,7 @@ def convert_hours_minutes_to_seconds(time) -> int:
 def change_timezone_clockify(time) -> str:
     date_time = isoparse(time)
     spain_timezone = pytz.timezone("Europe/Madrid")
-    # return spain_timezone
+    # returns spain_timezone
     return str(date_time.astimezone(spain_timezone).strftime("%Y-%m-%d %H:%M:%S"))
 
 
@@ -114,7 +114,6 @@ async def get_new_game_info(game) -> schemas.NewGame:
         steam_id = ""
     if released is not None:
         release_date = datetime.datetime.strptime(released, "%Y-%m-%d")
-        # released = datetime.datetime.strftime(release_date, "%d-%m-%Y")
     else:
         release_date = None
     genres = ""
@@ -159,4 +158,4 @@ async def send_message(msg):
             chat_id=config.TELEGRAM_GROUP_ID,
             parse_mode=telegram.constants.ParseMode.MARKDOWN,
         )
-    print("Message sended successfully!")
+    print("Message sent successfully!")

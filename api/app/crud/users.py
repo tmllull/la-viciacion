@@ -279,7 +279,6 @@ def complete_game(db: Session, user_id, game_name):
             .count()
         )
         user_game = get_game(db, user_id, game_name)
-        logger.info(user_game.completion_time)
         completion_time = user_game.completion_time
         return num_completed_games, completion_time
 

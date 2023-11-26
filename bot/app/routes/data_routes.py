@@ -256,14 +256,14 @@ class DataRoutes:
                     await update.message.reply_text(
                         "Juego añadido", reply_markup=ReplyKeyboardRemove()
                     )
-                    await utils.send_message(
-                        update.message.from_user.first_name
-                        + " acaba de empezar su juego número "
-                        + str(context.user_data[TOTAL_PLAYED_GAMES] + 1)
-                        + ": *"
-                        + context.user_data[GAME]
-                        + "*"
-                    )
+                    # await utils.send_message(
+                    #     update.message.from_user.first_name
+                    #     + " acaba de empezar su juego número "
+                    #     + str(context.user_data[TOTAL_PLAYED_GAMES] + 1)
+                    #     + ": *"
+                    #     + context.user_data[GAME]
+                    #     + "*"
+                    # )
                 else:
                     logger.info("Error adding new game to user: " + response.json())
                     await update.message.reply_text(

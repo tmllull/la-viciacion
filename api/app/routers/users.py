@@ -83,22 +83,34 @@ def update_user(user: schemas.UserAddOrUpdate, db: Session = Depends(get_db)):
 
 @router.post("/{username}/new_game", response_model=schemas.UsersGames)
 @version(1)
-def add_game_to_user(
+async def add_game_to_user(
     username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)
 ):
     """
-    Add new game to user
+    Add new game to user list
     """
     user = users.get_user(db, username)
     played_games = users.get_games(db, user.id)
     for played_game in played_games:
         if played_game.game == game.game:
-            raise HTTPException(status_code=400, detail="Game already exists")
-    # TODO: Revise this exception and response codes
+            raise HTTPException(status_code=409, detail="Game already exists")
     try:
-        return users.add_new_game(db=db, game=game, user=user)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Error adding new game user")
+        new_game = users.add_new_game(db=db, game=game, user=user)
+        total_games = played_games.count() + 1
+        await utils.send_message(
+            user.name
+            + " acaba de empezar su juego número "
+            + str(total_games)
+            + ": *"
+            + game.game
+            + "*"
+        )
+        return new_game
+    except Exception as e:
+        logger.info(e)
+        raise HTTPException(
+            status_code=500, detail="Error adding new game user: " + str(e)
+        )
 
 
 @router.get(
@@ -123,30 +135,38 @@ async def complete_game(username: str, game_name: str, db: Session = Depends(get
     """
     Complete game by username
     """
-    user_game = users.get_game(db, users.get_user(db, username).id, game_name)
-    if user_game is None:
-        raise HTTPException(status_code=404, detail="User is not playing this game")
-    if user_game.completed == 1:
-        raise HTTPException(status_code=409, detail="Game is already completed")
-    num_completed_games, completion_time = users.complete_game(
-        db, users.get_user(db, username).id, game_name
-    )
-    game_info = await utils.get_game_info(game_name)
-    avg_time = game_info["hltb"]["comp_main"]
-    games.update_avg_time_game(db, game_name, avg_time)
-    return {
-        "completed_games": num_completed_games,
-        "completion_time": completion_time,
-        "avg_time": avg_time,
-    }
-
-
-# @router.get("/{username}/{ranking}")
-# @version(1)
-# def user_rankings(
-#     username: str,
-#     ranking: RankingUsersTypes,
-#     db: Session = Depends(get_db),
-# ):
-#     user_id = users.get_user(db, username=username).id
-#     return user_id
+    try:
+        user = users.get_user(db, username)
+        user_game = users.get_game(db, users.get_user(db, username).id, game_name)
+        if user_game is None:
+            raise HTTPException(status_code=404, detail="User is not playing this game")
+        if user_game.completed == 1:
+            raise HTTPException(status_code=409, detail="Game is already completed")
+        num_completed_games, completion_time = users.complete_game(
+            db, users.get_user(db, username).id, game_name
+        )
+        game_info = await utils.get_game_info(game_name)
+        avg_time = game_info["hltb"]["comp_main"]
+        games.update_avg_time_game(db, game_name, avg_time)
+        await utils.send_message(
+            user.name
+            + " acaba de completar su juego número "
+            + str(num_completed_games)
+            + ": *"
+            + game_name
+            + "* en "
+            + str(utils.convert_time_to_hours(completion_time))
+            + ". La media está en "
+            + str(utils.convert_time_to_hours(avg_time))
+            + "."
+        )
+        return {
+            "completed_games": num_completed_games,
+            "completion_time": completion_time,
+            "avg_time": avg_time,
+        }
+    except Exception as e:
+        logger.info(e)
+        raise HTTPException(
+            status_code=500, detail="Error completing game_user: " + str(e)
+        )

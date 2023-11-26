@@ -26,6 +26,7 @@ class Config:
             self.API_KEY = config["API_KEY"]
             self.SECRET_KEY = config["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = config["ACCESS_TOKEN_EXPIRE_MINUTES"]
+            self.CORS_ORIGINS = json.loads(config["CORS_ORIGINS"])
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -44,5 +45,6 @@ class Config:
             self.API_KEY = os.environ["API_KEY"]
             self.SECRET_KEY = os.environ["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
+            self.CORS_ORIGINS = json.loads(os.environ["CORS_ORIGINS"])
 
         self.silent = False

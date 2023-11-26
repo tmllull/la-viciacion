@@ -51,44 +51,77 @@ def get_users(db: Session) -> list[models.User]:
     return db.query(models.User)
 
 
-def get_user(
-    db: Session, username: str, user: schemas.TelegramUser = None
-) -> models.User:
+def get_user(db: Session, username: str) -> models.User:
     db_user = (
         db.query(models.User).filter(models.User.telegram_username == username).first()
     )
     if db_user is None:
         return None
-    else:
-        if user is not None:
-            logger.info(user)
-            if (
-                user.telegram_id != 0
-                and user.telegram_name != "string"
-                and user.telegram_name != ""
-            ):
-                stmt = (
-                    update(models.User)
-                    .where(models.User.telegram_username == username)
-                    .values(telegram_id=user.telegram_id, name=user.telegram_name)
-                )
-                db.execute(stmt)
-                db.commit()
-            return (
-                db.query(models.User)
-                .filter(models.User.telegram_username == username)
-                .first()
-            )
+    # else:
+    #     if user is not None:
+    #         logger.info(user)
+    #         if (
+    #             user.telegram_id != 0
+    #             and user.telegram_name != "string"
+    #             and user.telegram_name != ""
+    #         ):
+    #             stmt = (
+    #                 update(models.User)
+    #                 .where(models.User.telegram_username == username)
+    #                 .values(telegram_id=user.telegram_id, name=user.telegram_name)
+    #             )
+    #             db.execute(stmt)
+    #             db.commit()
+    #         return (
+    #             db.query(models.User)
+    #             .filter(models.User.telegram_username == username)
+    #             .first()
+    #         )
 
     return db_user
 
 
-def create_user(db: Session, username: str):
+def create_user(db: Session, user: schemas.UserAddOrUpdate) -> models.User:
     try:
-        db_user = models.User(telegram_username=username)
+        db_user = models.User(
+            name=user.name,
+            telegram_username=user.telegram_username,
+            telegram_id=user.telegram_id,
+            clockify_id=user.clockify_id,
+            is_admin=user.is_admin,
+        )
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
+
+        return (
+            db.query(models.User)
+            .filter(models.User.telegram_username == user.telegram_username)
+            .first()
+        )
+    except Exception as e:
+        logger.info(e)
+
+
+def update_user(db: Session, user: schemas.UserAddOrUpdate):
+    try:
+        stmt = (
+            update(models.User)
+            .where(models.User.telegram_username == user.telegram_username)
+            .values(
+                telegram_id=user.telegram_id,
+                name=user.name,
+                is_admin=user.is_admin,
+                clockify_id=user.clockify_id,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+        return (
+            db.query(models.User)
+            .filter(models.User.telegram_username == user.telegram_username)
+            .first()
+        )
     except Exception as e:
         logger.info(e)
 

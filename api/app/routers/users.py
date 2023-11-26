@@ -57,31 +57,28 @@ def get_user(username: str, db: Session = Depends(get_db)):
     return user_db
 
 
-@router.post("/{username}", response_model=schemas.User)
+@router.post("/", response_model=schemas.User)
 @version(1)
-def add_or_update_user(
-    username: str, user: schemas.TelegramUser = None, db: Session = Depends(get_db)
-):
+def add_user(user: schemas.UserAddOrUpdate, db: Session = Depends(get_db)):
     """
-    TODO: REVISE THIS. Get user by Telegram username and update the name and ID
+    Add user
     """
-    user_db = users.get_user(db, username, user)
-    if user_db is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user_db
+    db_user = users.get_user(db, user.telegram_username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="User already registered")
+    return users.create_user(db=db, user=user)
 
 
-# @router.post("/users", tags=["Users"], response_model=schemas.User)
-# @version(1)
-# def create_user(user: schemas.User, db: Session = Depends(get_db)):
-#     """
-#     TODO: Add description
-#     """
-#     db_user = crud.get_user(db, user=user.username)
-#     # db_user = crud.get_user_by_email(db, email=user.email)
-#     if db_user:
-#         raise HTTPException(status_code=400, detail="Email already registered")
-#     return crud.create_user(db=db, user=user)
+@router.put("/", response_model=schemas.User)
+@version(1)
+def update_user(user: schemas.UserAddOrUpdate, db: Session = Depends(get_db)):
+    """
+    Update user
+    """
+    db_user = users.get_user(db, user.telegram_username)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not exists")
+    return users.update_user(db=db, user=user)
 
 
 @router.post("/{username}/new_game", response_model=schemas.UsersGames)
@@ -90,7 +87,7 @@ def add_game_to_user(
     username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)
 ):
     """
-    TODO: Add description
+    Add new game to user
     """
     user = users.get_user(db, username)
     played_games = users.get_games(db, user.id)

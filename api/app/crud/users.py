@@ -57,27 +57,6 @@ def get_user(db: Session, username: str) -> models.User:
     )
     if db_user is None:
         return None
-    # else:
-    #     if user is not None:
-    #         logger.info(user)
-    #         if (
-    #             user.telegram_id != 0
-    #             and user.telegram_name != "string"
-    #             and user.telegram_name != ""
-    #         ):
-    #             stmt = (
-    #                 update(models.User)
-    #                 .where(models.User.telegram_username == username)
-    #                 .values(telegram_id=user.telegram_id, name=user.telegram_name)
-    #             )
-    #             db.execute(stmt)
-    #             db.commit()
-    #         return (
-    #             db.query(models.User)
-    #             .filter(models.User.telegram_username == username)
-    #             .first()
-    #         )
-
     return db_user
 
 
@@ -105,14 +84,24 @@ def create_user(db: Session, user: schemas.UserAddOrUpdate) -> models.User:
 
 def update_user(db: Session, user: schemas.UserAddOrUpdate):
     try:
+        logger.info(user)
+        db_user = get_user(db, user.telegram_username)
+        name = user.name if user.name is not None else db_user.name
+        telegram_id = (
+            user.telegram_id if user.telegram_id is not None else db_user.telegram_id
+        )
+        is_admin = user.is_admin if user.is_admin is not None else db_user.is_admin
+        clockify_id = (
+            user.clockify_id if user.clockify_id is not None else db_user.clockify_id
+        )
         stmt = (
             update(models.User)
             .where(models.User.telegram_username == user.telegram_username)
             .values(
-                telegram_id=user.telegram_id,
-                name=user.name,
-                is_admin=user.is_admin,
-                clockify_id=user.clockify_id,
+                telegram_id=telegram_id,
+                name=name,
+                is_admin=is_admin,
+                clockify_id=clockify_id,
             )
         )
         db.execute(stmt)

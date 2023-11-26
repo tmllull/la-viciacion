@@ -132,12 +132,12 @@ async def complete_game(username: str, game_name: str, db: Session = Depends(get
     return {"completed_games": num_completed_games, "avg_time": avg_time}
 
 
-@router.get("/{username}/{ranking}")
-@version(1)
-def user_rankings(
-    username: str,
-    ranking: RankingUsersTypes,
-    db: Session = Depends(get_db),
-):
-    user_id = users.get_user(db, username=username).id
-    return user_id
+# @router.get("/{username}/{ranking}")
+# @version(1)
+# def user_rankings(
+#     username: str,
+#     ranking: RankingUsersTypes,
+#     db: Session = Depends(get_db),
+# ):
+#     user_id = users.get_user(db, username=username).id
+#     return user_id

@@ -30,15 +30,20 @@ def get_db():
         db.close()
 
 
-class RankingTypes(str, Enum):
+class RankingStatisticsTypes(str, Enum):
+    hours = "hours"
+    days = "days"
+
+
+class UserStatisticsTypes(str, Enum):
     hours = "hours"
     days = "days"
 
 
 @router.get("/rankings/{ranking}")
 @version(1)
-def get_ranking(
-    ranking: RankingTypes,
+def get_ranking_statistics(
+    ranking: RankingStatisticsTypes,
     db: Session = Depends(get_db),
 ):
     if ranking == "hours":
@@ -47,6 +52,15 @@ def get_ranking(
         return rankings.get_current_ranking_days_players(db)
     else:
         return {"message": "More rankings are coming"}
+
+
+@router.get("/users/{ranking}")
+@version(1)
+def get_user_statistics(
+    ranking: UserStatisticsTypes,
+    db: Session = Depends(get_db),
+):
+    return {"message": "TBI"}
 
 
 # @router.get("/rankings/played-hours", tags=["Rankings"])

@@ -55,6 +55,9 @@ class MyUtils:
         response = requests.request(method, url=url, headers=headers, json=json)
         return response
 
+    def api_headers(self):
+        return {"x-api-key": config.API_KEY}
+
     async def send_message(self, msg):
         async with self.bot:
             # msg = self.format_text_for_md2(msg)

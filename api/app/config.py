@@ -44,4 +44,5 @@ class Config:
             self.API_KEY = os.environ["API_KEY"]
             self.SECRET_KEY = os.environ["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
+
         self.silent = False

@@ -90,7 +90,7 @@ class DataRoutes:
             context.user_data[PLATFORM] = update.message.text
             logger.info("Received platform: " + context.user_data[PLATFORM])
             url = config.API_URL + "/games/rawg/" + str(context.user_data[GAME])
-            headers = {"x-api-key": config.API_KEY}
+            headers = utils.api_headers()
             response = utils.make_request("GET", url=url, headers=headers)
             rawg_info = response.json()["rawg"]
             hltb_info = response.json()["hltb"]
@@ -228,7 +228,7 @@ class DataRoutes:
                     "clockify_id": clockify_id,
                 }
                 logger.info("Adding game to DB...")
-                headers = {"x-api-key": config.API_KEY}
+                headers = utils.api_headers()
                 response = utils.make_request(
                     "POST", config.API_URL + "/games", headers=headers, json=new_game
                 )
@@ -244,7 +244,7 @@ class DataRoutes:
                     "game": context.user_data[GAME],
                     "platform": context.user_data[PLATFORM],
                 }
-                headers = {"x-api-key": config.API_KEY}
+                headers = utils.api_headers()
                 response = utils.make_request(
                     "POST",
                     config.API_URL + "/users/" + username + "/new_game",
@@ -256,18 +256,10 @@ class DataRoutes:
                     await update.message.reply_text(
                         "Juego añadido", reply_markup=ReplyKeyboardRemove()
                     )
-                    # await utils.send_message(
-                    #     update.message.from_user.first_name
-                    #     + " acaba de empezar su juego número "
-                    #     + str(context.user_data[TOTAL_PLAYED_GAMES] + 1)
-                    #     + ": *"
-                    #     + context.user_data[GAME]
-                    #     + "*"
-                    # )
                 else:
                     logger.info("Error adding new game to user: " + response.json())
                     await update.message.reply_text(
-                        "Algo ha salido mal: " + str(response.json()),
+                        "Error adding new game to user: " + str(response.json()),
                         reply_markup=ReplyKeyboardRemove(),
                     )
                 return ConversationHandler.END

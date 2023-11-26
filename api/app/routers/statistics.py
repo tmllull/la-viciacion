@@ -33,11 +33,24 @@ def get_db():
 class RankingStatisticsTypes(str, Enum):
     hours = "hours"
     days = "days"
+    played_games = "played_games"
+    completed_games = "completed_games"
+    achievements = "achievements"
+    ratio = "ratio"
+    current_streak = "current_streak"
+    best_streak = "best_streak"
+    most_played = "most_played"
+    platform = "platform"
+    debt = "debt"
+    last_played = "last_played"
 
 
 class UserStatisticsTypes(str, Enum):
-    hours = "hours"
-    days = "days"
+    played_games = "played_games"
+    completed_games = "completed_games"
+    top_games = "top_games"
+    achievements = "achievements"
+    streak = "streak"
 
 
 @router.get("/rankings")

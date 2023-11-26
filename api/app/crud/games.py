@@ -18,13 +18,14 @@ clockify = ClockifyApi()
 #################
 
 
-def get_games(db: Session, limit: int = 10000000) -> list[models.GamesInfo]:
+def get_games(db: Session, limit: int = None) -> list[models.GamesInfo]:
     return db.query(models.GamesInfo).limit(limit)
 
 
-def get_game_by_name(db: Session, name: str) -> models.GamesInfo:
+def get_game_by_name(db: Session, name: str) -> list[models.GamesInfo]:
     logger.info("Searching game by name: " + name)
-    return db.query(models.GamesInfo).filter(models.GamesInfo.name == name).first()
+    search = "%{}%".format(name)
+    return db.query(models.GamesInfo).filter(models.GamesInfo.name.like(search))
 
 
 def get_game_by_id(db: Session, game_id: int) -> models.GamesInfo:

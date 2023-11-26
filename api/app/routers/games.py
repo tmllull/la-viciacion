@@ -31,13 +31,13 @@ def get_db():
 
 @router.get("/", response_model=list[schemas.GamesInfo])
 @version(1)
-def get_games(name: str = None, db: Session = Depends(get_db)):
+def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)):
     """
-    Get all games from DB
+    Get games from DB
     """
     logger.info("Getting games...")
     if name is None:
-        games_db = games.get_games(db)
+        games_db = games.get_games(db, limit)
     else:
         games_db = games.get_game_by_name(db, name)
     return games_db

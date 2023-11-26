@@ -139,7 +139,7 @@ def add_new_game(
         raise Exception(e)
 
 
-def update_game(db: Session, game: schemas.UsersGames, entry_id) -> models.UsersGames:
+def update_game(db: Session, game: schemas.UsersGames, entry_id):
     try:
         stmt = (
             update(models.UsersGames)
@@ -187,7 +187,7 @@ def get_games(
 
 
 def get_game(db: Session, user_id, game) -> models.UsersGames:
-    return db.query(models.UsersGames.id).filter_by(user_id=user_id, game=game).first()
+    return db.query(models.UsersGames).filter_by(user_id=user_id, game=game).first()
 
 
 def update_played_days(db: Session, user_id: int, played_days):
@@ -256,13 +256,14 @@ def game_completed(db: Session, player, game) -> bool:
     return False
 
 
-def complete_game(db: Session, user, game_name):
+def complete_game(db: Session, user_id, game_name):
     try:
         logger.info("Completing game...")
         stmt = (
             update(models.UsersGames)
             .where(
-                models.UsersGames.game == game_name, models.UsersGames.user_id == user
+                models.UsersGames.game == game_name,
+                models.UsersGames.user_id == user_id,
             )
             .values(
                 completed=1,
@@ -272,11 +273,16 @@ def complete_game(db: Session, user, game_name):
         db.execute(stmt)
         db.commit()
         logger.info("Game completed")
-        return (
+        num_completed_games = (
             db.query(models.UsersGames.game)
-            .filter_by(user_id=user, completed=1)
+            .filter_by(user_id=user_id, completed=1)
             .count()
         )
+        user_game = get_game(db, user_id, game_name)
+        logger.info(user_game.completion_time)
+        completion_time = user_game.completion_time
+        return num_completed_games, completion_time
+
     except Exception as e:
         db.rollback()
         raise Exception("Error completing game:", str(e))

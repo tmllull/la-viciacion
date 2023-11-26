@@ -124,7 +124,7 @@ class UsersGames(UsersGamesBase):
     completed_date: Union[datetime.date, None] = None
     score: Union[float, None] = None
     played_time: Union[int, None] = None
-    completion_time: Union[str, None] = None
+    completion_time: Union[int, None] = None
     last_update: Union[str, None] = None
 
     class Config:
@@ -155,3 +155,9 @@ class TimeEntries(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CompletedGame(BaseModel):
+    completed_games: Union[int, None]
+    completion_time: Union[int, None]
+    avg_time: Union[int, None]

@@ -18,7 +18,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_api_key)],
+    # dependencies=[Depends(auth.get_api_key)],
 )
 
 
@@ -117,19 +117,28 @@ def user_games(
     return played_games
 
 
-@router.put("/{username}/complete-game", response_model=schemas.UsersGames)
+@router.put("/{username}/complete-game", response_model=schemas.CompletedGame)
 @version(1)
 async def complete_game(username: str, game_name: str, db: Session = Depends(get_db)):
     """
     Complete game by username
     """
-    num_completed_games = users.complete_game(
+    user_game = users.get_game(db, users.get_user(db, username).id, game_name)
+    if user_game is None:
+        raise HTTPException(status_code=404, detail="User is not playing this game")
+    if user_game.completed == 1:
+        raise HTTPException(status_code=409, detail="Game is already completed")
+    num_completed_games, completion_time = users.complete_game(
         db, users.get_user(db, username).id, game_name
     )
     game_info = await utils.get_game_info(game_name)
     avg_time = game_info["hltb"]["comp_main"]
     games.update_avg_time_game(db, game_name, avg_time)
-    return {"completed_games": num_completed_games, "avg_time": avg_time}
+    return {
+        "completed_games": num_completed_games,
+        "completion_time": completion_time,
+        "avg_time": avg_time,
+    }
 
 
 # @router.get("/{username}/{ranking}")

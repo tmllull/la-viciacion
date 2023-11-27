@@ -137,7 +137,9 @@ async def complete_game(username: str, game_name: str, db: Session = Depends(get
     """
     try:
         user = users.get_user(db, username)
-        user_game = users.get_game(db, users.get_user(db, username).id, game_name)
+        user_game = users.get_game_by_name(
+            db, users.get_user(db, username).id, game_name
+        )
         if user_game is None:
             raise HTTPException(status_code=404, detail="User is not playing this game")
         if user_game.completed == 1:

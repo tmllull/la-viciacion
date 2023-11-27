@@ -41,6 +41,7 @@ async def sync_data(
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:
+        logger.info("####" + user.name + "####")
         total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
         if total_entries < 1:
             logger.info(user.name + " not played in the last 24h")
@@ -57,14 +58,16 @@ async def sync_data(
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
+        logger.info("Played time obtained...")
         users.update_played_time(db, user.id, played_time[1])
+        logger.info("Played time updated...")
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
         # use 'entries'
-    logger.info("Updating played time games...")
+    logger.info("Updating played time for games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
         games.update_total_played_time(db, game[0], game[1])
-    logger.info("Updating played time users...")
+    logger.info("Updating played time for users...")
     played_time_users = time_entries.get_users_played_time(db)
     for user in played_time_users:
         users.update_played_time(db, user[0], user[1])
@@ -134,6 +137,7 @@ def streak_days(db: Session, user: models.User):
 async def ranking_games_hours(db: Session):
     logger.info("Checking games ranking hours...")
     try:
+        msg = ""
         most_played_games = games.get_most_played_time(db, 11)
         most_played: list[models.GamesInfo] = []
         most_played_to_check = []  # Only for easy check with current ranking
@@ -147,6 +151,7 @@ async def ranking_games_hours(db: Session):
             current.append(game)
             current_to_check.append(game.name)
         if current_to_check[:10] == most_played_to_check[:10]:
+            msg = "No changes in TOP 10 games ranking"
             logger.info("No changes in TOP 10 games ranking")
         else:
             logger.info("Changes in TOP 10 games ranking")

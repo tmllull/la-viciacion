@@ -114,23 +114,27 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 end = utils.change_timezone_clockify(end)
             else:
                 end = None
-            project = games.get_game_by_clockify_id(db, entry["projectId"])
-            if project is not None:
-                project_name = project.name
+            # Check if game on clockify already exists on local DB
+            game = games.get_game_by_clockify_id(db, entry["projectId"])
+            if game is not None:
+                game_name = game.name
+                game_id = game.id
             else:
-                project = clockify_api.get_project(entry["projectId"])
-                project_name = project["name"]
-                new_game = await utils.get_new_game_info(project)
-                await games.new_game(db, new_game)
-            already_playing = users.get_game(db, user.id, project_name)
+                project = clockify_api.get_project_by_id(entry["projectId"])
+                game_name = project["name"]
+                new_game_info = await utils.get_new_game_info(project)
+                new_game = await games.new_game(db, new_game_info)
+                game_id = new_game.id
+            # Check if player already plays the game
+            already_playing = users.get_game_by_id(db, user.id, game_id)
             if not already_playing:
-                new_user_game = schemas.NewGameUser(
-                    game=project_name, platform=platform
-                )
+                logger.info("USER NOT PLAYING GAME:" + game_name + " - " + str(game_id))
+                new_user_game = schemas.NewGameUser(game=game_name, platform=platform)
                 users.add_new_game(db, new_user_game, user)
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
             )
+            # Check if time entry already exists (to update it if needed)
             exists = db.execute(stmt).first()
             if not exists:
                 if end is not None:
@@ -139,7 +143,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                         user=user.name,
                         user_id=user.id,
                         user_clockify_id=user.clockify_id,
-                        project=project_name,
+                        project=game_name,
                         project_id=entry["projectId"],
                         start=start,
                         end=end,
@@ -151,7 +155,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                         user=user.name,
                         user_id=user.id,
                         user_clockify_id=user.clockify_id,
-                        project=project_name,
+                        project=game_name,
                         project_id=entry["projectId"],
                         start=start,
                         # duration=utils.convert_clockify_duration(duration),
@@ -164,7 +168,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                         .where(models.TimeEntries.id == entry["id"])
                         .values(
                             user=user.name,
-                            project=project_name,
+                            project=game_name,
                             project_id=entry["projectId"],
                             start=start,
                             end=end,
@@ -177,7 +181,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                         .where(models.TimeEntries.id == entry["id"])
                         .values(
                             user=user.name,
-                            project=project_name,
+                            project=game_name,
                             project_id=entry["projectId"],
                             start=start,
                             # duration=utils.convert_clockify_duration(duration),
@@ -187,13 +191,12 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 db.execute(stmt)
                 update_game = models.UsersGames(platform=platform)
                 users.update_game(db, update_game, already_playing.id)
-
             db.commit()
         except Exception as e:
             db.rollback()
             logger.info("Error adding entry " + str(entry) + ": " + str(e))
             raise e
-    return
+    # return
 
 
 def get_all_played_games(db: Session):

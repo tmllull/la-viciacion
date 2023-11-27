@@ -4,8 +4,8 @@ import json
 import requests
 
 from ..config import Config
-from . import actions as utils
 from . import logger
+from . import my_utils as utils
 
 config = Config()
 
@@ -54,7 +54,7 @@ class ClockifyApi:
         )
         return response.json()
 
-    def get_project(self, project_id) -> json:
+    def get_project_by_id(self, project_id) -> json:
         method = self.GET
         endpoint = "/workspaces/{}/projects/{}".format(
             config.CLOCKIFY_WORKSPACE, project_id
@@ -133,7 +133,7 @@ class ClockifyApi:
         )
 
     def get_time_entries(self, clockify_user_id, start_date=None):
-        if clockify_user_id is None:
+        if clockify_user_id is None or not utils.check_hex(clockify_user_id):
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ
         try:

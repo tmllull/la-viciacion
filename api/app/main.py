@@ -3,7 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_versioning import VersionedFastAPI
 
 from .config import Config
+from .database import models
+from .database.database import engine
 from .routers import basic, games, statistics, users
+
+models.Base.metadata.create_all(bind=engine)
 
 config = Config()
 

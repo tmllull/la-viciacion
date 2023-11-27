@@ -37,7 +37,7 @@ def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
     return db.query(models.GamesInfo).filter(models.GamesInfo.clockify_id == id).first()
 
 
-async def new_game(db: Session, game: schemas.NewGame):
+async def new_game(db: Session, game: schemas.NewGame) -> models.GamesInfo:
     logger.info("Adding new game to DB: " + game.name)
     if game.clockify_id is None or game.clockify_id == "string":
         logger.info("No clockify ID. Adding to clockify...")
@@ -69,17 +69,6 @@ async def new_game(db: Session, game: schemas.NewGame):
             current_ranking=1000000000,
         )
     try:
-        # game = models.GamesInfo(
-        #     name=game.name,
-        #     dev=game.dev,
-        #     steam_id=game.steam_id,
-        #     image_url=game.image_url,
-        #     release_date=game.release_date,
-        #     clockify_id=clockify_id,
-        #     genres=game.genres,
-        #     avg_time=game.avg_time,
-        #     current_ranking=1000000000,
-        # )
         db.add(game)
         db.commit()
         db.refresh(game)

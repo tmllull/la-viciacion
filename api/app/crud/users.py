@@ -120,7 +120,7 @@ def add_new_game(
 ) -> models.UsersGames:
     logger.info("Adding new user game...")
     try:
-        game_db = games.get_game_by_name(db, game.game)
+        game_db = games.get_game_by_name(db, game.game)[0]
         user_game = models.UsersGames(
             user=user.name,
             user_id=user.id,
@@ -135,6 +135,7 @@ def add_new_game(
         db.refresh(user_game)
         return user_game
     except Exception as e:
+        db.rollback()
         logger.info("Error adding new game user: " + str(e))
         raise Exception(e)
 
@@ -186,8 +187,14 @@ def get_games(
         return db.query(models.UsersGames).filter_by(user_id=user_id).limit(limit)
 
 
-def get_game(db: Session, user_id, game) -> models.UsersGames:
+def get_game_by_name(db: Session, user_id, game) -> models.UsersGames:
     return db.query(models.UsersGames).filter_by(user_id=user_id, game=game).first()
+
+
+def get_game_by_id(db: Session, user_id, game_id) -> models.UsersGames:
+    return (
+        db.query(models.UsersGames).filter_by(user_id=user_id, game_id=game_id).first()
+    )
 
 
 def update_played_days(db: Session, user_id: int, played_days):
@@ -278,7 +285,7 @@ def complete_game(db: Session, user_id, game_name):
             .filter_by(user_id=user_id, completed=1)
             .count()
         )
-        user_game = get_game(db, user_id, game_name)
+        user_game = get_game_by_name(db, user_id, game_name)
         completion_time = user_game.completion_time
         return num_completed_games, completion_time
 

@@ -19,6 +19,14 @@ clockify_api = ClockifyApi()
 config = Config()
 
 
+def check_hex(s):
+    try:
+        int(s, 16)
+        return True
+    except ValueError:
+        return False
+
+
 def convert_time_to_hours(seconds) -> str:
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
@@ -136,6 +144,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
 
 async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
     try:
+        total_entries = 0
         entries = clockify_api.get_time_entries(user.clockify_id, date)
         total_entries = len(entries)
         logger.info(

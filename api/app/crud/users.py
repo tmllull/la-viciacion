@@ -24,7 +24,13 @@ def create_admin_user(db: Session, username: str):
     try:
         db_user = db.query(models.User).filter(models.User.username == username).first()
         if db_user is None:
-            db_user = models.User(username=username, is_admin=1)
+            salt = bcrypt.gensalt()
+            default_password = "1234"
+            # Hashing the password
+            hashed_password = bcrypt.hashpw(default_password.encode("utf-8"), salt)
+            db_user = models.User(
+                username=username, is_admin=1, password=hashed_password
+            )
             db.add(db_user)
             db.commit()
             logger.info("Admin user created")

@@ -40,12 +40,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-api_key_query = APIKeyQuery(name="api-key", auto_error=False)
+# api_key_query = APIKeyQuery(name="api-key", auto_error=False)
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 
 def get_api_key(
-    api_key_query: str = Security(api_key_query),
+    # api_key_query: str = Security(api_key_query),
     api_key_header: str = Security(api_key_header),
 ) -> str:
     """Retrieve and validate an API key from the query parameters or HTTP header.
@@ -60,8 +60,8 @@ def get_api_key(
     Raises:
         HTTPException: If the API key is invalid or missing.
     """
-    if api_key_query == config.API_KEY:
-        return api_key_query
+    # if api_key_query == config.API_KEY:
+    #     return api_key_query
     if api_key_header == config.API_KEY:
         return api_key_header
     raise HTTPException(
@@ -108,7 +108,7 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, config.SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        username: str = payload.get("username")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)

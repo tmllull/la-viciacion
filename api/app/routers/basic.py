@@ -42,6 +42,20 @@ def hello_world():
     return "Hello world!"
 
 
+@router.get("/init")
+@version(1)
+def init(db: Session = Depends(get_db)):
+    """
+    Init base data
+    """
+    try:
+        for admin in config.ADMIN_USERS:
+            users.create_admin_user(db, admin)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return "Init completed!"
+
+
 @router.get("/sync-data")
 @version(1)
 async def sync_data(
@@ -105,7 +119,7 @@ async def login_for_access_token(
         )
     access_token_expires = timedelta(minutes=int(config.ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = auth.create_access_token(
-        data={"sub": user.username},
+        data={"username": user.username, "is_admin": user.is_admin},
         expires_delta=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}

@@ -1,11 +1,13 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_versioning import VersionedFastAPI
 
 from .config import Config
+from .crud import users as crud_users
 from .database import models
-from .database.database import engine
+from .database.database import SessionLocal, engine
 from .routers import basic, games, statistics, users
+from .utils import logger
 
 models.Base.metadata.create_all(bind=engine)
 

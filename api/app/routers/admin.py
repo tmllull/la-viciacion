@@ -75,3 +75,19 @@ async def sync_data(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"
+
+
+@router.put("/update_user", response_model=schemas.User)
+@version(1)
+def update_user(
+    user: schemas.UserUpdate,
+    api_key: None = Security(auth.get_api_key),
+    db: Session = Depends(get_db),
+):
+    """
+    Update user by admin
+    """
+    db_user = users.get_user_by_username(db, user.username)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not exists")
+    return users.update_user(db=db, user=user)

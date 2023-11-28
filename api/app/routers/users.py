@@ -50,7 +50,7 @@ def get_users(db: Session = Depends(get_db)):
 @version(1)
 def get_user(username: str, db: Session = Depends(get_db)):
     """
-    Get user by Telegram username
+    Get user by username
     """
     user_db = users.get_user_by_username(db, username)
     if user_db is None:

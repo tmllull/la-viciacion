@@ -19,6 +19,7 @@ models.Base.metadata.create_all(bind=engine)
 config = Config()
 
 router = APIRouter(
+    prefix="/admin",
     tags=["Admin"],
     responses={404: {"description": "Not found"}},
     # dependencies=[Depends(auth.get_api_key)],
@@ -78,7 +79,7 @@ async def sync_data(
     return "Sync completed!"
 
 
-@router.put("/admin/update_user", response_model=schemas.User)
+@router.put("/update_user", response_model=schemas.User)
 @version(1)
 def update_user(
     user_data: schemas.UserUpdate,

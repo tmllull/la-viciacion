@@ -52,8 +52,8 @@ async def sync_data(
         logger.info("Updating streaks...")
         best_streak_date, best_streak, current_streak = streak_days(db, user)
         users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
-        played_time_games = time_entries.get_user_games_played_time(db, user.id)
         logger.info("Updating played time games...")
+        played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
@@ -86,7 +86,7 @@ async def sync_data(
 #             await games.new_game(db, game)
 
 
-def streak_days(db: Session, user: models.User):
+def streak_days(db: Session, user: models.Users):
     """
     TODO:
     """
@@ -228,13 +228,13 @@ async def ranking_games_hours(db: Session):
 async def ranking_players_hours(db: Session):
     logger.info("Ranking player hours...")
     most_played_users = users.get_most_played_time(db)
-    most_played: list[models.User] = []
+    most_played: list[models.Users] = []
     most_played_to_check = []  # Only for easy check with current ranking
     for player in most_played_users:
         most_played.append(player)
         most_played_to_check.append(player.name)
     result = rankings.hours_players(db)
-    current: list[models.User] = []
+    current: list[models.Users] = []
     current_to_check = []  # Only for easy check with most played
     for player in result:
         current.append(player)

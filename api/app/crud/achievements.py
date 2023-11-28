@@ -49,12 +49,12 @@ def lose_streak(db: Session, player, streak, date=None):
 
 
 def best_streak(db: Session, player, streak, date):
-    stmt = select(models.User.best_streak).where(models.User.name == player)
+    stmt = select(models.Users.best_streak).where(models.Users.name == player)
     best_streak = db.execute(stmt).first()
     if best_streak is None or best_streak <= streak:
         stmt = (
-            update(models.User)
-            .where(models.User.name == player)
+            update(models.Users)
+            .where(models.Users.name == player)
             .values(best_streak=streak, best_streak_date=date)
         )
         db.execute(stmt)
@@ -63,8 +63,8 @@ def best_streak(db: Session, player, streak, date):
 
 def current_streak(db: Session, player, streak):
     stmt = (
-        update(models.User)
-        .where(models.User.name == player)
+        update(models.Users)
+        .where(models.Users.name == player)
         .values(current_streak=streak)
     )
     db.execute(stmt)

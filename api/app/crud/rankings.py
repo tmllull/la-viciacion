@@ -60,19 +60,19 @@ def get_current_ranking_games(db: Session, limit: int = 11) -> list[models.Games
         logger.info(e)
 
 
-def hours_players(db: Session) -> list[models.User]:
+def hours_players(db: Session) -> list[models.Users]:
     try:
-        return db.query(models.User.name, models.User.played_time).order_by(
-            desc(models.User.played_time)
+        return db.query(models.Users.name, models.Users.played_time).order_by(
+            desc(models.Users.played_time)
         )
     except Exception as e:
         logger.info(e)
 
 
-def days_players(db: Session) -> list[models.User]:
+def days_players(db: Session) -> list[models.Users]:
     try:
-        return db.query(models.User.name, models.User.played_days).order_by(
-            desc(models.User.played_days)
+        return db.query(models.Users.name, models.Users.played_days).order_by(
+            desc(models.Users.played_days)
         )
     except Exception as e:
         logger.info(e)
@@ -112,8 +112,8 @@ def days_players(db: Session) -> list[models.User]:
 
 def update_current_ranking_hours_user(db: Session, ranking, user_id):
     stmt = (
-        update(models.User)
-        .where(models.User.id == user_id)
+        update(models.Users)
+        .where(models.Users.id == user_id)
         .values(current_ranking_hours=ranking)
     )
     db.execute(stmt)
@@ -146,8 +146,8 @@ def update_current_ranking_hours_user(db: Session, ranking, user_id):
 
 def best_streak(db: Session):
     try:
-        return db.query(models.User.name, models.User.best_streak).order_by(
-            desc(models.User.best_streak)
+        return db.query(models.Users.name, models.Users.best_streak).order_by(
+            desc(models.Users.best_streak)
         )
     except Exception as e:
         logger.info(e)
@@ -156,8 +156,8 @@ def best_streak(db: Session):
 
 def current_streak(db: Session):
     try:
-        return db.query(models.User.name, models.User.current_streak).order_by(
-            desc(models.User.current_streak)
+        return db.query(models.Users.name, models.Users.current_streak).order_by(
+            desc(models.Users.current_streak)
         )
     except Exception as e:
         logger.info(e)

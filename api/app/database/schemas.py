@@ -18,6 +18,8 @@ class User(UserBase):
     name: Union[str, None] = None
     telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = 0
+    email: Union[str, None] = None
+    is_active: Union[int, None] = 0
     played_time: Union[int, None] = 0
     clockify_id: Union[str, None] = None
     current_ranking_hours: Union[int, None] = None
@@ -87,7 +89,7 @@ class NewGame(BaseModel):
 
 
 class NewGameUser(BaseModel):
-    game: str
+    project_clockify_id: str
     platform: Union[str, None] = None
 
 
@@ -100,10 +102,11 @@ class UsersGamesBase(BaseModel):
 
 class UsersGames(UsersGamesBase):
     id: Union[int, None] = None
-    user: Union[str, None] = None
+    # user: Union[str, None] = None
     user_id: Union[int, None] = None
-    game: Union[str, None] = None
+    # game: Union[str, None] = None
     game_id: Union[int, None] = None
+    project_clockify_id: Union[str, None] = None
     started_date: Union[datetime.date, None] = None
     platform: Union[str, None] = None
     completed: Union[int, None] = None
@@ -130,11 +133,11 @@ class UserAchievements(BaseModel):
 
 class TimeEntries(BaseModel):
     id: Union[int, None] = None
-    user: Union[str, None] = None
+    # user: Union[str, None] = None
     user_id: Union[str, None] = None
     user_clockify_id: Union[str, None] = None
-    project: Union[str, None] = None
-    project_id: Union[str, None] = None
+    # project: Union[str, None] = None
+    project_clockify_id: Union[str, None] = None
     start: Union[datetime.date, None] = None
     end: Union[datetime.date, None] = None
     duration: Union[int, None] = None

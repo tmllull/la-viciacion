@@ -68,7 +68,10 @@ def day_of_the_year(date):
 
 
 def date_from_day_of_the_year(day):
-    start_date = datetime.datetime(2023, 1, 1)
+    start_date_base = datetime.datetime.strptime(config.START_DATE, "YYYY-MM-DD")
+    start_date = datetime.datetime(
+        start_date_base.year, start_date_base.month, start_date_base.day
+    )
     current_date = start_date + datetime.timedelta(days=day - 1)
     return current_date.strftime("%Y-%m-%d")
 
@@ -142,7 +145,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
     return new_game
 
 
-async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
+async def sync_clockify_entries(db: Session, user: models.Users, date: str = None):
     try:
         total_entries = 0
         entries = clockify_api.get_time_entries(user.clockify_id, date)

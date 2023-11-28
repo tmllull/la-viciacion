@@ -22,14 +22,16 @@ config = Config()
 
 def create_admin_user(db: Session, username: str):
     try:
-        db_user = db.query(models.User).filter(models.User.username == username).first()
+        db_user = (
+            db.query(models.Users).filter(models.Users.username == username).first()
+        )
         if db_user is None:
             salt = bcrypt.gensalt()
-            default_password = "1234"
+            default_password = "admin"
             # Hashing the password
             hashed_password = bcrypt.hashpw(default_password.encode("utf-8"), salt)
-            db_user = models.User(
-                username=username, is_admin=1, password=hashed_password
+            db_user = models.Users(
+                username=username, is_admin=1, password=hashed_password, is_active=1
             )
             db.add(db_user)
             db.commit()
@@ -42,7 +44,7 @@ def create_admin_user(db: Session, username: str):
             logger.info(e)
 
 
-def get_users(db: Session) -> list[models.User]:
+def get_users(db: Session) -> list[models.Users]:
     """Get all users
 
     Args:
@@ -51,24 +53,24 @@ def get_users(db: Session) -> list[models.User]:
     Returns:
         list[models.User]: List of all users
     """
-    return db.query(models.User)
+    return db.query(models.Users)
 
 
-def get_user_by_username(db: Session, username: str) -> models.User:
-    db_user = db.query(models.User).filter(models.User.username == username).first()
+def get_user_by_username(db: Session, username: str) -> models.Users:
+    db_user = db.query(models.Users).filter(models.Users.username == username).first()
     if db_user is None:
         return None
     return db_user
 
 
-def get_user_by_id(db: Session, id: int) -> models.User:
-    db_user = db.query(models.User).filter(models.User.id == id).first()
+def get_user_by_id(db: Session, id: int) -> models.Users:
+    db_user = db.query(models.Users).filter(models.Users.id == id).first()
     if db_user is None:
         return None
     return db_user
 
 
-def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+def create_user(db: Session, user: schemas.UserCreate) -> models.Users:
     # generating the salt
     salt = bcrypt.gensalt()
 
@@ -76,13 +78,15 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), salt)
 
     try:
-        db_user = models.User(username=user.username, password=hashed_password)
+        db_user = models.Users(username=user.username, password=hashed_password)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
 
         return (
-            db.query(models.User).filter(models.User.username == user.username).first()
+            db.query(models.Users)
+            .filter(models.Users.username == user.username)
+            .first()
         )
     except Exception as e:
         logger.info(e)
@@ -109,8 +113,8 @@ def update_user(db: Session, user: schemas.UserUpdate):
         else:
             password = db_user.password
         stmt = (
-            update(models.User)
-            .where(models.User.username == user.username)
+            update(models.Users)
+            .where(models.Users.username == user.username)
             .values(
                 telegram_id=telegram_id,
                 name=name,
@@ -122,24 +126,25 @@ def update_user(db: Session, user: schemas.UserUpdate):
         db.execute(stmt)
         db.commit()
         return (
-            db.query(models.User).filter(models.User.username == user.username).first()
+            db.query(models.Users)
+            .filter(models.Users.username == user.username)
+            .first()
         )
     except Exception as e:
         logger.info(e)
 
 
 def add_new_game(
-    db: Session, game: schemas.NewGameUser, user: models.User
+    db: Session, game: schemas.NewGameUser, user: models.Users
 ) -> models.UsersGames:
     logger.info("Adding new user game...")
     try:
-        game_db = games.get_game_by_name(db, game.game)[0]
+        game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
         user_game = models.UsersGames(
-            user=user.name,
             user_id=user.id,
             completed=0,
-            game=game.game,
             game_id=game_db.id,
+            project_clockify_id=game_db.clockify_id,
             platform=game.platform,
             started_date=datetime.datetime.now(),
         )
@@ -177,7 +182,7 @@ def update_played_time_game(db: Session, user_id: str, game: str, time: int):
     stmt = (
         update(models.UsersGames)
         .where(
-            models.UsersGames.game == game,
+            models.UsersGames.project_clockify_id == game,
             models.UsersGames.user_id == user_id,
         )
         .values(played_time=time)
@@ -210,11 +215,21 @@ def get_game_by_id(db: Session, user_id, game_id) -> models.UsersGames:
     )
 
 
+def get_game_by_clockify_id(
+    db: Session, user_id, project_clockify_id
+) -> models.UsersGames:
+    return (
+        db.query(models.UsersGames)
+        .filter_by(user_id=user_id, project_clockify_id=project_clockify_id)
+        .first()
+    )
+
+
 def update_played_days(db: Session, user_id: int, played_days):
     try:
         stmt = (
-            update(models.User)
-            .where(models.User.id == user_id)
+            update(models.Users)
+            .where(models.Users.id == user_id)
             .values(played_days=played_days)
         )
         db.execute(stmt)
@@ -227,8 +242,8 @@ def update_played_days(db: Session, user_id: int, played_days):
 def update_played_time(db: Session, user_id, played_time):
     try:
         stmt = (
-            update(models.User)
-            .where(models.User.id == user_id)
+            update(models.Users)
+            .where(models.Users.id == user_id)
             .values(played_time=played_time)
         )
         db.execute(stmt)
@@ -255,9 +270,9 @@ def top_games(db: Session, player, limit: int = 10):
 def get_streaks(db: Session, player):
     try:
         return db.query(
-            models.User.current_streak,
-            models.User.best_streak,
-            models.User.best_streak_date,
+            models.Users.current_streak,
+            models.Users.best_streak,
+            models.Users.best_streak_date,
         ).filter_by(name=player)
     except Exception as e:
         logger.info(e)
@@ -311,8 +326,8 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
     try:
         logger.info("Update streaks...")
         stmt = (
-            update(models.User)
-            .where(models.User.id == user_id)
+            update(models.Users)
+            .where(models.Users.id == user_id)
             .values(
                 current_streak=current_streak,
                 best_streak=best_streak,
@@ -327,10 +342,10 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
         raise Exception("Error updating streaks:", str(e))
 
 
-def get_most_played_time(db: Session, limit: int = None) -> list[models.User]:
+def get_most_played_time(db: Session, limit: int = None) -> list[models.Users]:
     if limit is not None:
         return (
-            db.query(models.User).order_by(desc(models.User.played_time)).limit(limit)
+            db.query(models.Users).order_by(desc(models.Users.played_time)).limit(limit)
         )
     else:
-        return db.query(models.User).order_by(desc(models.User.played_time))
+        return db.query(models.Users).order_by(desc(models.Users.played_time))

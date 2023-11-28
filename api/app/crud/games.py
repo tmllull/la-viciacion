@@ -34,6 +34,7 @@ def get_game_by_id(db: Session, game_id: int) -> models.GamesInfo:
 
 
 def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
+    # logger.info("Searching game by clockify id: " + str(id))
     return db.query(models.GamesInfo).filter(models.GamesInfo.clockify_id == id).first()
 
 
@@ -125,11 +126,11 @@ def update_game(db: Session, game: models.GamesInfo):
         raise e
 
 
-def update_total_played_time(db: Session, game, total_played):
+def update_total_played_time(db: Session, clockify_id, total_played):
     try:
         stmt = (
             update(models.GamesInfo)
-            .where(models.GamesInfo.name == game)
+            .where(models.GamesInfo.clockify_id == clockify_id)
             .values(played_time=total_played)
         )
         db.execute(stmt)

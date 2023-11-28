@@ -98,6 +98,8 @@ async def sync_data(
 @router.post("/register")
 @version(1)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    if user.invitation_key != config.INVITATION_KEY:
+        raise HTTPException(status_code=400, detail="Invalid invitation key")
     db_user = users.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")

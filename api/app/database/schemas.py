@@ -26,6 +26,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    invitation_key: str
 
 
 class User(UserBase):

@@ -51,6 +51,7 @@ def init(db: Session = Depends(get_db)):
 @version(1)
 async def sync_data(
     api_key: None = Security(auth.get_api_key),
+    # user: None = Security(auth.get_current_active_user),
     start_date: str = Query(
         default=None,
         title="Start date",
@@ -80,14 +81,15 @@ async def sync_data(
 @router.put("/admin/update_user", response_model=schemas.User)
 @version(1)
 def update_user(
-    user: schemas.UserUpdate,
-    api_key: None = Security(auth.get_api_key),
+    user_data: schemas.UserUpdate,
+    # api_key: None = Security(auth.get_api_key),
+    user: None = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """
     Update user by admin
     """
-    db_user = users.get_user_by_username(db, user.username)
+    db_user = users.get_user_by_username(db, user_data.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not exists")
-    return users.update_user(db=db, user=user)
+    return users.update_user(db=db, user=user_data)

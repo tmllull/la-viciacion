@@ -233,7 +233,7 @@ async def ranking_players_hours(db: Session):
     for player in most_played_users:
         most_played.append(player)
         most_played_to_check.append(player.name)
-    result = rankings.get_current_ranking_hours_players(db)
+    result = rankings.hours_players(db)
     current: list[models.User] = []
     current_to_check = []  # Only for easy check with most played
     for player in result:

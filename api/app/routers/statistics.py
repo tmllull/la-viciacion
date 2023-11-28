@@ -33,13 +33,13 @@ def get_db():
 class RankingStatisticsTypes(str, Enum):
     hours = "hours"
     days = "days"
-    played_games = "played_games"
+    user_played_games = "user_played_games"
     completed_games = "completed_games"
     achievements = "achievements"
     ratio = "ratio"
     current_streak = "current_streak"
     best_streak = "best_streak"
-    most_played = "most_played"
+    most_played_games = "most_played_games"
     platform = "platform"
     debt = "debt"
     last_played = "last_played"
@@ -59,10 +59,30 @@ def get_ranking_statistics(
     ranking: RankingStatisticsTypes,
     db: Session = Depends(get_db),
 ):
-    if ranking == "hours":
-        return rankings.get_current_ranking_hours_players(db)
-    elif ranking == "days":
-        return rankings.get_current_ranking_days_players(db)
+    if ranking == RankingStatisticsTypes.hours:
+        return rankings.hours_players(db)
+    elif ranking == RankingStatisticsTypes.days:
+        return rankings.days_players(db)
+    elif ranking == RankingStatisticsTypes.user_played_games:
+        return rankings.user_played_games(db)
+    elif ranking == RankingStatisticsTypes.completed_games:
+        return {"message": "TBI"}
+    elif ranking == RankingStatisticsTypes.achievements:
+        return {"message": "TBI"}
+    elif ranking == RankingStatisticsTypes.ratio:
+        return {"message": "TBI"}
+    elif ranking == RankingStatisticsTypes.current_streak:
+        return rankings.current_streak(db)
+    elif ranking == RankingStatisticsTypes.best_streak:
+        return rankings.best_streak(db)
+    elif ranking == RankingStatisticsTypes.most_played_games:
+        return rankings.most_played_games(db, limit=10)
+    elif ranking == RankingStatisticsTypes.platform:
+        return {"message": "TBI"}
+    elif ranking == RankingStatisticsTypes.debt:
+        return {"message": "TBI"}
+    elif ranking == RankingStatisticsTypes.last_played:
+        return {"message": "TBI"}
     else:
         return {"message": "More rankings are coming"}
 
@@ -73,14 +93,14 @@ def get_user_statistics(
     ranking: UserStatisticsTypes,
     db: Session = Depends(get_db),
 ):
+    if ranking == UserStatisticsTypes.played_games:
+        return {"message": "TBI"}
+    if ranking == UserStatisticsTypes.completed_games:
+        return {"message": "TBI"}
+    if ranking == UserStatisticsTypes.top_games:
+        return {"message": "TBI"}
+    if ranking == UserStatisticsTypes.achievements:
+        return {"message": "TBI"}
+    if ranking == UserStatisticsTypes.streak:
+        return {"message": "TBI"}
     return {"message": "TBI"}
-
-
-# @router.get("/rankings/played-hours", tags=["Rankings"])
-# def rankings_played_hours(db: Session = Depends(get_db)):
-#     return rankings.get_current_ranking_hours_players(db)
-
-
-# @router.get("/rankings/played-days", tags=["Rankings"])
-# def rankings_played_days(db: Session = Depends(get_db)):
-#     return rankings.get_current_ranking_days_players(db)

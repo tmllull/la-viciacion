@@ -1,6 +1,7 @@
 import datetime
 from typing import Union
 
+import bcrypt
 from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
 from sqlalchemy.orm import Session
 
@@ -21,13 +22,9 @@ config = Config()
 
 def create_admin_user(db: Session, username: str):
     try:
-        db_user = (
-            db.query(models.User)
-            .filter(models.User.telegram_username == username)
-            .first()
-        )
+        db_user = db.query(models.User).filter(models.User.username == username).first()
         if db_user is None:
-            db_user = models.User(telegram_username=username, is_admin=1)
+            db_user = models.User(username=username, is_admin=1)
             db.add(db_user)
             db.commit()
             logger.info("Admin user created")
@@ -51,41 +48,44 @@ def get_users(db: Session) -> list[models.User]:
     return db.query(models.User)
 
 
-def get_user(db: Session, username: str) -> models.User:
-    db_user = (
-        db.query(models.User).filter(models.User.telegram_username == username).first()
-    )
+def get_user_by_username(db: Session, username: str) -> models.User:
+    db_user = db.query(models.User).filter(models.User.username == username).first()
     if db_user is None:
         return None
     return db_user
 
 
-def create_user(db: Session, user: schemas.UserAddOrUpdate) -> models.User:
+def get_user_by_id(db: Session, id: int) -> models.User:
+    db_user = db.query(models.User).filter(models.User.id == id).first()
+    if db_user is None:
+        return None
+    return db_user
+
+
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+    # generating the salt
+    salt = bcrypt.gensalt()
+
+    # Hashing the password
+    hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), salt)
+
     try:
-        db_user = models.User(
-            name=user.name,
-            telegram_username=user.telegram_username,
-            telegram_id=user.telegram_id,
-            clockify_id=user.clockify_id,
-            is_admin=user.is_admin,
-        )
+        db_user = models.User(username=user.username, password=hashed_password)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
 
         return (
-            db.query(models.User)
-            .filter(models.User.telegram_username == user.telegram_username)
-            .first()
+            db.query(models.User).filter(models.User.username == user.username).first()
         )
     except Exception as e:
         logger.info(e)
 
 
-def update_user(db: Session, user: schemas.UserAddOrUpdate):
+def update_user(db: Session, user: schemas.UserUpdate):
     try:
         logger.info(user)
-        db_user = get_user(db, user.telegram_username)
+        db_user = get_user_by_username(db, user.username)
         name = user.name if user.name is not None else db_user.name
         telegram_id = (
             user.telegram_id if user.telegram_id is not None else db_user.telegram_id
@@ -94,22 +94,29 @@ def update_user(db: Session, user: schemas.UserAddOrUpdate):
         clockify_id = (
             user.clockify_id if user.clockify_id is not None else db_user.clockify_id
         )
+        if user.password is not None:
+            salt = bcrypt.gensalt()
+
+            # Hashing the password
+            hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), salt)
+            password = hashed_password
+        else:
+            password = db_user.password
         stmt = (
             update(models.User)
-            .where(models.User.telegram_username == user.telegram_username)
+            .where(models.User.username == user.username)
             .values(
                 telegram_id=telegram_id,
                 name=name,
                 is_admin=is_admin,
+                password=password,
                 clockify_id=clockify_id,
             )
         )
         db.execute(stmt)
         db.commit()
         return (
-            db.query(models.User)
-            .filter(models.User.telegram_username == user.telegram_username)
-            .first()
+            db.query(models.User).filter(models.User.username == user.username).first()
         )
     except Exception as e:
         logger.info(e)

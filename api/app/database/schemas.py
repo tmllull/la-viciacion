@@ -21,16 +21,16 @@ from pydantic import BaseModel
 
 
 class UserBase(BaseModel):
-    id: int
+    username: str
 
 
-# class UserCreate(UserBase):
-#     password: str
+class UserCreate(UserBase):
+    password: str
 
 
 class User(UserBase):
+    id: int
     name: Union[str, None] = None
-    telegram_username: str
     telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     played_time: Union[int, None] = None
@@ -46,9 +46,10 @@ class User(UserBase):
         from_attributes = True
 
 
-class UserAddOrUpdate(BaseModel):
+class UserUpdate(BaseModel):
     name: Union[str, None] = None
-    telegram_username: str
+    username: str
+    password: Union[str, None]
     telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     clockify_id: Union[str, None] = None

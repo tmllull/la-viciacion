@@ -22,7 +22,7 @@ class AdminRoutes:
                 users = requests.get(config.API_URL + "/users").json()
                 msg = ""
                 for user in users:
-                    username = str(user["telegram_username"])
+                    username = str(user["username"])
                     name = str(user["name"])
                     user_id = str(user["telegram_id"])
                     msg += name + ": " + username + " - " + user_id + "\n"

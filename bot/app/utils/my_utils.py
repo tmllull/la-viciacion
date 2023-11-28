@@ -100,7 +100,7 @@ class MyUtils:
         url = config.API_URL + "/users/" + username
         response = self.make_request("GET", url, headers=headers)
         if response.status_code == 200:
-            user = {"telegram_username": username, "telegram_id": user_id}
+            user = {"username": username, "telegram_id": user_id}
             url = config.API_URL + "/users"
             response = self.make_request("PUT", url, headers=headers, json=user)
             return response.json()

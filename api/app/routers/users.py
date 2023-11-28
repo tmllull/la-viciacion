@@ -51,7 +51,7 @@ def get_user(username: str, db: Session = Depends(get_db)):
     """
     Get user by Telegram username
     """
-    user_db = users.get_user(db, username)
+    user_db = users.get_user_by_username(db, username)
     if user_db is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user_db
@@ -59,11 +59,11 @@ def get_user(username: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.User)
 @version(1)
-def add_user(user: schemas.UserAddOrUpdate, db: Session = Depends(get_db)):
+def add_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
     """
     Add user
     """
-    db_user = users.get_user(db, user.telegram_username)
+    db_user = users.get_user_by_username(db, user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="User already registered")
     return users.create_user(db=db, user=user)
@@ -71,11 +71,11 @@ def add_user(user: schemas.UserAddOrUpdate, db: Session = Depends(get_db)):
 
 @router.put("/", response_model=schemas.User)
 @version(1)
-def update_user(user: schemas.UserAddOrUpdate, db: Session = Depends(get_db)):
+def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
     """
     Update user
     """
-    db_user = users.get_user(db, user.telegram_username)
+    db_user = users.get_user_by_username(db, user.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not exists")
     return users.update_user(db=db, user=user)
@@ -89,7 +89,7 @@ async def add_game_to_user(
     """
     Add new game to user list
     """
-    user = users.get_user(db, username)
+    user = users.get_user_by_username(db, username)
     played_games = users.get_games(db, user.id)
     for played_game in played_games:
         if played_game.game == game.game:
@@ -124,7 +124,7 @@ def user_games(
     completed: bool = None,
     db: Session = Depends(get_db),
 ):
-    user_id = users.get_user(db, username=username).id
+    user_id = users.get_user_by_username(db, username=username).id
     played_games = users.get_games(db, user_id, limit, completed)
     return played_games
 
@@ -136,16 +136,16 @@ async def complete_game(username: str, game_name: str, db: Session = Depends(get
     Complete game by username
     """
     try:
-        user = users.get_user(db, username)
+        user = users.get_user_by_username(db, username)
         user_game = users.get_game_by_name(
-            db, users.get_user(db, username).id, game_name
+            db, users.get_user_by_username(db, username).id, game_name
         )
         if user_game is None:
             raise HTTPException(status_code=404, detail="User is not playing this game")
         if user_game.completed == 1:
             raise HTTPException(status_code=409, detail="Game is already completed")
         num_completed_games, completion_time = users.complete_game(
-            db, users.get_user(db, username).id, game_name
+            db, users.get_user_by_username(db, username).id, game_name
         )
         game_info = await utils.get_game_info(game_name)
         avg_time = game_info["hltb"]["comp_main"]

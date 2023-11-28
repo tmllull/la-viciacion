@@ -49,9 +49,10 @@ from .database import Base
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), default="noname")
-    telegram_username = Column(String(255))
+    username = Column(String(255))
+    password = Column(String(255))
     telegram_id = Column(BigInteger)
     clockify_id = Column(String(255))
     is_admin = Column(Integer)
@@ -62,13 +63,13 @@ class User(Base):
     best_streak_date = Column(Date)
     played_days = Column(Integer)
     unplayed_streak = Column(Integer)
-    __table_args__ = (UniqueConstraint("telegram_username"),)
+    __table_args__ = (UniqueConstraint("username"),)
 
 
 class RankingUsers(Base):
     __tablename__ = "ranking_users"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer)
     name = Column(String(255))
     played_hours_current = Column(Integer)
@@ -88,7 +89,7 @@ class RankingUsers(Base):
 class GamesInfo(Base):
     __tablename__ = "games_info"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255))
     dev = Column(String(255))
     release_date = Column(Date)
@@ -105,7 +106,7 @@ class GamesInfo(Base):
 class UsersGames(Base):
     __tablename__ = "users_games"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user = Column(String(255))
     user_id = Column(Integer)
     game = Column(String(255))
@@ -123,7 +124,7 @@ class UsersGames(Base):
 class UserAchievements(Base):
     __tablename__ = "users_achievements"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user = Column(String(255))
     user_id = Column(Integer)
     achievement_id = Column(Integer)
@@ -134,7 +135,7 @@ class UserAchievements(Base):
 class Achievement(Base):
     __tablename__ = "achievements"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     achievement = Column(String(255))
     message = Column(String(255))
     __table_args__ = (UniqueConstraint("achievement"),)
@@ -158,7 +159,7 @@ class TimeEntries(Base):
 class ClockifyTags(Base):
     __tablename__ = "clockify_tags"
 
-    id = Column(String(255), primary_key=True)
+    id = Column(String(255), primary_key=True, autoincrement=True)
     name = Column(String(255))
     __table_args__ = (UniqueConstraint("id"),)
 
@@ -166,7 +167,7 @@ class ClockifyTags(Base):
 class Logs(Base):
     __tablename__ = "logs"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     player = Column(String(255))
     action = Column(String(255))
     date = Column(DateTime)

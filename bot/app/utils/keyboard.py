@@ -2,6 +2,15 @@ from telegram import InlineKeyboardButton
 
 EXIT = "❌ Salir"
 
+ACTIVATE_ACCOUNT = [
+    [
+        InlineKeyboardButton("🔓 Activa tu cuenta", callback_data="activate_account"),
+    ],
+    [
+        InlineKeyboardButton(EXIT, callback_data="cancel"),
+    ],
+]
+
 MAIN_MENU = [
     [
         InlineKeyboardButton("🕺 Mis estadísticas", callback_data="my_data"),

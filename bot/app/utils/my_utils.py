@@ -29,6 +29,7 @@ class MyUtils:
         self.silent = silent
         # Conversation routes
         (
+            self.ACTIVATE_ACCOUNT,
             self.MAIN_MENU,
             self.MY_ROUTES,
             self.RANKING_ROUTES,
@@ -49,7 +50,7 @@ class MyUtils:
             self.EXCEL_START_TIMER,
             self.EXCEL_START_TIMER_COMPLETED,
             self.EXCEL_STOP_TIMER,
-        ) = range(20)
+        ) = range(21)
 
     def make_request(self, method, url, headers=None, json=None):
         response = requests.request(method, url=url, headers=headers, json=json)
@@ -144,7 +145,7 @@ class MyUtils:
             msg = msgs.command_list
             await self.reply_message(update, context, msg)
         else:
-            await self.reply_message(update, context, msgs.forbiden)
+            await self.reply_message(update, context, msgs.forbidden)
 
     def convert_time_to_hours(self, seconds):
         if seconds is None:

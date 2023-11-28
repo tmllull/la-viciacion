@@ -1,6 +1,6 @@
 import random
 
-forbiden = (
+forbidden = (
     "Ande vas, Barrabás. No estás autorizado para usar "
     + "este bot. Habla con mi creador, a mi no me mires."
 )

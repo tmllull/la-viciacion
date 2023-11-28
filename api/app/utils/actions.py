@@ -212,10 +212,9 @@ async def ranking_games_hours(db: Session):
                     if i == 10:
                         break
                 i += 1
-
-        if not config.silent:
-            await utils.send_message(msg)
-            logger.info(msg)
+            if not config.silent:
+                await utils.send_message(msg)
+                logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
     logger.info("Updating games ranking...")

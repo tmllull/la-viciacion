@@ -44,32 +44,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 
-def get_api_key(
-    # api_key_query: str = Security(api_key_query),
-    api_key_header: str = Security(api_key_header),
-) -> str:
-    """Retrieve and validate an API key from the query parameters or HTTP header.
-
-    Args:
-        api_key_query: The API key passed as a query parameter.
-        api_key_header: The API key passed in the HTTP header.
-
-    Returns:
-        The validated API key.
-
-    Raises:
-        HTTPException: If the API key is invalid or missing.
-    """
-    # if api_key_query == config.API_KEY:
-    #     return api_key_query
-    if api_key_header == config.API_KEY:
-        return api_key_header
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or missing API Key",
-    )
-
-
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -126,3 +100,30 @@ async def get_current_active_user(
     # if current_user.disabled:
     #     raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+def get_api_key(
+    # api_key_query: str = Security(api_key_query),
+    api_key_header: str = Security(api_key_header),
+    # bearer_token : str = Security(get_current_active_user)
+) -> str:
+    """Retrieve and validate an API key from the query parameters or HTTP header.
+
+    Args:
+        api_key_query: The API key passed as a query parameter.
+        api_key_header: The API key passed in the HTTP header.
+
+    Returns:
+        The validated API key.
+
+    Raises:
+        HTTPException: If the API key is invalid or missing.
+    """
+    # if api_key_query == config.API_KEY:
+    #     return api_key_query
+    if api_key_header == config.API_KEY:
+        return api_key_header
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing API Key",
+    )

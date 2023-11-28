@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_versioning import version
@@ -18,7 +19,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_api_key)],
+    dependencies=[Depends(auth.get_current_active_user)],
 )
 
 

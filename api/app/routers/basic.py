@@ -42,48 +42,48 @@ def hello_world():
     return "Hello world!"
 
 
-@router.get("/init")
-@version(1)
-def init(db: Session = Depends(get_db)):
-    """
-    Init base data
-    """
-    try:
-        for admin in config.ADMIN_USERS:
-            users.create_admin_user(db, admin)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    return "Init completed!"
+# @router.get("/init")
+# @version(1)
+# def init(db: Session = Depends(get_db)):
+#     """
+#     Init base data
+#     """
+#     try:
+#         for admin in config.ADMIN_USERS:
+#             users.create_admin_user(db, admin)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+#     return "Init completed!"
 
 
-@router.get("/sync-data")
-@version(1)
-async def sync_data(
-    api_key: None = Security(auth.get_api_key),
-    start_date: str = Query(
-        default=None,
-        title="Start date",
-        description="Start date to sync data from clockify time entries",
-    ),
-    silent: bool = Query(
-        default=False,
-        title="Run in silent mode",
-        description="If True, notification will be disabled",
-    ),
-    sync_all: bool = Query(
-        default=False,
-        title="Sync all data",
-        description="If True, all data from 'START_DATE' defined on .env will be retrieved",
-    ),
-    db: Session = Depends(get_db),
-):
-    try:
-        for admin in config.ADMIN_USERS:
-            users.create_admin_user(db, admin)
-        await actions.sync_data(db, start_date, silent, sync_all)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return "Sync completed!"
+# @router.get("/sync-data")
+# @version(1)
+# async def sync_data(
+#     api_key: None = Security(auth.get_api_key),
+#     start_date: str = Query(
+#         default=None,
+#         title="Start date",
+#         description="Start date to sync data from clockify time entries",
+#     ),
+#     silent: bool = Query(
+#         default=False,
+#         title="Run in silent mode",
+#         description="If True, notification will be disabled",
+#     ),
+#     sync_all: bool = Query(
+#         default=False,
+#         title="Sync all data",
+#         description="If True, all data from 'START_DATE' defined on .env will be retrieved",
+#     ),
+#     db: Session = Depends(get_db),
+# ):
+#     try:
+#         for admin in config.ADMIN_USERS:
+#             users.create_admin_user(db, admin)
+#         await actions.sync_data(db, start_date, silent, sync_all)
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+#     return "Sync completed!"
 
 
 # @router.get("/login")
@@ -106,7 +106,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return users.create_user(db=db, user=user)
 
 
-@router.post("/login", response_model=auth.Token)
+@router.post("/token", response_model=auth.Token)
 @version(1)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],

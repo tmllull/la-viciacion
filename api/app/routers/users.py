@@ -130,7 +130,7 @@ def user_games(
     return played_games
 
 
-@router.put("/{username}/complete-game", response_model=schemas.CompletedGame)
+@router.patch("/{username}/complete-game", response_model=schemas.CompletedGame)
 @version(1)
 async def complete_game(username: str, game_name: str, db: Session = Depends(get_db)):
     """

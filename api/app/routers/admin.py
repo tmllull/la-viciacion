@@ -77,7 +77,7 @@ async def sync_data(
     return "Sync completed!"
 
 
-@router.put("/update_user", response_model=schemas.User)
+@router.put("/admin/update_user", response_model=schemas.User)
 @version(1)
 def update_user(
     user: schemas.UserUpdate,

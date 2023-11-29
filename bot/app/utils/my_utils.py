@@ -52,12 +52,13 @@ class MyUtils:
             self.EXCEL_STOP_TIMER,
         ) = range(21)
 
-    def make_request(self, method, url, headers=None, json=None):
+    def make_request(self, method, url, json=None):
+        headers = {"x-api-key": config.API_KEY}
         response = requests.request(method, url=url, headers=headers, json=json)
         return response
 
-    def api_headers(self):
-        return {"x-api-key": config.API_KEY}
+    # def api_headers(self):
+    #     return {"x-api-key": config.API_KEY}
 
     async def send_message(self, msg):
         async with self.bot:
@@ -88,7 +89,6 @@ class MyUtils:
             )
 
     def check_valid_chat(self, update: Update) -> bool:
-        first_name = update.message.from_user.first_name
         username = update.message.from_user.username
         user_id = update.message.from_user.id
         chat_id = update.message.chat_id
@@ -97,13 +97,13 @@ class MyUtils:
                 return False
             else:
                 return True
-        headers = {"x-api-key": config.API_KEY}
         url = config.API_URL + "/users/" + username
-        response = self.make_request("GET", url, headers=headers)
+        response = self.make_request("GET", url)
         if response.status_code == 200:
             user = {"username": username, "telegram_id": user_id}
             url = config.API_URL + "/users"
-            response = self.make_request("PUT", url, headers=headers, json=user)
+            response = self.make_request("PUT", url, json=user)
+            logger.info(response.json())
             return response.json()
         else:
             return False

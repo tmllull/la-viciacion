@@ -87,11 +87,11 @@ def get_all_played_games(db: Session):
     return db.execute(stmt)
 
 
-def update_avg_time_game(db: Session, game: str, avg_time: int):
+def update_avg_time_game(db: Session, game_id: str, avg_time: int):
     try:
         stmt = (
             update(models.GamesInfo)
-            .where(models.GamesInfo.name == game)
+            .where(models.GamesInfo.id == game_id)
             .values(
                 avg_time=avg_time,
             )

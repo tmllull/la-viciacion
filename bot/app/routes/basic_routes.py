@@ -52,7 +52,7 @@ class BasicRoutes:
                 return utils.MAIN_MENU
             else:
                 await utils.reply_message(
-                    update, context, "Debes activar tu cuenta primero"
+                    update, context, "Debes activar tu cuenta primero."
                 )
         else:
             await utils.reply_message(update, context, msgs.forbidden)

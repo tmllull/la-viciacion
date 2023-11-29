@@ -17,6 +17,7 @@ clockify = ClockifyApi()
 
 (
     GAME,
+    GAME_ID,
     PLATFORM,
     STEAM_ID,
     RELEASE_DATE,
@@ -27,7 +28,8 @@ clockify = ClockifyApi()
     RATE,
     IMAGE_URL,
     TOTAL_PLAYED_GAMES,
-) = range(20, 31)
+    CLOCKIFY_PROJECT_ID,
+) = range(20, 33)
 
 
 class DataRoutes:
@@ -90,16 +92,15 @@ class DataRoutes:
             context.user_data[PLATFORM] = update.message.text
             logger.info("Received platform: " + context.user_data[PLATFORM])
             url = config.API_URL + "/games/rawg/" + str(context.user_data[GAME])
-            headers = utils.api_headers()
-            response = utils.make_request("GET", url=url, headers=headers)
+            response = utils.make_request("GET", url=url)
             rawg_info = response.json()["rawg"]
             hltb_info = response.json()["hltb"]
             if rawg_info is None or hltb_info is None:
                 logger.info(
-                    "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre"
+                    "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre o añade el juego desde la web."
                 )
                 await update.message.reply_text(
-                    "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre",
+                    "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre o añade el juego desde la web.",
                     parse_mode=telegram.constants.ParseMode.MARKDOWN,
                 )
                 return ConversationHandler.END
@@ -136,7 +137,7 @@ class DataRoutes:
                 + str(update.message.from_user.username)
                 + "/games"
             )
-            response = utils.make_request("GET", url=url, headers=headers)
+            response = utils.make_request("GET", url=url)
             played_games = response.json()
             context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
             for played_game in played_games:
@@ -190,26 +191,24 @@ class DataRoutes:
     ) -> int:
         try:
             if "Sí" in str(update.message.text):
-                logger.info("Adding new game confirmed")
+                logger.info("Add new game confirmed")
                 endpoint = "/workspaces/{}/projects".format(config.CLOCKIFY_WORKSPACE)
                 url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-                headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
                 data = {"name": context.user_data[GAME]}
                 # Add game as project on Clockify
-                response = utils.make_request("POST", url, headers=headers, json=data)
+                response = utils.make_request("POST", url, json=data)
                 if response.status_code == 400:
                     logger.info("Project exists on Clockify")
                     endpoint = "/workspaces/{}/projects?name={}".format(
                         config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
                     )
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-                    response = utils.make_request(
-                        "GET", url, headers=headers, json=data
-                    )
+                    response = utils.make_request("GET", url, json=data)
                     clockify_id = response.json()[0]["id"]
                 else:
                     logger.info("New project created on Clockify")
                     clockify_id = response.json()["id"]
+                context.user_data[CLOCKIFY_PROJECT_ID] = clockify_id
                 release_date = str(
                     datetime.strptime(
                         context.user_data[RELEASE_DATE], "%d-%m-%Y"
@@ -228,9 +227,8 @@ class DataRoutes:
                     "clockify_id": clockify_id,
                 }
                 logger.info("Adding game to DB...")
-                headers = utils.api_headers()
                 response = utils.make_request(
-                    "POST", config.API_URL + "/games", headers=headers, json=new_game
+                    "POST", config.API_URL + "/games", json=new_game
                 )
                 if response.status_code == 400:
                     logger.info("Game already exists on DB")
@@ -241,14 +239,12 @@ class DataRoutes:
                 username = update.message.from_user.username
                 logger.info("Adding new game for " + username)
                 start_game = {
-                    "game": context.user_data[GAME],
+                    "project_clockify_id": context.user_data[CLOCKIFY_PROJECT_ID],
                     "platform": context.user_data[PLATFORM],
                 }
-                headers = utils.api_headers()
                 response = utils.make_request(
                     "POST",
                     config.API_URL + "/users/" + username + "/new_game",
-                    headers=headers,
                     json=start_game,
                 )
                 if response.status_code == 200:
@@ -284,12 +280,21 @@ class DataRoutes:
     ) -> int:
         logger.info("Complete game...")
         username = update.message.from_user.username
-        games = requests.get(
-            config.API_URL + "/users/" + username + "/games?completed=false"
-        ).json()
+        url = config.API_URL + "/users/" + username + "/games?completed=false"
+        played_games = utils.make_request("GET", url).json()
+        # played_games = requests.get(
+        #     config.API_URL + "/users/" + username + "/games?completed=false"
+        # ).json()
         keyboard = []
-        for game in games:
-            keyboard.append([game["game"]])
+        # logger.info(played_games)
+        for played_game in played_games:
+            url = config.API_URL + "/games/" + str(played_game["id"])
+            game = utils.make_request("GET", url).json()
+            # logger.info(game)
+            keyboard.append([game["name"]])
+        # games = requests.get(config.API_URL + "/games").json()
+        # for game in games:
+        #     keyboard.append([game["game"]])
         keyboard.append(kb.CANCEL)
         reply_markup = ReplyKeyboardMarkup(
             keyboard,
@@ -331,18 +336,33 @@ class DataRoutes:
             if "Sí" in str(update.message.text):
                 logger.info("Complete game confirmed")
                 username = context.user_data["username"]
-                response = requests.put(
+                url = config.API_URL + "/games?name=" + context.user_data[GAME]
+                game_data = utils.make_request("GET", url).json()[0]
+                logger.info("GAME ID: " + str(game_data["id"]))
+                url = (
                     config.API_URL
                     + "/users/"
                     + username
-                    + "/complete-game?game_name="
-                    + context.user_data[GAME]
+                    + "/complete-game?game_id="
+                    + str(game_data["id"])
                 )
+                response = utils.make_request("PATCH", url)
+                if response.status_code == 200:
+                    completed_games = response.json()["completed_games"]
+                    completed_time = response.json()["completion_time"]
+                    avg_time = response.json()["avg_time"]
 
-                await update.message.reply_text(
-                    "Juego número " + str(response.text) + " marcado como completado",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
+                    await update.message.reply_text(
+                        "Juego número "
+                        + str(completed_games)
+                        + " marcado como completado",
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                else:
+                    await update.message.reply_text(
+                        "Algo ha salido mal completando el juego: " + response.text,
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
 
             else:
                 await update.message.reply_text(
@@ -350,7 +370,7 @@ class DataRoutes:
                     reply_markup=ReplyKeyboardRemove(),
                 )
         except Exception as e:
-            await update.message.reply_text("Algo ha salido mal")
+            await update.message.reply_text("Algo ha salido mal: " + str(e))
         return ConversationHandler.END
 
     #############################

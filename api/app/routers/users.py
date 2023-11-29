@@ -19,7 +19,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_current_active_user)],
+    # dependencies=[Depends(auth.get_current_active_user)],
 )
 
 
@@ -93,17 +93,20 @@ async def add_game_to_user(
     user = users.get_user_by_username(db, username)
     played_games = users.get_games(db, user.id)
     for played_game in played_games:
-        if played_game.game == game.game:
-            raise HTTPException(status_code=409, detail="Game already exists")
+        if played_game.project_clockify_id == game.project_clockify_id:
+            raise HTTPException(
+                status_code=409, detail="User is already playing this game"
+            )
     try:
         new_game = users.add_new_game(db=db, game=game, user=user)
+        game_name = games.get_game_by_clockify_id(db, game.project_clockify_id).name
         total_games = played_games.count() + 1
         await utils.send_message(
             user.name
             + " acaba de empezar su juego número "
             + str(total_games)
             + ": *"
-            + game.game
+            + game_name
             + "*"
         )
         return new_game
@@ -119,7 +122,7 @@ async def add_game_to_user(
     response_model=list[schemas.UsersGames],
 )
 @version(1)
-def user_games(
+def get_games(
     username: str,
     limit: int = None,
     completed: bool = None,
@@ -132,37 +135,37 @@ def user_games(
 
 @router.patch("/{username}/complete-game", response_model=schemas.CompletedGame)
 @version(1)
-async def complete_game(username: str, game_name: str, db: Session = Depends(get_db)):
+async def complete_game(username: str, game_id: int, db: Session = Depends(get_db)):
     """
     Complete game by username
     """
     try:
         user = users.get_user_by_username(db, username)
-        user_game = users.get_game_by_name(
-            db, users.get_user_by_username(db, username).id, game_name
-        )
+        user_game = users.get_game_by_id(db, user.id, game_id)
         if user_game is None:
             raise HTTPException(status_code=404, detail="User is not playing this game")
         if user_game.completed == 1:
             raise HTTPException(status_code=409, detail="Game is already completed")
-        num_completed_games, completion_time = users.complete_game(
-            db, users.get_user_by_username(db, username).id, game_name
-        )
-        game_info = await utils.get_game_info(game_name)
+        num_completed_games, completion_time = users.complete_game(db, user.id, game_id)
+        db_game = games.get_game_by_id(db, game_id)
+        game_info = await utils.get_game_info(db_game.name)
         avg_time = game_info["hltb"]["comp_main"]
-        games.update_avg_time_game(db, game_name, avg_time)
-        await utils.send_message(
+        games.update_avg_time_game(db, game_id, avg_time)
+        game = games.get_game_by_id(db, game_id)
+        msg = (
             user.name
             + " acaba de completar su juego número "
             + str(num_completed_games)
             + ": *"
-            + game_name
+            + game.name
             + "* en "
             + str(utils.convert_time_to_hours(completion_time))
             + ". La media está en "
             + str(utils.convert_time_to_hours(avg_time))
             + "."
         )
+        logger.info(msg)
+        await utils.send_message(msg)
         return {
             "completed_games": num_completed_games,
             "completion_time": completion_time,

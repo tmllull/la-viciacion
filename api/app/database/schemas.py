@@ -36,7 +36,7 @@ class User(UserBase):
 class UserUpdate(BaseModel):
     name: Union[str, None] = None
     username: str
-    password: Union[str, None]
+    password: Union[str, None] = None
     telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     clockify_id: Union[str, None] = None
@@ -104,7 +104,7 @@ class UsersGames(UsersGamesBase):
     id: Union[int, None] = None
     # user: Union[str, None] = None
     user_id: Union[int, None] = None
-    # game: Union[str, None] = None
+    # game_name: Union[str, None] = None
     game_id: Union[int, None] = None
     project_clockify_id: Union[str, None] = None
     started_date: Union[datetime.date, None] = None
@@ -116,8 +116,8 @@ class UsersGames(UsersGamesBase):
     completion_time: Union[int, None] = None
     last_update: Union[str, None] = None
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
 class UserAchievements(BaseModel):

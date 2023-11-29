@@ -6,8 +6,6 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..crud import games as crud_games
-from ..crud import users as crud_users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..routers import games, statistics, users
@@ -121,6 +119,15 @@ async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
     Get game from DB by id
     """
     return await games.get_game_by_id(game_id=game_id, db=db)
+
+
+@router.get("/games/rawg/{name}")
+@version(1)
+async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
+    """
+    Get game info from RAWG and HLTB (not from DB)
+    """
+    return await games.get_game_rawg_by_name(name, db)
 
 
 ######################

@@ -141,7 +141,16 @@ class DataRoutes:
             played_games = response.json()
             context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
             for played_game in played_games:
-                if played_game["game"] == context.user_data[GAME]:
+                url = config.API_URL + "/games/" + str(played_game["game_id"])
+                game_info = utils.make_request("GET", url).json()
+                game_name = game_info["name"]
+                # logger.info(game_info)
+                # await update.message.reply_text(
+                #     "Checkoint",
+                #     reply_markup=ReplyKeyboardRemove(),
+                # )
+                # return ConversationHandler.END
+                if game_name == context.user_data[GAME]:
                     await update.message.reply_text(
                         "Ya tienes añadido "
                         + str(context.user_data[GAME])
@@ -196,17 +205,19 @@ class DataRoutes:
                 url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
                 data = {"name": context.user_data[GAME]}
                 # Add game as project on Clockify
-                response = utils.make_request("POST", url, json=data)
+                response = utils.make_clockify_request("POST", url, json=data)
                 if response.status_code == 400:
                     logger.info("Project exists on Clockify")
                     endpoint = "/workspaces/{}/projects?name={}".format(
                         config.CLOCKIFY_WORKSPACE, context.user_data[GAME]
                     )
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
-                    response = utils.make_request("GET", url, json=data)
+                    response = utils.make_clockify_request("GET", url, json=data)
                     clockify_id = response.json()[0]["id"]
                 else:
+                    logger.info(response)
                     logger.info("New project created on Clockify")
+                    logger.info(response.json())
                     clockify_id = response.json()["id"]
                 context.user_data[CLOCKIFY_PROJECT_ID] = clockify_id
                 release_date = str(

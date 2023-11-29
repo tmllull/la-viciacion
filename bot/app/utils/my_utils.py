@@ -57,6 +57,11 @@ class MyUtils:
         response = requests.request(method, url=url, headers=headers, json=json)
         return response
 
+    def make_clockify_request(self, method, url, json=None):
+        headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
+        response = requests.request(method, url=url, headers=headers, json=json)
+        return response
+
     # def api_headers(self):
     #     return {"x-api-key": config.API_KEY}
 

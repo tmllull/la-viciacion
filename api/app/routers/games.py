@@ -85,7 +85,8 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
     Create new game
     """
-    logger.info(games.get_game_by_name(db, game.name))
-    if games.get_game_by_name(db, game.name):
-        raise HTTPException(status_code=400, detail="Game already in DB")
+    games_db = games.get_game_by_name(db, game.name)
+    for game_db in games_db:
+        if game_db.name == game.name:
+            raise HTTPException(status_code=400, detail="Game already in DB")
     return await games.new_game(db=db, game=game)

@@ -21,6 +21,7 @@ config = Config()
 router = APIRouter(
     tags=["Basic"],
     responses={404: {"description": "Not found"}},
+    # Uncomment the follow line to apply to all endpoints
     # dependencies=[Depends(auth.get_api_key)],
 )
 
@@ -42,57 +43,16 @@ def hello_world():
     return "Hello world!"
 
 
-# @router.get("/init")
-# @version(1)
-# def init(db: Session = Depends(get_db)):
-#     """
-#     Init base data
-#     """
-#     try:
-#         for admin in config.ADMIN_USERS:
-#             users.create_admin_user(db, admin)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-#     return "Init completed!"
-
-
-# @router.get("/sync-data")
-# @version(1)
-# async def sync_data(
-#     api_key: None = Security(auth.get_api_key),
-#     start_date: str = Query(
-#         default=None,
-#         title="Start date",
-#         description="Start date to sync data from clockify time entries",
-#     ),
-#     silent: bool = Query(
-#         default=False,
-#         title="Run in silent mode",
-#         description="If True, notification will be disabled",
-#     ),
-#     sync_all: bool = Query(
-#         default=False,
-#         title="Sync all data",
-#         description="If True, all data from 'START_DATE' defined on .env will be retrieved",
-#     ),
-#     db: Session = Depends(get_db),
-# ):
-#     try:
-#         for admin in config.ADMIN_USERS:
-#             users.create_admin_user(db, admin)
-#         await actions.sync_data(db, start_date, silent, sync_all)
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
-#     return "Sync completed!"
-
-
-# @router.get("/login")
-# @version(1)
-# def login():
-#     """
-#     Test endpoint
-#     """
-#     return "Hello world!"
+@router.post("/login")
+@version(1)
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Session = Depends(get_db),
+):
+    """
+    Login endpoint
+    """
+    return await login_for_access_token(form_data, db)
 
 
 @router.post("/register")

@@ -108,7 +108,7 @@ class MyUtils:
             user = {"username": username, "telegram_id": user_id}
             url = config.API_URL + "/users"
             response = self.make_request("PUT", url, json=user)
-            logger.info(response.json())
+            # logger.info(response.json())
             return response.json()
         else:
             return False

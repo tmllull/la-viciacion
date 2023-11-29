@@ -121,9 +121,7 @@ class UsersGames(Base):
     __tablename__ = "users_games"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # user = Column(String(255))
     user_id = Column(Integer)
-    # game = Column(String(255))
     game_id = Column(Integer)
     project_clockify_id = Column(String(255))
     started_date = Column(Date)

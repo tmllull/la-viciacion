@@ -6,9 +6,10 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
+from ..crud import users as users_crud
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
-from ..routers import games, statistics, users
+from ..routers import admin, games, statistics, users
 from ..utils import actions as actions
 from ..utils import logger as logger
 from ..utils import my_utils as utils
@@ -19,7 +20,7 @@ router = APIRouter(
     prefix="/bot",
     tags=["Bot"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(auth.get_api_key)],
+    dependencies=[Depends(auth.get_api_key)],
 )
 
 
@@ -174,3 +175,17 @@ def get_user_statistics(
     db: Session = Depends(get_db),
 ):
     return statistics.get_user_statistics(ranking, db)
+
+
+#################
+##### OTHER #####
+#################
+
+
+@router.get("/activate/{username}")
+@version(1)
+def get_user_statistics(
+    username: str,
+    db: Session = Depends(get_db),
+):
+    return admin.activate_account(username, db)

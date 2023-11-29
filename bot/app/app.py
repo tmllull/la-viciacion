@@ -53,14 +53,19 @@ async def post_init(application: Application):
 def main() -> None:
     app = ApplicationBuilder().token(config.TELEGRAM_TOKEN).post_init(post_init).build()
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("menu", basic_routes.menu)],
+        entry_points=[
+            CommandHandler("menu", basic_routes.menu),
+            CommandHandler("activate", basic_routes.activate_account),
+        ],
         states={
-            # utils.ACTIVATE_ACCOUNT: [
-            #     CallbackQueryHandler(
-            #         basic_routes.activate_account,
-            #         pattern="^" + "activate_account" + "$",
-            #     ),
-            # ],
+            utils.ACTIVATE_ACCOUNT: [
+                # MessageHandler(None, basic_routes.activate_account_validation),
+                CallbackQueryHandler(
+                    basic_routes.activate_account_validation,
+                    pattern="^" + "activate_account" + "$",
+                ),
+                CallbackQueryHandler(basic_routes.end, pattern="^" + "cancel" + "$"),
+            ],
             utils.MAIN_MENU: [
                 CallbackQueryHandler(my_routes.my_data, pattern="^" + "my_data" + "$"),
                 CallbackQueryHandler(
@@ -279,7 +284,7 @@ def main() -> None:
     app.add_handler(CommandHandler("info_dev", utils.info_dev))
     app.add_handler(conv_handler)
     app.add_handler(CommandHandler("start", utils.start))
-    app.add_handler(CommandHandler("activate", basic_routes.activate_account))
+    # app.add_handler(CommandHandler("activate", basic_routes.activate_account))
     app.add_handler(CommandHandler("help", utils.help))
     # app.add_handler(MessageHandler(None, other_routes.random_response))
 

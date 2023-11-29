@@ -56,18 +56,28 @@ def get_users(db: Session) -> list[models.Users]:
     return db.query(models.Users)
 
 
+def is_admin(db: Session, username: str) -> models.Users:
+    return (
+        db.query(models.Users)
+        .filter(models.Users.username == username, models.Users.is_admin == 1)
+        .first()
+    )
+
+
+def is_active(db: Session, username: str) -> models.Users:
+    return (
+        db.query(models.Users)
+        .filter(models.Users.username == username, models.Users.is_active == 1)
+        .first()
+    )
+
+
 def get_user_by_username(db: Session, username: str) -> models.Users:
-    db_user = db.query(models.Users).filter(models.Users.username == username).first()
-    if db_user is None:
-        return None
-    return db_user
+    return db.query(models.Users).filter(models.Users.username == username).first()
 
 
 def get_user_by_id(db: Session, id: int) -> models.Users:
-    db_user = db.query(models.Users).filter(models.Users.id == id).first()
-    if db_user is None:
-        return None
-    return db_user
+    return db.query(models.Users).filter(models.Users.id == id).first()
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.Users:
@@ -351,3 +361,29 @@ def get_most_played_time(db: Session, limit: int = None) -> list[models.Users]:
         )
     else:
         return db.query(models.Users).order_by(desc(models.Users.played_time))
+
+
+def activate_account(db: Session, username: str):
+    try:
+        logger.info("Activating account...")
+        db_user = (
+            db.query(models.Users)
+            .filter(models.Users.username == username, models.Users.is_active == 1)
+            .first()
+        )
+        if db_user:
+            return False
+        stmt = (
+            update(models.Users)
+            .where(models.Users.username == username)
+            .values(
+                is_active=1,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.info(e)
+        raise Exception("Error activating account:", str(e))

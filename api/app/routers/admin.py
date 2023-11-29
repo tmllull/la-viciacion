@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Security, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ router = APIRouter(
     prefix="/admin",
     tags=["Admin"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(auth.get_api_key)],
+    dependencies=[Depends(auth.get_current_active_user)],
 )
 
 
@@ -32,6 +32,15 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.get("/")
+@version(1)
+def test_endpoint(user: users = Security(auth.get_current_active_user)):
+    """
+    Test endpoint
+    """
+    return user.is_admin
 
 
 @router.get("/init")
@@ -94,3 +103,15 @@ def update_user(
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not exists")
     return users.update_user(db=db, user=user_data)
+
+
+@router.get("/activate/{username}")
+@version(1)
+def activate_account(
+    username: str,
+    db: Session = Depends(get_db),
+):
+    if users.activate_account(db, username):
+        return "Account activated"
+    else:
+        raise HTTPException(status_code=409, detail="Account already activated")

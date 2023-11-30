@@ -17,66 +17,6 @@ clockify = ClockifyApi()
 ####################
 
 
-def update_current_ranking_hours_game(db: Session, i, game):
-    try:
-        stmt = (
-            update(models.GamesInfo)
-            .where(models.GamesInfo.name == game)
-            .values(current_ranking=i)
-        )
-        db.execute(stmt)
-        db.commit()
-    except Exception as e:
-        logger.info(e)
-
-
-# def update_last_ranking_hours_game(db: Session, i, game):
-#     try:
-#         stmt = (
-#             update(models.GamesInfo)
-#             .where(models.GamesInfo.name == game)
-#             .values(last_ranking=i)
-#         )
-#         db.execute(stmt)
-#         db.commit()
-#     except Exception as e:
-#         logger.info(e)
-
-
-def get_current_ranking_games(db: Session, limit: int = 11) -> list[models.GamesInfo]:
-    try:
-        return (
-            db.query(models.GamesInfo)
-            .order_by(asc(models.GamesInfo.current_ranking))
-            .limit(limit)
-        )
-        # stmt = (
-        #     select(models.GamesInfo)
-        #     .order_by(asc(models.GamesInfo.current_ranking))
-        #     .limit(limit)
-        # )
-        # return db.execute(stmt)
-    except Exception as e:
-        logger.info(e)
-
-
-def get_current_ranking_users(db: Session, limit: int = None) -> list[models.Users]:
-    try:
-        return (
-            db.query(models.Users)
-            .order_by(asc(models.Users.current_ranking_hours))
-            .limit(limit)
-        )
-        # stmt = (
-        #     select(models.GamesInfo)
-        #     .order_by(asc(models.GamesInfo.current_ranking))
-        #     .limit(limit)
-        # )
-        # return db.execute(stmt)
-    except Exception as e:
-        logger.info(e)
-
-
 def hours_players(db: Session) -> list[models.Users]:
     try:
         return db.query(models.Users.name, models.Users.played_time).order_by(
@@ -94,71 +34,6 @@ def days_players(db: Session) -> list[models.Users]:
     except Exception as e:
         logger.info(e)
         raise e
-
-
-# def get_current_ranking_user_played_games(db: Session) -> list[models.User]:
-#     try:
-#         return db.query(models.User.name, models.User.played_days).order_by(
-#             desc(models.User.played_days)
-#         )
-#     except Exception as e:
-#         logger.info(e)
-#         raise e
-
-# def get_last_ranking_hours_players(db: Session):
-#     try:
-#         stmt = select(models.User.name, models.User.last_ranking_hours).order_by(
-#             asc(models.User.last_ranking_hours)
-#         )
-#         return db.execute(stmt)
-#     except Exception as e:
-#         logger.info(e)
-
-
-# def get_last_ranking_games(db: Session, limit: int = 11):
-#     try:
-#         stmt = (
-#             select(models.GamesInfo.name)
-#             .order_by(asc(models.GamesInfo.last_ranking))
-#             .limit(limit)
-#         )
-#         return db.execute(stmt)
-#     except Exception as e:
-#         logger.info(e)
-
-
-def update_current_ranking_hours_user(db: Session, ranking, user_id):
-    stmt = (
-        update(models.Users)
-        .where(models.Users.id == user_id)
-        .values(current_ranking_hours=ranking)
-    )
-    db.execute(stmt)
-    db.commit()
-
-
-# def update_last_ranking_hours_user(db: Session, ranking, user):
-#     stmt = (
-#         update(models.User)
-#         .where(models.User.name == user)
-#         .values(last_ranking_hours=ranking)
-#     )
-#     db.execute(stmt)
-#     db.commit()
-
-
-# def most_played_games(db: Session):
-#     try:
-#         stmt = select(
-#             models.GamesInfo.name,
-#             models.GamesInfo.played_time,
-#             models.GamesInfo.last_ranking,
-#             models.GamesInfo.current_ranking,
-#         ).order_by(desc(models.GamesInfo.played_time))
-#         return db.execute(stmt)
-#     except Exception as e:
-#         logger.info(e)
-#         raise e
 
 
 def best_streak(db: Session):
@@ -184,19 +59,19 @@ def current_streak(db: Session):
 def ranking_achievements(db: Session):
     return (
         db.query(
-            models.UserAchievements.player, func.count(models.UserAchievements.player)
+            models.UserAchievements.user_id, func.count(models.UserAchievements.user_id)
         )
-        .group_by(models.UserAchievements.player)
-        .order_by(func.count(models.UserAchievements.player).desc())
+        .group_by(models.UserAchievements.user_id)
+        .order_by(func.count(models.UserAchievements.user_id).desc())
         .all()
     )
 
 
 def user_played_games(db: Session):
     result = (
-        db.query(models.UsersGames.player, func.count(models.UsersGames.game))
-        .group_by(models.UsersGames.player)
-        .order_by(func.count(models.UsersGames.game).desc())
+        db.query(models.UsersGames.user_id, func.count(models.UsersGames.game_id))
+        .group_by(models.UsersGames.user_id)
+        .order_by(func.count(models.UsersGames.game_id).desc())
         .all()
     )
     return result
@@ -204,10 +79,10 @@ def user_played_games(db: Session):
 
 def ranking_completed_games(db: Session):
     return (
-        db.query(models.UsersGames.player, func.count(models.UsersGames.game))
-        .group_by(models.UsersGames.player)
+        db.query(models.UsersGames.user_id, func.count(models.UsersGames.game_id))
+        .group_by(models.UsersGames.user_id)
         .filter_by(completed=1)
-        .order_by(func.count(models.UsersGames.game).desc())
+        .order_by(func.count(models.UsersGames.game_id).desc())
         .all()
     )
 
@@ -224,7 +99,9 @@ def ranking_last_played_games(db: Session):
     # except Exception as e:
     #     logger.info(e)
     stmt = select(
-        models.TimeEntries.project, models.TimeEntries.user, models.TimeEntries.start
+        models.TimeEntries.project_clockify_id,
+        models.TimeEntries.user,
+        models.TimeEntries.start,
     ).order_by(desc(models.TimeEntries.start))
     return db.execute(stmt).fetchall()
 

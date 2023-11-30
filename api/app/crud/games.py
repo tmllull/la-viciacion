@@ -155,3 +155,27 @@ def get_most_played_time(db: Session, limit: int = None) -> list[models.GamesInf
         )
     else:
         return db.query(models.GamesInfo).order_by(desc(models.GamesInfo.played_time))
+
+
+def current_ranking_hours(db: Session, limit: int = 11) -> list[models.GamesInfo]:
+    try:
+        return (
+            db.query(models.GamesInfo)
+            .order_by(asc(models.GamesInfo.current_ranking))
+            .limit(limit)
+        )
+    except Exception as e:
+        logger.info(e)
+
+
+def update_current_ranking_hours(db: Session, i, game):
+    try:
+        stmt = (
+            update(models.GamesInfo)
+            .where(models.GamesInfo.name == game)
+            .values(current_ranking=i)
+        )
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        logger.info(e)

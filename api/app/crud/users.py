@@ -217,10 +217,6 @@ def get_games(
         return games_list
 
 
-# def get_game_by_name(db: Session, user_id, game) -> models.UsersGames:
-#     return db.query(models.UsersGames).filter_by(user_id=user_id, game=game).first()
-
-
 def get_game_by_id(db: Session, user_id, game_id) -> models.UsersGames:
     return (
         db.query(models.UsersGames).filter_by(user_id=user_id, game_id=game_id).first()
@@ -291,7 +287,7 @@ def get_streaks(db: Session, player):
         raise e
 
 
-def game_completed(db: Session, player, game) -> bool:
+def game_is_completed(db: Session, player, game) -> bool:
     stmt = select(models.UsersGames).where(
         models.UsersGames.game == game,
         models.UsersGames.player == player,
@@ -358,12 +354,29 @@ def played_time(db: Session, limit: int = None) -> list[models.Users]:
     return db.query(models.Users).order_by(desc(models.Users.played_time)).limit(limit)
 
 
-def current_ranking(db: Session, limit: int = None) -> list[models.Users]:
-    return (
-        db.query(models.Users)
-        .order_by(asc(models.Users.current_ranking_hours))
-        .limit(limit)
+def played_days(db: Session, limit: int = None) -> list[models.Users]:
+    return db.query(models.Users).order_by(desc(models.Users.played_days)).limit(limit)
+
+
+def current_ranking_hours(db: Session, limit: int = None) -> list[models.Users]:
+    try:
+        return (
+            db.query(models.Users)
+            .order_by(asc(models.Users.current_ranking_hours))
+            .limit(limit)
+        )
+    except Exception as e:
+        logger.info(e)
+
+
+def update_current_ranking_hours(db: Session, ranking, user_id):
+    stmt = (
+        update(models.Users)
+        .where(models.Users.id == user_id)
+        .values(current_ranking_hours=ranking)
     )
+    db.execute(stmt)
+    db.commit()
 
 
 def activate_account(db: Session, username: str):

@@ -144,7 +144,7 @@ async def ranking_games_hours(db: Session):
         for game in most_played_games:
             most_played.append(game)
             most_played_to_check.append(game.name)
-        result = rankings.get_current_ranking_games(db)
+        result = games.current_ranking_hours(db)
         current: list[models.GamesInfo] = []
         current_to_check = []  # Only for easy check with most played
         for game in result:
@@ -221,7 +221,7 @@ async def ranking_games_hours(db: Session):
     most_played = games.get_most_played_time(db)
     i = 1
     for game in most_played:
-        rankings.update_current_ranking_hours_game(db, i, game.name)
+        games.update_current_ranking_hours(db, i, game.name)
         i += 1
 
 
@@ -233,7 +233,7 @@ async def ranking_players_hours(db: Session):
     for player in played_time_db:
         most_played.append(player)
         most_played_to_check.append(player.name)
-    current_ranking_db = rankings.get_current_ranking_users(db)
+    current_ranking_db = users.current_ranking_hours(db)
     current: list[models.Users] = []
     current_to_check = []  # Only for easy check with most played
     for player in current_ranking_db:
@@ -279,14 +279,14 @@ async def ranking_players_hours(db: Session):
                 + ")"
                 + "\n"
             )
-            rankings.update_current_ranking_hours_user(db, i + 1, player.id)
+            users.update_current_ranking_hours(db, i + 1, player.id)
             if not config.silent:
                 logger.info(msg)
                 await utils.send_message(msg)
         logger.info(msg)
     logger.info("Updating players ranking...")
-    most_played = users.current_ranking(db)
+    most_played = users.current_ranking_hours(db)
     i = 1
     for user in most_played:
-        rankings.update_current_ranking_hours_user(db, i, user.id)
+        users.update_current_ranking_hours(db, i, user.id)
         i += 1

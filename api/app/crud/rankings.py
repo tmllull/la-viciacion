@@ -88,16 +88,6 @@ def ranking_completed_games(db: Session):
 
 
 def ranking_last_played_games(db: Session):
-    # try:
-    #     stmt = (
-    #         select(models.GamesInfo.name)
-    #         .order_by(asc(models.GamesInfo.current_ranking))
-    #         .limit(limit)
-    #     )
-
-    #     return db.execute(stmt)
-    # except Exception as e:
-    #     logger.info(e)
     stmt = select(
         models.TimeEntries.project_clockify_id,
         models.TimeEntries.user,

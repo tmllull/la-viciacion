@@ -144,6 +144,31 @@ def update_user(db: Session, user: schemas.UserUpdate):
         logger.info(e)
 
 
+def upload_avatar(db: Session, username: str, avatar: bytes):
+    try:
+        stmt = (
+            update(models.Users)
+            .where(models.Users.username == username)
+            .values(avatar=avatar)
+        )
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        logger.info(e)
+        raise Exception(e)
+
+
+def get_avatar(db: Session, username: str):
+    try:
+        return (
+            db.query(models.Users.avatar)
+            .filter(models.Users.username == username)
+            .first()
+        )
+    except Exception as e:
+        logger.info(e)
+
+
 def add_new_game(
     db: Session, game: schemas.NewGameUser, user: models.Users
 ) -> models.UsersGames:
@@ -165,7 +190,7 @@ def add_new_game(
     except Exception as e:
         db.rollback()
         logger.info("Error adding new game user: " + str(e))
-        raise Exception(e)
+        raise Exception("Error adding new game user: " + str(e))
 
 
 def update_game(db: Session, game: schemas.UsersGames, entry_id):

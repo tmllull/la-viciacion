@@ -1,7 +1,6 @@
 from enum import Enum
-from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
@@ -19,7 +18,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(auth.get_current_active_user)],
+    dependencies=[Depends(auth.get_current_active_user)],
 )
 
 
@@ -182,3 +181,39 @@ async def complete_game(username: str, game_id: int, db: Session = Depends(get_d
         raise HTTPException(
             status_code=500, detail="Error completing game_user: " + str(e)
         )
+
+
+@router.patch("/{username}/avatar")
+@version(1)
+async def upload_avatar(
+    username: str,
+    # file: Annotated[UploadFile, File(description="A file read as UploadFile")],
+    file: UploadFile,
+    db: Session = Depends(get_db),
+):
+    # try:
+    if not users.get_user_by_username(db, username):
+        logger.info("User not exists")
+        raise HTTPException(status_code=400, detail="User not exists")
+    if file.size > 2000000:
+        logger.info("File too big")
+        raise HTTPException(status_code=400, detail="File is too big")
+    data = await file.read()
+    try:
+        users.upload_avatar(db, username, data)
+        return "Avatar uploaded"
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{username}/avatar")
+@version(1)
+async def get_avatar(
+    username: str,
+    db: Session = Depends(get_db),
+):
+    if not users.get_user_by_username(db, username):
+        logger.info("User not exists")
+        raise HTTPException(status_code=400, detail="User not exists")
+    data = users.get_avatar(db, username)
+    return Response(content=data[0], media_type="image/jpeg")

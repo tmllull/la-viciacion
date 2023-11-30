@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Interval,
+    LargeBinary,
     String,
     UniqueConstraint,
     text,
@@ -59,6 +60,7 @@ class Users(Base):
     email = Column(String(255))
     is_admin = Column(Integer)
     is_active = Column(Integer)
+    avatar = Column(LargeBinary)
     played_time = Column(Integer)
     current_ranking_hours = Column(Integer)
     current_streak = Column(Integer)

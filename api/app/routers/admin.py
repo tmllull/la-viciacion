@@ -33,11 +33,15 @@ def get_db():
 
 @router.get("/")
 @version(1)
-def test_endpoint(user: users = Security(auth.get_current_active_user)):
+def test_endpoint(user: models.Users = Security(auth.get_current_active_user)):
     """
     Test endpoint
     """
-    return user.is_admin
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=403, detail="You are not allowed to do this action."
+        )
+    return "Gratz! You are an admin."
 
 
 @router.get("/init")
@@ -90,15 +94,19 @@ async def sync_data(
 def update_user(
     user_data: schemas.UserUpdate,
     # api_key: None = Security(auth.get_api_key),
-    user: None = Security(auth.get_current_active_user),
+    user: models.Users = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """
     Update user by admin
     """
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=403, detail="You are not allowed to do this action."
+        )
     db_user = users.get_user_by_username(db, user_data.username)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not exists")
+        raise HTTPException(status_code=404, detail="User not exists.")
     return users.update_user(db=db, user=user_data)
 
 

@@ -354,13 +354,16 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
         raise Exception("Error updating streaks:", str(e))
 
 
-def get_most_played_time(db: Session, limit: int = None) -> list[models.Users]:
-    if limit is not None:
-        return (
-            db.query(models.Users).order_by(desc(models.Users.played_time)).limit(limit)
-        )
-    else:
-        return db.query(models.Users).order_by(desc(models.Users.played_time))
+def played_time(db: Session, limit: int = None) -> list[models.Users]:
+    return db.query(models.Users).order_by(desc(models.Users.played_time)).limit(limit)
+
+
+def current_ranking(db: Session, limit: int = None) -> list[models.Users]:
+    return (
+        db.query(models.Users)
+        .order_by(asc(models.Users.current_ranking_hours))
+        .limit(limit)
+    )
 
 
 def activate_account(db: Session, username: str):

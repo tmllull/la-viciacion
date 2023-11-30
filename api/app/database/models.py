@@ -74,26 +74,26 @@ class Users(Base):
     __table_args__ = (UniqueConstraint("username"),)
 
 
-class RankingUsers(Base):
-    __tablename__ = "ranking_users"
+# class RankingUsers(Base):
+#     __tablename__ = "ranking_users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer)
-    # name = Column(String(255))
-    played_hours_current = Column(Integer)
-    played_hours_last = Column(Integer)
-    played_games_current = Column(Integer)
-    played_games_last = Column(Integer)
-    played_days_total = Column(Integer)
-    completed_games_current = Column(Integer)
-    completed_games_last = Column(Integer)
-    streak_current = Column(Integer)
-    streak_last = Column(Integer)
-    streak_best = Column(Integer)
-    streak_best_date = Column(Date)
-    unplayed_streak = Column(Integer)
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     user_id = Column(Integer)
+#     # name = Column(String(255))
+#     played_hours_current = Column(Integer)
+#     played_hours_last = Column(Integer)
+#     played_games_current = Column(Integer)
+#     played_games_last = Column(Integer)
+#     played_days_total = Column(Integer)
+#     completed_games_current = Column(Integer)
+#     completed_games_last = Column(Integer)
+#     streak_current = Column(Integer)
+#     streak_last = Column(Integer)
+#     streak_best = Column(Integer)
+#     streak_best_date = Column(Date)
+#     unplayed_streak = Column(Integer)
 
-    # user = relationship("Users", back_populates="ranking")
+#     # user = relationship("Users", back_populates="ranking")
 
 
 class GamesInfo(Base):

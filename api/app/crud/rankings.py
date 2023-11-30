@@ -60,6 +60,23 @@ def get_current_ranking_games(db: Session, limit: int = 11) -> list[models.Games
         logger.info(e)
 
 
+def get_current_ranking_users(db: Session, limit: int = None) -> list[models.Users]:
+    try:
+        return (
+            db.query(models.Users)
+            .order_by(asc(models.Users.current_ranking_hours))
+            .limit(limit)
+        )
+        # stmt = (
+        #     select(models.GamesInfo)
+        #     .order_by(asc(models.GamesInfo.current_ranking))
+        #     .limit(limit)
+        # )
+        # return db.execute(stmt)
+    except Exception as e:
+        logger.info(e)
+
+
 def hours_players(db: Session) -> list[models.Users]:
     try:
         return db.query(models.Users.name, models.Users.played_time).order_by(

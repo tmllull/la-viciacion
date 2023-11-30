@@ -40,7 +40,7 @@ def hello_world():
     """
     Test endpoint
     """
-    return "Hello world!"
+    return "API is working!"
 
 
 @router.post("/login")

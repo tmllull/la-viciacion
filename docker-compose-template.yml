@@ -2,6 +2,21 @@ version: '3.1'
 
 services:
 
+  laviciacion-front:
+    build: 
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: laviciacion-front
+    image: laviciacion-front
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - 3000:80
+    volumes:
+    - ./front:/usr/share/nginx/html
+    networks:
+      - la-viciacion
+
   laviciacion-bot:
     build: 
       context: ./bot

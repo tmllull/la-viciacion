@@ -128,7 +128,9 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
             # Check if player already plays the game
             already_playing = users.get_game_by_id(db, user.id, game_id)
             if not already_playing:
-                logger.info("USER NOT PLAYING GAME:" + game_name + " - " + str(game_id))
+                logger.info(
+                    "USER NOT PLAYING GAME: " + game_name + " - " + str(game_id)
+                )
                 new_user_game = schemas.NewGameUser(
                     project_clockify_id=entry["projectId"], platform=platform
                 )

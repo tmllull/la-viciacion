@@ -40,7 +40,7 @@ class RankingStatisticsTypes(str, Enum):
     current_streak = "current_streak"
     best_streak = "best_streak"
     most_played_games = "most_played_games"
-    platform = "platform"
+    platform_played = "platform_played"
     debt = "debt"
     last_played = "last_played"
 
@@ -60,29 +60,29 @@ def get_ranking_statistics(
     db: Session = Depends(get_db),
 ):
     if ranking == RankingStatisticsTypes.hours:
-        return rankings.hours_players(db)
+        return rankings.user_hours_players(db)
     elif ranking == RankingStatisticsTypes.days:
-        return rankings.days_players(db)
+        return rankings.user_days_players(db)
     elif ranking == RankingStatisticsTypes.user_played_games:
         return rankings.user_played_games(db)
     elif ranking == RankingStatisticsTypes.completed_games:
-        return {"message": "TBI"}
+        return rankings.user_completed_games(db)
     elif ranking == RankingStatisticsTypes.achievements:
         return {"message": "TBI"}
     elif ranking == RankingStatisticsTypes.ratio:
         return {"message": "TBI"}
     elif ranking == RankingStatisticsTypes.current_streak:
-        return rankings.current_streak(db)
+        return rankings.user_current_streak(db)
     elif ranking == RankingStatisticsTypes.best_streak:
-        return rankings.best_streak(db)
+        return rankings.user_best_streak(db)
     elif ranking == RankingStatisticsTypes.most_played_games:
-        return rankings.most_played_games(db, limit=10)
-    elif ranking == RankingStatisticsTypes.platform:
-        return {"message": "TBI"}
+        return rankings.games_most_played(db)
+    elif ranking == RankingStatisticsTypes.platform_played:
+        return rankings.platform_played_games(db)
     elif ranking == RankingStatisticsTypes.debt:
         return {"message": "TBI"}
     elif ranking == RankingStatisticsTypes.last_played:
-        return {"message": "TBI"}
+        return rankings.games_last_played(db)
     else:
         return {"message": "More rankings are coming"}
 

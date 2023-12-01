@@ -191,15 +191,23 @@ async def upload_avatar(
     file: UploadFile,
     db: Session = Depends(get_db),
 ):
-    # try:
+    allowed_types = ["image/jpeg", "image/jpg", "image/png"]
+    logger.info("Content Type: " + file.content_type)
+    if file.content_type not in allowed_types:
+        logger.info("File type not allowed")
+        raise HTTPException(
+            status_code=400,
+            detail="File type not supported. Only jpeg, jpg and png are allowed",
+        )
     if not users.get_user_by_username(db, username):
         logger.info("User not exists")
-        raise HTTPException(status_code=400, detail="User not exists")
-    if file.size > 2000000:
-        logger.info("File too big")
-        raise HTTPException(status_code=400, detail="File is too big")
-    data = await file.read()
+        raise HTTPException(status_code=404, detail="User not exists")
+    logger.info("File size: " + str(file.size))
+    if file.size > 2097152:
+        logger.info("File is too big. Max size is 2MB")
+        raise HTTPException(status_code=400, detail="File is too big. Max size is 2MB")
     try:
+        data = await file.read()
         users.upload_avatar(db, username, data)
         return "Avatar uploaded"
     except Exception as e:
@@ -214,6 +222,9 @@ async def get_avatar(
 ):
     if not users.get_user_by_username(db, username):
         logger.info("User not exists")
-        raise HTTPException(status_code=400, detail="User not exists")
-    data = users.get_avatar(db, username)
-    return Response(content=data[0], media_type="image/jpeg")
+        raise HTTPException(status_code=404, detail="User not exists")
+    try:
+        data = users.get_avatar(db, username)
+        return Response(content=data[0], media_type="image/jpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

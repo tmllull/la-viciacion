@@ -3,6 +3,7 @@ from typing import Union
 
 import bcrypt
 from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..config import Config
@@ -38,10 +39,13 @@ def create_admin_user(db: Session, username: str):
             logger.info("Admin user created")
         else:
             logger.info("Admin user already exists")
-    except Exception as e:
+    except SQLAlchemyError as e:
         db.rollback()
+        logger.info("Error creating admin user: " + str(e))
         if "Duplicate entry" not in str(e):
             logger.info(e)
+        else:
+            raise
 
 
 def get_users(db: Session) -> list[models.Users]:
@@ -53,31 +57,51 @@ def get_users(db: Session) -> list[models.Users]:
     Returns:
         list[models.User]: List of all users
     """
-    return db.query(models.Users)
+    try:
+        return db.query(models.Users)
+    except SQLAlchemyError as e:
+        logger.info("Error getting users: " + str(e))
+        raise
 
 
 def is_admin(db: Session, username: str) -> models.Users:
-    return (
-        db.query(models.Users)
-        .filter(models.Users.username == username, models.Users.is_admin == 1)
-        .first()
-    )
+    try:
+        return (
+            db.query(models.Users)
+            .filter(models.Users.username == username, models.Users.is_admin == 1)
+            .first()
+        )
+    except SQLAlchemyError as e:
+        logger.info("Error checking is user is admin: " + str(e))
+        raise
 
 
 def is_active(db: Session, username: str) -> models.Users:
-    return (
-        db.query(models.Users)
-        .filter(models.Users.username == username, models.Users.is_active == 1)
-        .first()
-    )
+    try:
+        return (
+            db.query(models.Users)
+            .filter(models.Users.username == username, models.Users.is_active == 1)
+            .first()
+        )
+    except SQLAlchemyError as e:
+        logger.info("Error checking is user is active: " + str(e))
+        raise
 
 
 def get_user_by_username(db: Session, username: str) -> models.Users:
-    return db.query(models.Users).filter(models.Users.username == username).first()
+    try:
+        return db.query(models.Users).filter(models.Users.username == username).first()
+    except SQLAlchemyError as e:
+        logger.info("Error getting user by username: " + str(e))
+        raise
 
 
 def get_user_by_id(db: Session, id: int) -> models.Users:
-    return db.query(models.Users).filter(models.Users.id == id).first()
+    try:
+        return db.query(models.Users).filter(models.Users.id == id).first()
+    except SQLAlchemyError as e:
+        logger.info("Error getting user by id: " + str(e))
+        raise
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.Users:
@@ -98,8 +122,10 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.Users:
             .filter(models.Users.username == user.username)
             .first()
         )
-    except Exception as e:
-        logger.info(e)
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error creating user: " + str(e))
+        raise
 
 
 def update_user(db: Session, user: schemas.UserUpdate):
@@ -140,8 +166,10 @@ def update_user(db: Session, user: schemas.UserUpdate):
             .filter(models.Users.username == user.username)
             .first()
         )
-    except Exception as e:
-        logger.info(e)
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error updating user: " + str(e))
+        raise
 
 
 def upload_avatar(db: Session, username: str, avatar: bytes):
@@ -153,9 +181,10 @@ def upload_avatar(db: Session, username: str, avatar: bytes):
         )
         db.execute(stmt)
         db.commit()
-    except Exception as e:
-        logger.info(e)
-        raise Exception(e)
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error adding avatar: " + str(e))
+        raise
 
 
 def get_avatar(db: Session, username: str):
@@ -165,8 +194,9 @@ def get_avatar(db: Session, username: str):
             .filter(models.Users.username == username)
             .first()
         )
-    except Exception as e:
-        logger.info(e)
+    except SQLAlchemyError as e:
+        logger.info("Error getting avatar: " + str(e))
+        raise
 
 
 def add_new_game(
@@ -187,10 +217,10 @@ def add_new_game(
         db.commit()
         db.refresh(user_game)
         return user_game
-    except Exception as e:
+    except SQLAlchemyError as e:
         db.rollback()
         logger.info("Error adding new game user: " + str(e))
-        raise Exception("Error adding new game user: " + str(e))
+        raise
 
 
 def update_game(db: Session, game: schemas.UsersGames, entry_id):
@@ -208,9 +238,10 @@ def update_game(db: Session, game: schemas.UsersGames, entry_id):
         )
         db.execute(stmt)
         db.commit()
-    except Exception as e:
-        logger.info(e)
-        raise e
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error updating game: " + str(e))
+        raise
 
 
 def update_played_time_game(db: Session, user_id: str, game: str, time: int):
@@ -352,7 +383,7 @@ def complete_game(db: Session, user_id, game_id):
 
     except Exception as e:
         db.rollback()
-        raise Exception("Error completing game:", str(e))
+        raise e
 
 
 def update_streaks(db: Session, user_id, current_streak, best_streak, best_streak_date):
@@ -372,7 +403,7 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
     except Exception as e:
         db.rollback()
         logger.info(e)
-        raise Exception("Error updating streaks:", str(e))
+        raise e
 
 
 def played_time(db: Session, limit: int = None) -> list[models.Users]:
@@ -427,4 +458,4 @@ def activate_account(db: Session, username: str):
     except Exception as e:
         db.rollback()
         logger.info(e)
-        raise Exception("Error activating account:", str(e))
+        raise e

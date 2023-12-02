@@ -156,7 +156,7 @@ def games_last_played(db: Session, limit: int = 10):
         raise e
 
 
-def user_last_played_games(db: Session, username: str, limit: int = None):
+def user_last_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
@@ -174,16 +174,6 @@ def user_last_played_games(db: Session, username: str, limit: int = None):
     except Exception as e:
         logger.info(e)
         raise e
-    stmt = (
-        select(
-            models.TimeEntries.project_clockify_id,
-            models.TimeEntries.user_id,
-            models.TimeEntries.start,
-        )
-        .order_by(desc(models.TimeEntries.start))
-        .limit(limit)
-    )
-    return db.execute(stmt).fetchall()
 
 
 def games_most_played(db: Session, limit: int = 10):
@@ -193,9 +183,6 @@ def games_most_played(db: Session, limit: int = 10):
         .limit(limit)
     )
     result_db = db.execute(stmt).fetchall()
-    # result = {}
-    # for r in result_db:
-    #     result[r[0]] = r[1]
     return result_db
 
 

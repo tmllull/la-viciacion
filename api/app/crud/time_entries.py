@@ -109,6 +109,7 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
             platform = None
             if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
                 platform = entry["tagIds"][0]
+                # Revise the following code if needed
                 # platform = clockify.get_tag_by_id(db, entry["tagIds"][0])
                 # if platform is not None:
                 #     platform = platform[0]
@@ -172,7 +173,6 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                         user_clockify_id=user.clockify_id,
                         project_clockify_id=entry["projectId"],
                         start=start,
-                        # duration=utils.convert_clockify_duration(duration),
                     )
                 db.add(new_entry)
             else:
@@ -194,7 +194,6 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                         .values(
                             project_clockify_id=entry["projectId"],
                             start=start,
-                            # duration=utils.convert_clockify_duration(duration),
                         )
                     )
 

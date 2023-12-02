@@ -9,6 +9,7 @@ from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import logger as logger
+from ..utils import messages as msg
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -18,8 +19,6 @@ router = APIRouter(
     prefix="/admin",
     tags=["Admin"],
     responses={404: {"description": "Not found"}},
-    # Uncomment the follow line to apply to all endpoints
-    # dependencies=[Depends(auth.get_current_active_user)],
 )
 
 
@@ -38,9 +37,7 @@ def test_endpoint(user: models.Users = Security(auth.get_current_active_user)):
     Test endpoint
     """
     if not user.is_admin:
-        raise HTTPException(
-            status_code=403, detail="You are not allowed to do this action."
-        )
+        raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
     return "Gratz! You are an admin."
 
 
@@ -62,7 +59,6 @@ def init(db: Session = Depends(get_db)):
 @version(1)
 async def sync_data(
     api_key: None = Security(auth.get_api_key),
-    # user: None = Security(auth.get_current_active_user),
     start_date: str = Query(
         default=None,
         title="Start date",
@@ -93,7 +89,6 @@ async def sync_data(
 @version(1)
 def update_user(
     user_data: schemas.UserUpdate,
-    # api_key: None = Security(auth.get_api_key),
     user: models.Users = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
@@ -101,12 +96,10 @@ def update_user(
     Update user by admin
     """
     if not user.is_admin:
-        raise HTTPException(
-            status_code=403, detail="You are not allowed to do this action."
-        )
+        raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
     db_user = users.get_user_by_username(db, user_data.username)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not exists.")
+        raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     return users.update_user(db=db, user=user_data)
 
 
@@ -117,8 +110,6 @@ def activate_account(
     db: Session = Depends(get_db),
 ):
     if users.activate_account(db, username):
-        return "Account " + username + " activated"
+        return msg.ACCOUNT_ALREADY_ACTIVATED
     else:
-        raise HTTPException(
-            status_code=409, detail="Account " + username + " already activated"
-        )
+        raise HTTPException(status_code=409, detail=msg.ACCOUNT_ALREADY_ACTIVATED)

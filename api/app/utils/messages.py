@@ -1,7 +1,8 @@
 USER_NOT_EXISTS = "User not exists"
 USER_ALREADY_PLAYING = "User is already playing this game"
 USER_NOT_PLAYING = "User is not playing this game"
-
+USER_NOT_ADMIN = "You are not allowed to do this action"
+ACCOUNT_ALREADY_ACTIVATED = "Your account is already activated"
 
 GAME_NOT_FOUND = "Game not found"
 GAME_ALREADY_COMPLETED = "Game is already completed"

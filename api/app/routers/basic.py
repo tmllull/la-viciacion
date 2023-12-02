@@ -21,8 +21,6 @@ config = Config()
 router = APIRouter(
     tags=["Basic"],
     responses={404: {"description": "Not found"}},
-    # Uncomment the follow line to apply to all endpoints
-    # dependencies=[Depends(auth.get_api_key)],
 )
 
 

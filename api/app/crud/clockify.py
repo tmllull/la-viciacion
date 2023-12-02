@@ -18,14 +18,15 @@ def sync_clockify_tags(db: Session):
     tags = clockify.get_tags()
     for tag in tags:
         try:
-            new_tag = models.ClockifyTags(id=tag["id"], name=tag["name"])
-            db.add(new_tag)
-            db.commit()
+            if "tracker" not in tag["name"]:
+                new_tag = models.ClockifyTags(id=tag["id"], name=tag["name"])
+                db.add(new_tag)
+                db.commit()
         except Exception:
             db.rollback()
 
 
-def get_tag_id(db: Session, tag_id):
+def get_tag_by_id(db: Session, tag_id):
     return (
         db.query(models.ClockifyTags.name)
         .filter(models.ClockifyTags.id == tag_id)

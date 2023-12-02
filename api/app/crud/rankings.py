@@ -203,8 +203,13 @@ def platform_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                models.UsersGames.platform,
+                (models.UsersGames.platform).label("tag_id"),
+                models.ClockifyTags.name,
                 func.count(models.UsersGames.platform),
+            )
+            .join(
+                models.ClockifyTags,
+                models.UsersGames.platform == models.ClockifyTags.id,
             )
             .group_by(models.UsersGames.platform)
             .order_by(func.count(models.UsersGames.platform).desc())

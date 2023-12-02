@@ -106,9 +106,12 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
             start = entry["timeInterval"]["start"]
             end = entry["timeInterval"]["end"]
             duration = entry["timeInterval"]["duration"]
-            platform = "TBD"
+            platform = None
             if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
-                platform = clockify.get_tag_id(db, entry["tagIds"][0])[0]
+                platform = entry["tagIds"][0]
+                # platform = clockify.get_tag_by_id(db, entry["tagIds"][0])
+                # if platform is not None:
+                #     platform = platform[0]
             start = utils.change_timezone_clockify(start)
             if end is not None and end != "":
                 end = utils.change_timezone_clockify(end)
@@ -135,6 +138,17 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                     project_clockify_id=entry["projectId"], platform=platform
                 )
                 users.add_new_game(db, new_user_game, user)
+            # TODO: revise if this else is needed and how to implement it properly
+            elif platform is not None and already_playing.platform != platform:
+                stmt = (
+                    update(models.UsersGames)
+                    .where(models.UsersGames.id == already_playing.id)
+                    .values(
+                        platform=platform,
+                    )
+                )
+                db.execute(stmt)
+                db.commit()
             stmt = select(models.TimeEntries).where(
                 models.TimeEntries.id == entry["id"]
             )

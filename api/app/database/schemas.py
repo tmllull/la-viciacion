@@ -45,9 +45,9 @@ class UserUpdate(BaseModel):
         from_attributes = True
 
 
-class TelegramUser(BaseModel):
-    telegram_name: str
-    telegram_id: int
+# class TelegramUser(BaseModel):
+#     telegram_name: str
+#     telegram_id: int
 
 
 # class GamesInfoBase(BaseModel):
@@ -118,6 +118,15 @@ class UsersGames(UsersGamesBase):
 
     # class Config:
     #     from_attributes = True
+
+
+class Achievements(BaseModel):
+    id: Union[int, None] = None
+    title: Union[str, None] = None
+    message: Union[str, None] = None
+
+    class Config:
+        from_attributes = True
 
 
 class UserAchievements(BaseModel):

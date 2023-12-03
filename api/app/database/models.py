@@ -155,7 +155,7 @@ class Achievement(Base):
     __tablename__ = "achievements"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    achievement = Column(String(255))
+    title = Column(String(255))
     message = Column(String(255))
     __table_args__ = (UniqueConstraint("achievement"),)
 

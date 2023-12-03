@@ -6,16 +6,14 @@ services:
     build: 
       context: ./front
       dockerfile: Dockerfile
-    container_name: laviciacion-front
     image: laviciacion-front
-    env_file: .env
+    container_name: laviciacion-front
     restart: unless-stopped
-    ports:
-      - 3000:80
-    # volumes:
-    # - ./front:/usr/share/nginx/html
+    env_file: .env
     networks:
       - la-viciacion
+    ports:
+      - 3000:80
 
   laviciacion-bot:
     build: 

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from .. import auth
 from ..config import Config
-from ..crud import users
+from ..crud import achievements, users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -50,6 +50,7 @@ def init(db: Session = Depends(get_db)):
     try:
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
+        achievements.populate_achievements(db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return "Init completed!"

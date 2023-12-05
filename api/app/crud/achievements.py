@@ -1,4 +1,5 @@
 import datetime
+import json
 from typing import Union
 
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
@@ -9,8 +10,8 @@ from ..database import models, schemas
 from ..utils import actions as actions
 from ..utils import logger
 from ..utils import my_utils as utils
-from ..utils.clockify_api import ClockifyApi
 from ..utils.achievements import Achievements
+from ..utils.clockify_api import ClockifyApi
 
 clockify = ClockifyApi()
 
@@ -21,17 +22,20 @@ clockify = ClockifyApi()
 
 
 def populate_achievements(db: Session):
+    logger.info("Populating achievements")
     for achievement in list(Achievements):
         title = achievement.value["title"]
         message = achievement.value["message"]
         ach_db = (
             db.query(models.Achievement)
-            .filter(models.Achievement.title == title)
+            .filter(models.Achievement.key == achievement.name)
             .first()
         )
         if ach_db is None:
             try:
-                achievement = models.Achievement(title=title, message=message)
+                achievement = models.Achievement(
+                    key=achievement.name, title=title, message=message
+                )
                 db.add(achievement)
                 db.commit()
                 db.refresh(achievement)
@@ -39,14 +43,19 @@ def populate_achievements(db: Session):
                 db.rollback()
                 logger.info("Error adding achievement: " + str(e))
         else:
-            logger.info("Updating")
+            logger.info("Updating achievement")
+            stmt = (
+                update(models.Achievement)
+                .where(models.Achievement.key == achievement.name)
+                .values(title=title, message=message)
+            )
+            db.execute(stmt)
+            db.commit()
         # print(achievement, "->", achievement.value)
 
 
 def get_achievements_list(db: Session):
-    return db.query(
-        models.Achievement.achievement,
-    )
+    return db.query(models.Achievement)
 
 
 def lose_streak(db: Session, player, streak, date=None):

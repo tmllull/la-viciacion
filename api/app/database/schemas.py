@@ -122,6 +122,7 @@ class UsersGames(UsersGamesBase):
 
 class Achievements(BaseModel):
     id: Union[int, None] = None
+    key: Union[str, None] = None
     title: Union[str, None] = None
     message: Union[str, None] = None
 

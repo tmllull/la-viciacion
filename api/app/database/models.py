@@ -155,9 +155,10 @@ class Achievement(Base):
     __tablename__ = "achievements"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    key = Column(String(255))
     title = Column(String(255))
     message = Column(String(255))
-    __table_args__ = (UniqueConstraint("title"),)
+    __table_args__ = (UniqueConstraint("key"),)
 
 
 class TimeEntries(Base):

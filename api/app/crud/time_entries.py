@@ -201,6 +201,9 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                 update_game = models.UsersGames(platform=platform)
                 users.update_game(db, update_game, already_playing.id)
             db.commit()
+            # TODO: Check time achievements related to session
+            if end is not None:
+                pass
         except Exception as e:
             db.rollback()
             logger.info("Error adding time entry " + str(entry) + ": " + str(e))

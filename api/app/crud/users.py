@@ -22,6 +22,7 @@ config = Config()
 
 
 def create_admin_user(db: Session, username: str):
+    logger.info("Creating admin users")
     try:
         db_user = (
             db.query(models.Users).filter(models.Users.username == username).first()
@@ -37,8 +38,6 @@ def create_admin_user(db: Session, username: str):
             db.add(db_user)
             db.commit()
             logger.info("Admin user created")
-        else:
-            logger.info("Admin user already exists")
     except SQLAlchemyError as e:
         db.rollback()
         logger.info("Error creating admin user: " + str(e))
@@ -245,16 +244,22 @@ def update_game(db: Session, game: schemas.UsersGames, entry_id):
 
 
 def update_played_time_game(db: Session, user_id: str, game: str, time: int):
-    stmt = (
-        update(models.UsersGames)
-        .where(
-            models.UsersGames.project_clockify_id == game,
-            models.UsersGames.user_id == user_id,
+    try:
+        stmt = (
+            update(models.UsersGames)
+            .where(
+                models.UsersGames.project_clockify_id == game,
+                models.UsersGames.user_id == user_id,
+            )
+            .values(played_time=time)
         )
-        .values(played_time=time)
-    )
-    db.execute(stmt)
-    db.commit()
+        db.execute(stmt)
+        db.commit()
+        # TODO: Check games time achievements
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error updating played time game: " + str(e))
+        raise
 
 
 def get_games(
@@ -299,6 +304,7 @@ def update_played_days(db: Session, user_id: int, played_days):
         db.execute(stmt)
         db.commit()
     except Exception as e:
+        db.rollback()
         logger.info(e)
         raise e
 

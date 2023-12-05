@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Achievements(Enum):
+class AchievementsElems(Enum):
     # Format -> KEY = {"title":"", "message":""}
     # Time
     PLAYED_LESS_5_MIN = {"title": "Lo he abierto sin querer", "message": "###"}
@@ -40,7 +40,7 @@ class Achievements(Enum):
         "message": "El otro mensaje",
     }
     PLAYED_1000_HOURS = {"title": "Una jornada laboral", "message": "El otro mensaje"}
-    JUST_IN_TIME = {"title": "", "message": ""}
+    JUST_IN_TIME = {"title": "Justo a tiempo", "message": ""}
 
     # Games
     PLAYED_42_GAMES = {
@@ -63,7 +63,7 @@ class Achievements(Enum):
         + "USER"
         + " la vida más allá de la puerta de casa no le importa lo más mínimo.",
     }
-    COMPLETED_100_GAMES = {"title": "", "message": ""}
+    COMPLETED_100_GAMES = {"title": "100 games", "message": ""}
     PLAYED_5_GAMES_DAY = {"title": "", "message": ""}
     PLAYED_10_GAMES_DAY = {"title": "", "message": ""}
 
@@ -76,3 +76,7 @@ class Achievements(Enum):
     STREAK_200_DAYS = {"title": "", "message": ""}
     STREAK_300_DAYS = {"title": "", "message": ""}
     STREAK_365_DAYS = {"title": "", "message": ""}
+
+
+def played_time():
+    return

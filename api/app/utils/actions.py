@@ -49,18 +49,21 @@ async def sync_data(
         logger.info("Updating played days...")
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
+        # TODO: Check played days achievement
         logger.info("Updating streaks...")
         best_streak_date, best_streak, current_streak = streak_days(db, user)
         users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
+        # TODO: Check streaks achievement
         logger.info("Updating played time games...")
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
-        logger.info("Played time obtained...")
+        # logger.info("Played time obtained...")
         users.update_played_time(db, user.id, played_time[1])
-        logger.info("Played time updated...")
+        # TODO: Check total played time achievements
+        # logger.info("Played time updated...")
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
         # use 'entries'
     logger.info("Updating played time for games...")

@@ -10,7 +10,7 @@ from ..database import models, schemas
 from ..utils import actions as actions
 from ..utils import logger
 from ..utils import my_utils as utils
-from ..utils.achievements import Achievements
+from ..utils.achievements import AchievementsElems
 from ..utils.clockify_api import ClockifyApi
 
 clockify = ClockifyApi()
@@ -23,30 +23,28 @@ clockify = ClockifyApi()
 
 def populate_achievements(db: Session):
     logger.info("Populating achievements")
-    for achievement in list(Achievements):
+    for achievement in list(AchievementsElems):
+        key = achievement.name
+        logger.info(key)
         title = achievement.value["title"]
         message = achievement.value["message"]
         ach_db = (
-            db.query(models.Achievement)
-            .filter(models.Achievement.key == achievement.name)
-            .first()
+            db.query(models.Achievement).filter(models.Achievement.key == key).first()
         )
         if ach_db is None:
             try:
-                achievement = models.Achievement(
-                    key=achievement.name, title=title, message=message
-                )
+                achievement = models.Achievement(key=key, title=title, message=message)
                 db.add(achievement)
                 db.commit()
-                db.refresh(achievement)
+                # db.refresh(achievement)
             except SQLAlchemyError as e:
                 db.rollback()
                 logger.info("Error adding achievement: " + str(e))
         else:
-            logger.info("Updating achievement")
+            # logger.info("Updating achievement")
             stmt = (
                 update(models.Achievement)
-                .where(models.Achievement.key == achievement.name)
+                .where(models.Achievement.key == key)
                 .values(title=title, message=message)
             )
             db.execute(stmt)

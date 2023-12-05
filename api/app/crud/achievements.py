@@ -24,16 +24,23 @@ def populate_achievements(db: Session):
     for achievement in list(Achievements):
         title = achievement.value["title"]
         message = achievement.value["message"]
-        try:
-            achievement = models.Achievement(title=title, message=message)
-            db.add(achievement)
-            db.commit()
-            db.refresh(achievement)
-        except SQLAlchemyError as e:
-            db.rollback()
-            logger.info("Error creating user: " + str(e))
-            raise
-        print(achievement, "->", achievement.value)
+        ach_db = (
+            db.query(models.Achievement)
+            .filter(models.Achievement.title == title)
+            .first()
+        )
+        if ach_db is None:
+            try:
+                achievement = models.Achievement(title=title, message=message)
+                db.add(achievement)
+                db.commit()
+                db.refresh(achievement)
+            except SQLAlchemyError as e:
+                db.rollback()
+                logger.info("Error adding achievement: " + str(e))
+        else:
+            logger.info("Updating")
+        # print(achievement, "->", achievement.value)
 
 
 def get_achievements_list(db: Session):
@@ -64,26 +71,3 @@ def lose_streak(db: Session, player, streak, date=None):
     # db.execute(stmt)
     # db.commit()
     return False
-
-
-def best_streak(db: Session, player, streak, date):
-    stmt = select(models.Users.best_streak).where(models.Users.name == player)
-    best_streak = db.execute(stmt).first()
-    if best_streak is None or best_streak <= streak:
-        stmt = (
-            update(models.Users)
-            .where(models.Users.name == player)
-            .values(best_streak=streak, best_streak_date=date)
-        )
-        db.execute(stmt)
-        db.commit()
-
-
-def current_streak(db: Session, player, streak):
-    stmt = (
-        update(models.Users)
-        .where(models.Users.name == player)
-        .values(current_streak=streak)
-    )
-    db.execute(stmt)
-    db.commit()

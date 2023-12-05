@@ -83,3 +83,12 @@ async def login_for_access_token(
         expires_delta=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/auth/active_user", response_model=schemas.User)
+@version(1)
+def active_user(user: models.Users = Security(auth.get_current_active_user)):
+    """
+    Get active user info
+    """
+    return user

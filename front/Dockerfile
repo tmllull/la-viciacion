@@ -1,18 +1,23 @@
 # Stage 1 - Building image
-FROM node as build-stage
+FROM docker.io/node:20-slim as build-stage
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY package.json .
+COPY yarn.lock .
 
-RUN npm config set fetch-retry-maxtimeout 600000
-RUN npm install
+RUN yarn install
 
-COPY . .
+COPY src/ src/
+COPY vite.config.js .
+COPY index.html .
+
+RUN ls -la
 
 RUN npm run build
 
 # Stage 2 - Running image
 FROM nginx
 
-COPY --from=build-stage /usr/src/app/build /usr/share/nginx/html
+COPY --from=build-stage /usr/src/app/dist /usr/share/nginx/html
+COPY public/ /usr/share/nginx/html/public/

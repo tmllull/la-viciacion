@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -160,3 +160,8 @@ class CompletedGame(BaseModel):
     completed_games: Union[int, None]
     completion_time: Union[int, None]
     avg_time: Union[int, None]
+
+
+# class RankingsResponse(BaseModel):
+#     type: str
+#     data: List[Union[str, int, None]]

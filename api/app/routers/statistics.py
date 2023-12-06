@@ -56,41 +56,53 @@ class UserStatisticsTypes(str, Enum):
 @router.get("/rankings")
 @version(1)
 def get_ranking_statistics(
-    ranking: RankingStatisticsTypes,
+    ranking: str = None,
     db: Session = Depends(get_db),
 ):
-    if ranking == RankingStatisticsTypes.hours:
-        return rankings.user_hours_players(db)
-    elif ranking == RankingStatisticsTypes.days:
-        return rankings.user_days_players(db)
-    elif ranking == RankingStatisticsTypes.user_played_games:
-        return rankings.user_played_games(db)
-    elif ranking == RankingStatisticsTypes.completed_games:
-        return rankings.user_completed_games(db)
-    elif ranking == RankingStatisticsTypes.achievements:
-        return {"message": "TBI"}
-    elif ranking == RankingStatisticsTypes.ratio:
-        return {"message": "TBI"}
-    elif ranking == RankingStatisticsTypes.current_streak:
-        return rankings.user_current_streak(db)
-    elif ranking == RankingStatisticsTypes.best_streak:
-        return rankings.user_best_streak(db)
-    elif ranking == RankingStatisticsTypes.most_played_games:
-        return rankings.games_most_played(db)
-    elif ranking == RankingStatisticsTypes.platform_played:
-        return rankings.platform_played_games(db)
-    elif ranking == RankingStatisticsTypes.debt:
-        return {"message": "TBI"}
-    elif ranking == RankingStatisticsTypes.last_played:
-        return rankings.games_last_played(db)
+    if ranking is not None:
+        rankings_list = ranking.split(",")
     else:
-        return {"message": "More rankings are coming"}
+        rankings_list = [elem.value for elem in RankingStatisticsTypes]
+    response = []
+    for ranking_type in rankings_list:
+        content = {}
+        if ranking_type == RankingStatisticsTypes.hours:
+            data = rankings.user_hours_players(db)
+        elif ranking_type == RankingStatisticsTypes.days:
+            data = rankings.user_days_players(db)
+        elif ranking_type == RankingStatisticsTypes.user_played_games:
+            data = rankings.user_played_games(db)
+        elif ranking_type == RankingStatisticsTypes.completed_games:
+            data = rankings.user_completed_games(db)
+        elif ranking_type == RankingStatisticsTypes.achievements:
+            data = {"message": "TBI"}
+        elif ranking_type == RankingStatisticsTypes.ratio:
+            data = {"message": "TBI"}
+        elif ranking_type == RankingStatisticsTypes.current_streak:
+            data = rankings.user_current_streak(db)
+        elif ranking_type == RankingStatisticsTypes.best_streak:
+            data = rankings.user_best_streak(db)
+        elif ranking_type == RankingStatisticsTypes.most_played_games:
+            data = rankings.games_most_played(db)
+        elif ranking_type == RankingStatisticsTypes.platform_played:
+            data = rankings.platform_played_games(db)
+        elif ranking_type == RankingStatisticsTypes.debt:
+            data = {"message": "TBI"}
+        elif ranking_type == RankingStatisticsTypes.last_played:
+            data = rankings.games_last_played(db)
+        else:
+            data = {"message": "More rankings are coming"}
+        content["type"] = ranking_type
+        content["data"] = data
+        response.append(content)
+    # return {"type": ranking, "data": data}
+    return response
 
 
 @router.get("/users")
 @version(1)
 def get_user_statistics(
-    ranking: UserStatisticsTypes,
+    ranking: str = None,
     db: Session = Depends(get_db),
 ):
     if ranking == UserStatisticsTypes.played_games:

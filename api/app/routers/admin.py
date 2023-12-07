@@ -112,6 +112,7 @@ def update_user(
 def activate_account(
     username: str,
     db: Session = Depends(get_db),
+    api_key: None = Security(auth.get_api_key),
 ):
     if users.activate_account(db, username):
         return msg.ACCOUNT_ALREADY_ACTIVATED

@@ -43,7 +43,10 @@ def test_endpoint(user: models.User = Security(auth.get_current_active_user)):
 
 @router.get("/init")
 @version(1)
-def init(db: Session = Depends(get_db)):
+def init(
+    db: Session = Depends(get_db),
+    api_key: None = Security(auth.get_api_key),
+):
     """
     Init base data
     """

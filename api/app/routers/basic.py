@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
@@ -34,11 +34,12 @@ def get_db():
 
 @router.get("/")
 @version(1)
-def hello_world():
+def hello_world(request: Request):
     """
     Test endpoint
     """
-    return "API is working!"
+    return {"message": "Hello World", "root_path": request.scope.get("root_path")}
+    # return "API is working!"
 
 
 @router.post("/login")

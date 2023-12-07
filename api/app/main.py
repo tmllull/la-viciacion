@@ -12,10 +12,7 @@ models.Base.metadata.create_all(bind=engine)
 
 config = Config()
 
-app = FastAPI(
-    title="LaViciacion API",
-    version="0.1.0",
-)
+app = FastAPI(title="LaViciacion API", version="0.1.0", root_path="/api/v1")
 
 app.include_router(admin.router)
 app.include_router(basic.router)
@@ -24,7 +21,7 @@ app.include_router(games.router)
 app.include_router(statistics.router)
 app.include_router(bot.router)
 
-app = VersionedFastAPI(app, version_format="{major}", prefix_format="/v{major}")
+app = VersionedFastAPI(app, version_format="{major}", prefix_format="/api/v{major}")
 
 app.add_middleware(
     CORSMiddleware,

@@ -95,7 +95,7 @@ class MyUtils:
 
     def check_valid_chat(self, update: Update) -> bool:
         try:
-            logger.info()
+            logger.info("Checking valid chat...")
             username = update.message.from_user.username
             user_id = update.message.from_user.id
             chat_id = update.message.chat_id

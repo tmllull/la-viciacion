@@ -12,7 +12,7 @@ models.Base.metadata.create_all(bind=engine)
 
 config = Config()
 
-app = FastAPI(title="LaViciacion API", version="0.1.0", root_path="/api/v1")
+app = FastAPI(title="LaViciacion API", version="0.1.0")
 
 app.include_router(admin.router)
 app.include_router(basic.router)

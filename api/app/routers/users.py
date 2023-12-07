@@ -82,7 +82,7 @@ def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
     return users.update_user(db=db, user=user)
 
 
-@router.post("/{username}/new_game", response_model=schemas.UsersGames)
+@router.post("/{username}/new_game", response_model=schemas.UserGame)
 @version(1)
 async def add_game_to_user(
     username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)
@@ -125,7 +125,7 @@ async def add_game_to_user(
 
 @router.get(
     "/{username}/games",
-    response_model=list[schemas.UsersGames],
+    response_model=list[schemas.UserGame],
 )
 @version(1)
 def get_games(

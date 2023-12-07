@@ -48,7 +48,7 @@ from .database import Base
 #############################
 
 
-class Users(Base):
+class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -61,6 +61,25 @@ class Users(Base):
     is_admin = Column(Integer)
     is_active = Column(Integer)
     avatar = Column(LargeBinary)
+    # played_time = Column(Integer)
+    # current_ranking_hours = Column(Integer)
+    # current_streak = Column(Integer)
+    # best_streak = Column(Integer)
+    # best_streak_date = Column(Date)
+    # played_days = Column(Integer)
+    # unplayed_streak = Column(Integer)
+
+    # games = relationship("UsersGames", back_populates="user")
+    # ranking = relationship("RankingUsers", back_populates="user")
+    # time_entries = relationship("RankingUsers", back_populates="user")
+
+    __table_args__ = (UniqueConstraint("username"),)
+
+
+class UserStatistics(Base):
+    __tablename__ = "users_statistics"
+
+    user_id = Column(Integer, primary_key=True)
     played_time = Column(Integer)
     current_ranking_hours = Column(Integer)
     current_streak = Column(Integer)
@@ -73,7 +92,7 @@ class Users(Base):
     # ranking = relationship("RankingUsers", back_populates="user")
     # time_entries = relationship("RankingUsers", back_populates="user")
 
-    __table_args__ = (UniqueConstraint("username"),)
+    __table_args__ = (UniqueConstraint("user_id"),)
 
 
 # class RankingUsers(Base):
@@ -98,19 +117,19 @@ class Users(Base):
 #     # user = relationship("Users", back_populates="ranking")
 
 
-class GamesInfo(Base):
-    __tablename__ = "games_info"
+class Game(Base):
+    __tablename__ = "games"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(255))
     dev = Column(String(255))
     release_date = Column(Date)
     steam_id = Column(String(255))
     image_url = Column(String(255))
     genres = Column(String(255))
-    played_time = Column(Integer)
-    avg_time = Column(Integer)
-    current_ranking = Column(Integer)
+    # played_time = Column(Integer)
+    # avg_time = Column(Integer)
+    # current_ranking = Column(Integer)
     clockify_id = Column(String(255))
 
     # users = relationship("UsersGames", back_populates="game")
@@ -119,7 +138,21 @@ class GamesInfo(Base):
     __table_args__ = (UniqueConstraint("name"),)
 
 
-class UsersGames(Base):
+class GameStatistics(Base):
+    __tablename__ = "games_statistics"
+
+    game_id = Column(Integer, primary_key=True, autoincrement=True)
+    played_time = Column(Integer)
+    avg_time = Column(Integer)
+    current_ranking = Column(Integer)
+
+    # users = relationship("UsersGames", back_populates="game")
+    # time_entries = relationship("TimeEntries", back_populates="game")
+
+    __table_args__ = (UniqueConstraint("game_id"),)
+
+
+class UserGame(Base):
     __tablename__ = "users_games"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -140,17 +173,6 @@ class UsersGames(Base):
     __table_args__ = (UniqueConstraint("user_id", "game_id", "platform"),)
 
 
-class UserAchievements(Base):
-    __tablename__ = "users_achievements"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user = Column(String(255))
-    user_id = Column(Integer)
-    achievement_id = Column(Integer)
-    date = Column(Date)
-    __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
-
-
 class Achievement(Base):
     __tablename__ = "achievements"
 
@@ -161,7 +183,18 @@ class Achievement(Base):
     __table_args__ = (UniqueConstraint("key"),)
 
 
-class TimeEntries(Base):
+class UserAchievement(Base):
+    __tablename__ = "users_achievements"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user = Column(String(255))
+    user_id = Column(Integer)
+    achievement_id = Column(Integer)
+    date = Column(Date)
+    __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
+
+
+class TimeEntry(Base):
     __tablename__ = "time_entries"
 
     id = Column(String(255), primary_key=True)
@@ -180,7 +213,7 @@ class TimeEntries(Base):
     __table_args__ = (UniqueConstraint("id"),)
 
 
-class ClockifyTags(Base):
+class ClockifyTag(Base):
     __tablename__ = "clockify_tags"
 
     id = Column(String(255), primary_key=True)
@@ -188,7 +221,7 @@ class ClockifyTags(Base):
     __table_args__ = (UniqueConstraint("id"),)
 
 
-class Logs(Base):
+class Log(Base):
     __tablename__ = "logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

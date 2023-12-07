@@ -33,6 +33,20 @@ class User(UserBase):
         from_attributes = True
 
 
+class UserStatistics(BaseModel):
+    user_id: int
+    played_time: Union[int, None] = 0
+    current_ranking_hours: Union[int, None] = None
+    current_streak: Union[int, None] = 0
+    best_streak: Union[int, None] = 0
+    best_streak_date: Union[datetime.date, None] = None
+    played_days: Union[int, None] = 0
+    unplayed_streak: Union[int, None] = None
+
+    class Config:
+        from_attributes = True
+
+
 class UserUpdate(BaseModel):
     name: Union[str, None] = None
     username: str
@@ -57,7 +71,7 @@ class UserUpdate(BaseModel):
 #         from_attributes = True
 
 
-class GamesInfo(BaseModel):
+class Game(BaseModel):
     id: int
     name: str
     dev: Union[str, None] = None
@@ -69,6 +83,16 @@ class GamesInfo(BaseModel):
     avg_time: Union[int, None] = 0
     current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
+
+    class Config:
+        from_attributes = True
+
+
+class GameStatistics(BaseModel):
+    game_id: int
+    played_time: Union[int, None] = 0
+    avg_time: Union[int, None] = 0
+    current_ranking: Optional[Union[int, None]] = 10000000
 
     class Config:
         from_attributes = True
@@ -100,7 +124,7 @@ class UsersGamesBase(BaseModel):
         from_attributes = True
 
 
-class UsersGames(UsersGamesBase):
+class UserGame(UsersGamesBase):
     id: Union[int, None] = None
     # user: Union[str, None] = None
     user_id: Union[int, None] = None
@@ -120,7 +144,7 @@ class UsersGames(UsersGamesBase):
     #     from_attributes = True
 
 
-class Achievements(BaseModel):
+class Achievement(BaseModel):
     id: Union[int, None] = None
     key: Union[str, None] = None
     title: Union[str, None] = None
@@ -130,7 +154,7 @@ class Achievements(BaseModel):
         from_attributes = True
 
 
-class UserAchievements(BaseModel):
+class UserAchievement(BaseModel):
     id: Union[int, None] = None
     user: Union[str, None] = None
     user_id: Union[int, None] = None
@@ -141,7 +165,7 @@ class UserAchievements(BaseModel):
         from_attributes = True
 
 
-class TimeEntries(BaseModel):
+class TimeEntrie(BaseModel):
     id: Union[int, None] = None
     # user: Union[str, None] = None
     user_id: Union[str, None] = None

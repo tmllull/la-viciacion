@@ -56,7 +56,7 @@ def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
     return users.update_user(user, db)
 
 
-@router.post("/users/{username}/new_game", response_model=schemas.UsersGames)
+@router.post("/users/{username}/new_game", response_model=schemas.UserGame)
 @version(1)
 async def add_game_to_user(
     username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)
@@ -69,7 +69,7 @@ async def add_game_to_user(
 
 @router.get(
     "/users/{username}/games",
-    response_model=list[schemas.UsersGames],
+    response_model=list[schemas.UserGame],
 )
 @version(1)
 def user_games(
@@ -95,7 +95,7 @@ async def complete_game(username: str, game_id: int, db: Session = Depends(get_d
 #################
 
 
-@router.get("/games", response_model=list[schemas.GamesInfo])
+@router.get("/games", response_model=list[schemas.Game])
 @version(1)
 def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)):
     """
@@ -104,7 +104,7 @@ def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)
     return games.get_games(name, limit, db)
 
 
-@router.post("/games", response_model=schemas.GamesInfo, status_code=201)
+@router.post("/games", response_model=schemas.Game, status_code=201)
 @version(1)
 async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
@@ -113,7 +113,7 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     return await games.create_game(game, db)
 
 
-@router.get("/games/{game_id}", response_model=schemas.GamesInfo)
+@router.get("/games/{game_id}", response_model=schemas.Game)
 @version(1)
 async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
     """

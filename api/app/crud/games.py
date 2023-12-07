@@ -18,35 +18,35 @@ clockify = ClockifyApi()
 #################
 
 
-def get_games(db: Session, limit: int = None) -> list[models.GamesInfo]:
-    return db.query(models.GamesInfo).limit(limit)
+def get_games(db: Session, limit: int = None) -> list[models.Game]:
+    return db.query(models.Game).limit(limit)
 
 
-def get_game_by_name(db: Session, name: str) -> list[models.GamesInfo]:
+def get_game_by_name(db: Session, name: str) -> list[models.Game]:
     logger.info("Searching game by name: " + name)
     search = "%{}%".format(name)
-    return db.query(models.GamesInfo).filter(models.GamesInfo.name.like(search))
+    return db.query(models.Game).filter(models.Game.name.like(search))
 
 
-def get_game_by_id(db: Session, game_id: int) -> models.GamesInfo:
+def get_game_by_id(db: Session, game_id: int) -> models.Game:
     logger.info("Searching game by id: " + str(game_id))
-    return db.query(models.GamesInfo).filter(models.GamesInfo.id == game_id).first()
+    return db.query(models.Game).filter(models.Game.id == game_id).first()
 
 
-def get_game_by_clockify_id(db: Session, id: str) -> models.GamesInfo:
+def get_game_by_clockify_id(db: Session, id: str) -> models.Game:
     # logger.info("Searching game by clockify id: " + str(id))
-    return db.query(models.GamesInfo).filter(models.GamesInfo.clockify_id == id).first()
+    return db.query(models.Game).filter(models.Game.clockify_id == id).first()
 
 
-async def new_game(db: Session, game: schemas.NewGame) -> models.GamesInfo:
+async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
     logger.info("Adding new game to DB: " + game.name)
-    if game.clockify_id is None or game.clockify_id == "string":
+    if game.clockify_id is None or not utils.check_hex(game.clockify_id):
         logger.info("No clockify ID. Adding to clockify...")
         clockify_id = clockify.add_project(game.name)["id"]
         new_game = {"name": game.name, "id": clockify_id}
         game_info = await utils.get_new_game_info(new_game)
         # logger.info(game_info)
-        game = models.GamesInfo(
+        game_to_add = models.Game(
             name=game_info.name,
             dev=game_info.dev,
             steam_id=game_info.steam_id,
@@ -54,11 +54,11 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.GamesInfo:
             release_date=game_info.release_date,
             clockify_id=clockify_id,
             genres=game_info.genres,
-            avg_time=game_info.avg_time,
-            current_ranking=1000000000,
+            # avg_time=game_info.avg_time,
+            # current_ranking=1000000000,
         )
     else:
-        game = models.GamesInfo(
+        game_to_add = models.Game(
             name=game.name,
             dev=game.dev,
             steam_id=game.steam_id,
@@ -66,18 +66,25 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.GamesInfo:
             release_date=game.release_date,
             clockify_id=game.clockify_id,
             genres=game.genres,
-            avg_time=game.avg_time,
-            current_ranking=1000000000,
+            # avg_time=game.avg_time,
+            # current_ranking=1000000000,
         )
     try:
-        db.add(game)
+        db.add(game_to_add)
         db.commit()
-        db.refresh(game)
-        return game
+        db.refresh(game_to_add)
+        game_statistics = models.GameStatistics(
+            game_id=game_to_add.id, current_ranking=100000000
+        )
+        db.add(game_statistics)
+        db.commit()
+        db.refresh(game_statistics)
+        return game_to_add
     except Exception as e:
-        if "Duplicate" in str(e):
-            db.rollback()
-        else:
+        db.rollback()
+        if "Duplicate" not in str(e):
+            #     db.rollback()
+            # else:
             logger.info("Error adding new game: " + str(e))
             raise e
 
@@ -90,8 +97,8 @@ def get_all_played_games(db: Session):
 def update_avg_time_game(db: Session, game_id: str, avg_time: int):
     try:
         stmt = (
-            update(models.GamesInfo)
-            .where(models.GamesInfo.id == game_id)
+            update(models.Game)
+            .where(models.Game.id == game_id)
             .values(
                 avg_time=avg_time,
             )
@@ -103,11 +110,11 @@ def update_avg_time_game(db: Session, game_id: str, avg_time: int):
         raise e
 
 
-def update_game(db: Session, game: models.GamesInfo):
+def update_game(db: Session, game: models.Game):
     try:
         stmt = (
-            update(models.GamesInfo)
-            .where(models.GamesInfo.name == game)
+            update(models.Game)
+            .where(models.Game.name == game)
             .values(
                 game=game.name,
                 dev=game.dev,
@@ -128,9 +135,10 @@ def update_game(db: Session, game: models.GamesInfo):
 
 def update_total_played_time(db: Session, clockify_id, total_played):
     try:
+        game = get_game_by_clockify_id(db, clockify_id)
         stmt = (
-            update(models.GamesInfo)
-            .where(models.GamesInfo.clockify_id == clockify_id)
+            update(models.GameStatistics)
+            .where(models.GameStatistics.game_id == game.id)
             .values(played_time=total_played)
         )
         db.execute(stmt)
@@ -140,42 +148,47 @@ def update_total_played_time(db: Session, clockify_id, total_played):
         raise e
 
 
-def game_avg_time(db: Session, game):
-    stmt = select(models.GamesInfo.avg_time).where(models.GamesInfo.name == game)
-    result = db.execute(stmt).first()
-    return result
+# def game_avg_time(db: Session, game):
+#     stmt = select(models.GameStatistics.avg_time).where(models.GameStatistics.name == game)
+#     result = db.execute(stmt).first()
+#     return result
 
 
-def get_most_played_time(db: Session, limit: int = None) -> list[models.GamesInfo]:
+def get_most_played_time(db: Session, limit: int = None) -> list[models.GameStatistics]:
     if limit is not None:
         return (
-            db.query(models.GamesInfo)
-            .order_by(desc(models.GamesInfo.played_time))
+            db.query(models.GameStatistics)
+            .order_by(desc(models.GameStatistics.played_time))
             .limit(limit)
         )
     else:
-        return db.query(models.GamesInfo).order_by(desc(models.GamesInfo.played_time))
+        return db.query(models.GameStatistics).order_by(
+            desc(models.GameStatistics.played_time)
+        )
 
 
-def current_ranking_hours(db: Session, limit: int = 11) -> list[models.GamesInfo]:
+def current_ranking_hours(db: Session, limit: int = 11) -> list[models.GameStatistics]:
     try:
         return (
-            db.query(models.GamesInfo)
-            .order_by(asc(models.GamesInfo.current_ranking))
+            db.query(models.GameStatistics)
+            .order_by(asc(models.GameStatistics.current_ranking))
             .limit(limit)
         )
     except Exception as e:
         logger.info(e)
 
 
-def update_current_ranking_hours(db: Session, i, game):
+def update_current_ranking_hours(db: Session, i, game_id):
     try:
+        # game_db = get_game_by_name(db, game)
         stmt = (
-            update(models.GamesInfo)
-            .where(models.GamesInfo.name == game)
+            update(models.GameStatistics)
+            .where(models.GameStatistics.game_id == game_id)
             .values(current_ranking=i)
         )
         db.execute(stmt)
         db.commit()
     except Exception as e:
-        logger.info(e)
+        logger.info(
+            "Error updating current ranking for game " + str(game_id) + ". " + str(e)
+        )

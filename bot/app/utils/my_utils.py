@@ -94,24 +94,27 @@ class MyUtils:
             )
 
     def check_valid_chat(self, update: Update) -> bool:
-        username = update.message.from_user.username
-        user_id = update.message.from_user.id
-        chat_id = update.message.chat_id
-        if chat_id < 0:
-            if chat_id != config.TELEGRAM_GROUP_ID:
-                return False
+        try:
+            username = update.message.from_user.username
+            user_id = update.message.from_user.id
+            chat_id = update.message.chat_id
+            if chat_id < 0:
+                if chat_id != config.TELEGRAM_GROUP_ID:
+                    return False
+                else:
+                    return True
+            url = config.API_URL + "/users/" + username
+            response = self.make_request("GET", url)
+            if response.status_code == 200:
+                user = {"username": username, "telegram_id": user_id}
+                url = config.API_URL + "/users"
+                response = self.make_request("PUT", url, json=user)
+                # logger.info(response.json())
+                return response.json()
             else:
-                return True
-        url = config.API_URL + "/users/" + username
-        response = self.make_request("GET", url)
-        if response.status_code == 200:
-            user = {"username": username, "telegram_id": user_id}
-            url = config.API_URL + "/users"
-            response = self.make_request("PUT", url, json=user)
-            # logger.info(response.json())
-            return response.json()
-        else:
-            return False
+                return False
+        except Exception as e:
+            logger.info("Error checking valid chat: " + str(e))
 
     async def reply_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, msg

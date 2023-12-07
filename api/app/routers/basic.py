@@ -88,7 +88,7 @@ async def login_for_access_token(
 
 @router.get("/auth/active_user", response_model=schemas.User)
 @version(1)
-def active_user(user: models.Users = Security(auth.get_current_active_user)):
+def active_user(user: models.User = Security(auth.get_current_active_user)):
     """
     Get active user info
     """

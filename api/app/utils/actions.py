@@ -89,7 +89,7 @@ async def sync_data(
 #             await games.new_game(db, game)
 
 
-def streak_days(db: Session, user: models.Users):
+def streak_days(db: Session, user: models.User):
     """
     TODO:
     """
@@ -142,17 +142,17 @@ async def ranking_games_hours(db: Session):
     try:
         msg = ""
         most_played_games = games.get_most_played_time(db, 11)
-        most_played: list[models.GamesInfo] = []
+        most_played: list[models.GameStatistics] = []
         most_played_to_check = []  # Only for easy check with current ranking
         for game in most_played_games:
             most_played.append(game)
-            most_played_to_check.append(game.name)
+            most_played_to_check.append(game.game_id)
         result = games.current_ranking_hours(db)
-        current: list[models.GamesInfo] = []
+        current: list[models.Game] = []
         current_to_check = []  # Only for easy check with most played
         for game in result:
             current.append(game)
-            current_to_check.append(game.name)
+            current_to_check.append(game.game_id)
         if current_to_check[:10] == most_played_to_check[:10]:
             msg = "No changes in TOP 10 games ranking"
             logger.info("No changes in TOP 10 games ranking")
@@ -162,7 +162,7 @@ async def ranking_games_hours(db: Session):
             i = 0
             for game in most_played:
                 if i <= 10:
-                    game_name = game.name
+                    game_name = games.get_game_by_id(db, game.game_id).name
                     time = game.played_time
                     current = game.current_ranking
                     diff_raw = current - (i + 1)
@@ -224,31 +224,31 @@ async def ranking_games_hours(db: Session):
     most_played = games.get_most_played_time(db)
     i = 1
     for game in most_played:
-        games.update_current_ranking_hours(db, i, game.name)
+        games.update_current_ranking_hours(db, i, game.game_id)
         i += 1
 
 
 async def ranking_players_hours(db: Session):
     logger.info("Ranking player hours...")
     played_time_db = users.played_time(db)
-    most_played: list[models.Users] = []
+    most_played: list[models.User] = []
     most_played_to_check = []  # Only for easy check with current ranking
     for player in played_time_db:
         most_played.append(player)
-        most_played_to_check.append(player.name)
+        most_played_to_check.append(player.user_id)
     current_ranking_db = users.current_ranking_hours(db)
-    current: list[models.Users] = []
+    current: list[models.User] = []
     current_to_check = []  # Only for easy check with most played
     for player in current_ranking_db:
         current.append(player)
-        current_to_check.append(player.name)
+        current_to_check.append(player.user_id)
     if current_to_check == most_played_to_check:
         logger.info("No changes in player ranking")
     else:
         logger.info("Changes in player ranking")
         msg = "📣📣 Actualización del ránking de horas 📣📣\n"
         for i, player in enumerate(played_time_db):
-            name = player.name
+            name = users.get_user_by_id(db, player.user_id).name
             hours = player.played_time
             if hours is None:
                 hours = 0

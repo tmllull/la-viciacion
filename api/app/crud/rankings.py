@@ -18,15 +18,15 @@ clockify = ClockifyApi()
 ####################
 
 
-def user_hours_players(db: Session, limit: int = None) -> list[models.Users]:
+def user_hours_players(db: Session, limit: int = None) -> list[models.User]:
     try:
         stmt = (
             select(
-                (models.Users.id).label("user_id"),
-                models.Users.name,
-                models.Users.played_time,
+                (models.User.id).label("user_id"),
+                models.User.name,
+                models.User.played_time,
             )
-            .order_by(desc(models.Users.played_time))
+            .order_by(desc(models.User.played_time))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -34,15 +34,15 @@ def user_hours_players(db: Session, limit: int = None) -> list[models.Users]:
         logger.info(e)
 
 
-def user_days_players(db: Session, limit: int = None) -> list[models.Users]:
+def user_days_players(db: Session, limit: int = None) -> list[models.User]:
     try:
         stmt = (
             select(
-                (models.Users.id).label("user_id"),
-                models.Users.name,
-                models.Users.played_days,
+                (models.User.id).label("user_id"),
+                models.User.name,
+                models.User.played_days,
             )
-            .order_by(desc(models.Users.played_days))
+            .order_by(desc(models.User.played_days))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -55,11 +55,11 @@ def user_best_streak(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                (models.Users.id).label("user_id"),
-                models.Users.name,
-                models.Users.best_streak,
+                (models.User.id).label("user_id"),
+                models.User.name,
+                models.User.best_streak,
             )
-            .order_by(desc(models.Users.best_streak))
+            .order_by(desc(models.User.best_streak))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -72,11 +72,11 @@ def user_current_streak(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                (models.Users.id).label("user_id"),
-                models.Users.name,
-                models.Users.current_streak,
+                (models.User.id).label("user_id"),
+                models.User.name,
+                models.User.current_streak,
             )
-            .order_by(desc(models.Users.current_streak))
+            .order_by(desc(models.User.current_streak))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -100,13 +100,13 @@ def user_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                models.UsersGames.user_id,
-                func.count(models.UsersGames.game_id).label("game_count"),
-                models.Users.name,
+                models.UserGame.user_id,
+                func.count(models.UserGame.game_id).label("game_count"),
+                models.User.name,
             )
-            .join(models.Users, models.Users.id == models.UsersGames.user_id)
-            .group_by(models.UsersGames.user_id, models.Users.name)
-            .order_by(func.count(models.UsersGames.game_id).desc())
+            .join(models.User, models.User.id == models.UserGame.user_id)
+            .group_by(models.UserGame.user_id, models.User.name)
+            .order_by(func.count(models.UserGame.game_id).desc())
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -119,14 +119,14 @@ def user_completed_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                models.UsersGames.user_id,
-                models.Users.name,
-                func.count(models.UsersGames.game_id),
+                models.UserGame.user_id,
+                models.User.name,
+                func.count(models.UserGame.game_id),
             )
-            .group_by(models.UsersGames.user_id)
-            .join(models.Users, models.Users.id == models.UsersGames.user_id)
-            .filter(models.UsersGames.completed == 1)
-            .order_by(func.count(models.UsersGames.game_id).desc())
+            .group_by(models.UserGame.user_id)
+            .join(models.User, models.User.id == models.UserGame.user_id)
+            .filter(models.UserGame.completed == 1)
+            .order_by(func.count(models.UserGame.game_id).desc())
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -139,15 +139,15 @@ def games_last_played(db: Session, limit: int = 10):
     try:
         stmt = (
             select(
-                models.TimeEntries.project_clockify_id,
-                models.GamesInfo.name,
-                models.TimeEntries.start,
+                models.TimeEntry.project_clockify_id,
+                models.Game.name,
+                models.TimeEntry.start,
             )
             .join(
-                models.GamesInfo,
-                models.GamesInfo.clockify_id == models.TimeEntries.project_clockify_id,
+                models.Game,
+                models.Game.clockify_id == models.TimeEntry.project_clockify_id,
             )
-            .order_by(desc(models.TimeEntries.start))
+            .order_by(desc(models.TimeEntry.start))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -160,14 +160,14 @@ def user_last_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                models.TimeEntries.project_clockify_id,
-                models.TimeEntries.user_id,
-                models.TimeEntries.start,
-                models.Users.name,
+                models.TimeEntry.project_clockify_id,
+                models.TimeEntry.user_id,
+                models.TimeEntry.start,
+                models.User.name,
             )
-            .join(models.Users, models.Users.id == models.TimeEntries.user_id)
-            .filter(models.Users.username == 1)
-            .order_by(func.count(models.UsersGames.game_id).desc())
+            .join(models.User, models.User.id == models.TimeEntry.user_id)
+            .filter(models.User.username == 1)
+            .order_by(func.count(models.UserGame.game_id).desc())
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -178,8 +178,8 @@ def user_last_played_games(db: Session, limit: int = None):
 
 def games_most_played(db: Session, limit: int = 10):
     stmt = (
-        select(models.GamesInfo.name, models.GamesInfo.played_time)
-        .order_by(desc(models.GamesInfo.played_time))
+        select(models.Game.name, models.Game.played_time)
+        .order_by(desc(models.Game.played_time))
         .limit(limit)
     )
     result_db = db.execute(stmt).fetchall()
@@ -190,16 +190,16 @@ def platform_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
-                (models.UsersGames.platform).label("tag_id"),
+                (models.UserGame.platform).label("tag_id"),
                 models.ClockifyTags.name,
-                func.count(models.UsersGames.platform),
+                func.count(models.UserGame.platform),
             )
             .join(
                 models.ClockifyTags,
-                models.UsersGames.platform == models.ClockifyTags.id,
+                models.UserGame.platform == models.ClockifyTags.id,
             )
-            .group_by(models.UsersGames.platform)
-            .order_by(func.count(models.UsersGames.platform).desc())
+            .group_by(models.UserGame.platform)
+            .order_by(func.count(models.UserGame.platform).desc())
             .limit(limit)
         )
         return db.execute(stmt).fetchall()

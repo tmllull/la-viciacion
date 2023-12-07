@@ -29,7 +29,7 @@ def get_db():
         db.close()
 
 
-@router.get("/", response_model=list[schemas.GamesInfo])
+@router.get("/", response_model=list[schemas.Game])
 @version(1)
 def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)):
     """
@@ -43,7 +43,7 @@ def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)
     return games_db
 
 
-@router.get("/{game_id}", response_model=schemas.GamesInfo)
+@router.get("/{game_id}", response_model=schemas.Game)
 @version(1)
 async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
     """
@@ -56,7 +56,7 @@ async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
     return game_db
 
 
-# @router.get("/games/name/{name}", tags=["Games"], response_model=schemas.GamesInfo)
+# @router.get("/games/name/{name}", tags=["Games"], response_model=schemas.Game)
 # @version(1)
 # async def get_game_by_name(name: str, db: Session = Depends(get_db)):
 #     """
@@ -79,7 +79,7 @@ async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
     return game_info
 
 
-@router.post("/", response_model=schemas.GamesInfo, status_code=201)
+@router.post("/", response_model=schemas.Game, status_code=201)
 @version(1)
 async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """

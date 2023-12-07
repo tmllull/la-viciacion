@@ -147,7 +147,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
     return new_game
 
 
-async def sync_clockify_entries(db: Session, user: models.Users, date: str = None):
+async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
     try:
         total_entries = 0
         entries = clockify_api.get_time_entries(user.clockify_id, date)

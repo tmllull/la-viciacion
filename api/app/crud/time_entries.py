@@ -17,75 +17,75 @@ clockify_api = ClockifyApi()
 
 def get_users_played_time(db: Session):
     stmt = select(
-        models.TimeEntries.user_id, func.sum(models.TimeEntries.duration)
-    ).group_by(models.TimeEntries.user_id)
+        models.TimeEntry.user_id, func.sum(models.TimeEntry.duration)
+    ).group_by(models.TimeEntry.user_id)
     return db.execute(stmt)
 
 
 def get_user_played_time(db: Session, user_id: str):
     stmt = (
         select(
-            models.TimeEntries.user_id,
-            func.sum(models.TimeEntries.duration),
+            models.TimeEntry.user_id,
+            func.sum(models.TimeEntry.duration),
         )
-        .where(models.TimeEntries.user_id == user_id)
-        .group_by(models.TimeEntries.user_id)
+        .where(models.TimeEntry.user_id == user_id)
+        .group_by(models.TimeEntry.user_id)
     )
     return db.execute(stmt).first()
 
 
 def get_games_played_time(db: Session):
     stmt = select(
-        models.TimeEntries.project_clockify_id, func.sum(models.TimeEntries.duration)
-    ).group_by(models.TimeEntries.project_clockify_id)
+        models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)
+    ).group_by(models.TimeEntry.project_clockify_id)
     result = db.execute(stmt)
     return result
 
 
-def get_game_played_time(db: Session, game):
-    stmt = select(
-        models.TimeEntries.project, func.sum(models.TimeEntries.duration)
-    ).where(models.TimeEntries.project == game)
-    result = db.execute(stmt)
-    return result
+# def get_game_played_time(db: Session, game):
+#     stmt = select(models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)).where(
+#         models.TimeEntry.project == game
+#     )
+#     result = db.execute(stmt)
+#     return result
 
 
-def get_user_games_played_time(db: Session, user_id: str) -> list[models.TimeEntries]:
+def get_user_games_played_time(db: Session, user_id: str) -> list[models.TimeEntry]:
     stmt = (
         select(
-            models.TimeEntries.project_clockify_id,
-            func.sum(models.TimeEntries.duration),
+            models.TimeEntry.project_clockify_id,
+            func.sum(models.TimeEntry.duration),
         )
-        .where(models.TimeEntries.user_id == user_id)
-        .group_by(models.TimeEntries.project_clockify_id)
+        .where(models.TimeEntry.user_id == user_id)
+        .group_by(models.TimeEntry.project_clockify_id)
     )
     return db.execute(stmt)
 
 
-def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntries]:
+def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntry]:
     if start_date is None:
-        return db.query(models.TimeEntries).order_by(models.TimeEntries.user_id)
+        return db.query(models.TimeEntry).order_by(models.TimeEntry.user_id)
     else:
         logger.info(start_date)
         return (
-            db.query(models.TimeEntries)
-            .filter(models.TimeEntries.start >= start_date)
-            .order_by(models.TimeEntries.user_id)
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.start >= start_date)
+            .order_by(models.TimeEntry.user_id)
         )
 
 
 def get_played_days(db: Session, user_id: int) -> list:
     played_days = []
     played_start_days = (
-        db.query(func.DATE(models.TimeEntries.start))
-        .filter(models.TimeEntries.user_id == user_id)
+        db.query(func.DATE(models.TimeEntry.start))
+        .filter(models.TimeEntry.user_id == user_id)
         .distinct()
     )
     for played_day in played_start_days:
         played_days.append(played_day[0])
     played_end_days = (
-        db.query(func.DATE(models.TimeEntries.end))
-        .filter(models.TimeEntries.user_id == user_id)
+        db.query(func.DATE(models.TimeEntry.end))
+        .filter(models.TimeEntry.user_id == user_id)
         .distinct()
     )
     for played_day in played_end_days:
@@ -98,7 +98,7 @@ def get_played_days(db: Session, user_id: int) -> list:
     return sorted(played_days)
 
 
-async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
+async def sync_clockify_entries_db(db: Session, user: models.User, entries):
     for entry in entries:
         if entry["projectId"] is None:
             continue
@@ -127,10 +127,14 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                 project = clockify_api.get_project_by_id(entry["projectId"])
                 game_name = project["name"]
                 new_game_info = await utils.get_new_game_info(project)
+                # logger.info("Checkpoint 1")
                 new_game = await games.new_game(db, new_game_info)
+                # logger.info("Checkpoint 2")
                 game_id = new_game.id
             # Check if player already plays the game
+            # logger.info("Checkpoint 3")
             already_playing = users.get_game_by_id(db, user.id, game_id)
+            # logger.info("Checkpoint 4")
             if not already_playing:
                 logger.info(
                     "USER NOT PLAYING GAME: " + game_name + " - " + str(game_id)
@@ -139,25 +143,24 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                     project_clockify_id=entry["projectId"], platform=platform
                 )
                 users.add_new_game(db, new_user_game, user)
+                already_playing = users.get_game_by_id(db, user.id, game_id)
             # TODO: revise if this else is needed and how to implement it properly
             elif platform is not None and already_playing.platform != platform:
                 stmt = (
-                    update(models.UsersGames)
-                    .where(models.UsersGames.id == already_playing.id)
+                    update(models.UserGame)
+                    .where(models.UserGame.id == already_playing.id)
                     .values(
                         platform=platform,
                     )
                 )
                 db.execute(stmt)
                 db.commit()
-            stmt = select(models.TimeEntries).where(
-                models.TimeEntries.id == entry["id"]
-            )
+            stmt = select(models.TimeEntry).where(models.TimeEntry.id == entry["id"])
             # Check if time entry already exists (to update it if needed)
             exists = db.execute(stmt).first()
             if not exists:
                 if end is not None:
-                    new_entry = models.TimeEntries(
+                    new_entry = models.TimeEntry(
                         id=entry["id"],
                         user_id=user.id,
                         user_clockify_id=user.clockify_id,
@@ -167,7 +170,7 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                         duration=utils.convert_clockify_duration(duration),
                     )
                 else:
-                    new_entry = models.TimeEntries(
+                    new_entry = models.TimeEntry(
                         id=entry["id"],
                         user_id=user.id,
                         user_clockify_id=user.clockify_id,
@@ -178,8 +181,8 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
             else:
                 if end is not None:
                     stmt = (
-                        update(models.TimeEntries)
-                        .where(models.TimeEntries.id == entry["id"])
+                        update(models.TimeEntry)
+                        .where(models.TimeEntry.id == entry["id"])
                         .values(
                             project_clockify_id=entry["projectId"],
                             start=start,
@@ -189,16 +192,15 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
                     )
                 else:
                     stmt = (
-                        update(models.TimeEntries)
-                        .where(models.TimeEntries.id == entry["id"])
+                        update(models.TimeEntry)
+                        .where(models.TimeEntry.id == entry["id"])
                         .values(
                             project_clockify_id=entry["projectId"],
                             start=start,
                         )
                     )
-
                 db.execute(stmt)
-                update_game = models.UsersGames(platform=platform)
+                update_game = models.UserGame(platform=platform)
                 users.update_game(db, update_game, already_playing.id)
             db.commit()
             # TODO: Check time achievements related to session
@@ -211,6 +213,6 @@ async def sync_clockify_entries_db(db: Session, user: models.Users, entries):
     # return
 
 
-def get_all_played_games(db: Session):
-    stmt = select(models.TimeEntries.project, models.TimeEntries.project_id)
-    return db.execute(stmt)
+# def get_all_played_games(db: Session):
+#     stmt = select(models.TimeEntry.project, models.TimeEntry.project_id)
+#     return db.execute(stmt)

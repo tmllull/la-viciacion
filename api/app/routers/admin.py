@@ -32,7 +32,7 @@ def get_db():
 
 @router.get("/")
 @version(1)
-def test_endpoint(user: models.Users = Security(auth.get_current_active_user)):
+def test_endpoint(user: models.User = Security(auth.get_current_active_user)):
     """
     Test endpoint
     """
@@ -90,7 +90,7 @@ async def sync_data(
 @version(1)
 def update_user(
     user_data: schemas.UserUpdate,
-    user: models.Users = Security(auth.get_current_active_user),
+    user: models.User = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """

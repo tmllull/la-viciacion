@@ -78,7 +78,6 @@ class BasicRoutes:
     async def menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info(update.message.from_user.username + " has started conversation...")
         user = utils.check_valid_chat(update)
-        logger.info(user)
         # logger.info(update.message.from_user.username + " exists on DB")
         if user:
             if user["is_active"]:
@@ -87,7 +86,7 @@ class BasicRoutes:
                 context.user_data["user"] = tg_info.first_name
                 context.user_data["user_id"] = tg_info.id
                 context.user_data["is_admin"] = user["is_admin"]
-                logger.info("User " + tg_info.username + " started the conversation.")
+                # logger.info("User " + tg_info.username + " started the conversation.")
                 if context.user_data["is_admin"]:
                     keyboard = kb.ADMIN_MENU
                 else:

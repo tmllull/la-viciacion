@@ -45,14 +45,6 @@ class RankingStatisticsTypes(str, Enum):
     last_played = "last_played"
 
 
-class UserStatisticsTypes(str, Enum):
-    played_games = "played_games"
-    completed_games = "completed_games"
-    top_games = "top_games"
-    achievements = "achievements"
-    streak = "streak"
-
-
 @router.get(
     "/rankings",
     # response_model=list[schemas.RankingsResponse],
@@ -109,20 +101,40 @@ def get_ranking_statistics(
     return response
 
 
+class UserStatisticsTypes(str, Enum):
+    played_games = "played_games"
+    completed_games = "completed_games"
+    top_games = "top_games"
+    achievements = "achievements"
+    streak = "streak"
+
+
 @router.get("/users")
 @version(1)
 def get_user_statistics(
     ranking: str = None,
     db: Session = Depends(get_db),
 ):
-    if ranking == UserStatisticsTypes.played_games:
-        return {"message": "TBI"}
-    if ranking == UserStatisticsTypes.completed_games:
-        return {"message": "TBI"}
-    if ranking == UserStatisticsTypes.top_games:
-        return {"message": "TBI"}
-    if ranking == UserStatisticsTypes.achievements:
-        return {"message": "TBI"}
-    if ranking == UserStatisticsTypes.streak:
-        return {"message": "TBI"}
-    return {"message": "TBI"}
+    if ranking is not None:
+        rankings_list = ranking.split(",")
+    else:
+        rankings_list = [elem.value for elem in UserStatisticsTypes]
+    response = []
+    for ranking_type in rankings_list:
+        content = {}
+        if ranking_type == UserStatisticsTypes.played_games:
+            data = {"message": "TBI"}
+        elif ranking_type == UserStatisticsTypes.completed_games:
+            data = {"message": "TBI"}
+        elif ranking_type == UserStatisticsTypes.top_games:
+            data = {"message": "TBI"}
+        elif ranking_type == UserStatisticsTypes.achievements:
+            data = {"message": "TBI"}
+        elif ranking_type == UserStatisticsTypes.streak:
+            data = {"message": "TBI"}
+        else:
+            data = {"message": ranking_type + " is not a valid ranking"}
+        content["type"] = ranking_type
+        content["data"] = data
+        response.append(content)
+    return response

@@ -54,9 +54,9 @@ async def login(
     return await login_for_access_token(form_data, db)
 
 
-@router.post("/register")
+@router.post("/signup")
 @version(1)
-def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if user.invitation_key != config.INVITATION_KEY:
         raise HTTPException(status_code=400, detail="Invalid invitation key")
     db_user = users.get_user_by_username(db, username=user.username)

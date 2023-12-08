@@ -87,6 +87,29 @@ class UserStatistics(Base):
     best_streak_date = Column(Date)
     played_days = Column(Integer)
     unplayed_streak = Column(Integer)
+    played_games = Column(Integer)
+    completed_games = Column(Integer)
+
+    # games = relationship("UsersGames", back_populates="user")
+    # ranking = relationship("RankingUsers", back_populates="user")
+    # time_entries = relationship("RankingUsers", back_populates="user")
+
+    __table_args__ = (UniqueConstraint("user_id"),)
+
+
+class UserHistorical(Base):
+    __tablename__ = "users_historical"
+
+    user_id = Column(Integer, primary_key=True)
+    played_time = Column(Integer)
+    current_ranking_hours = Column(Integer)
+    current_streak = Column(Integer)
+    best_streak = Column(Integer)
+    best_streak_date = Column(Date)
+    played_days = Column(Integer)
+    unplayed_streak = Column(Integer)
+    played_games = Column(Integer)
+    completed_games = Column(Integer)
 
     # games = relationship("UsersGames", back_populates="user")
     # ranking = relationship("RankingUsers", back_populates="user")
@@ -152,8 +175,42 @@ class GameStatistics(Base):
     __table_args__ = (UniqueConstraint("game_id"),)
 
 
+class GameHistorical(Base):
+    __tablename__ = "games_historical"
+
+    game_id = Column(Integer, primary_key=True, autoincrement=True)
+    played_time = Column(Integer)
+    avg_time = Column(Integer)
+
+    # users = relationship("UsersGames", back_populates="game")
+    # time_entries = relationship("TimeEntries", back_populates="game")
+
+    __table_args__ = (UniqueConstraint("game_id"),)
+
+
 class UserGame(Base):
     __tablename__ = "users_games"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer)
+    game_id = Column(Integer)
+    project_clockify_id = Column(String(255))
+    started_date = Column(Date)
+    platform = Column(String(255))
+    completed = Column(Integer)
+    completed_date = Column(Date)
+    score = Column(Float)
+    played_time = Column(Integer)
+    completion_time = Column(Integer)
+
+    # user = relationship("Users", back_populates="games")
+    # game = relationship("GamesInfo", back_populates="users")
+
+    __table_args__ = (UniqueConstraint("user_id", "game_id", "platform"),)
+
+
+class UserGameHistorical(Base):
+    __tablename__ = "users_games_historical"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer)
@@ -192,6 +249,17 @@ class UserAchievement(Base):
     achievement_id = Column(Integer)
     date = Column(Date)
     __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
+
+
+class UserAchievementHistorical(Base):
+    __tablename__ = "users_achievements_historical"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user = Column(String(255))
+    user_id = Column(Integer)
+    achievement_id = Column(Integer)
+    date = Column(Date)
+    __table_args__ = (UniqueConstraint("user_id", "achievement_id", "date"),)
 
 
 class TimeEntry(Base):

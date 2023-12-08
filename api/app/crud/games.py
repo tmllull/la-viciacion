@@ -41,17 +41,12 @@ def get_game_by_clockify_id(db: Session, id: str) -> models.Game:
 
 async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
     logger.info("Adding new game to DB: " + game.name)
-    game_info = await utils.get_new_game_info(game.name)
+    # game_info = await utils.get_new_game_info(game.name)
     if game.clockify_id is None or not utils.check_hex(game.clockify_id):
-        logger.info("No clockify ID...")
-        exists_on_clockify = clockify.get_project_by_name(game_info.name)
-        if len(exists_on_clockify) == 0:
-            logger.info("Game not exists on Clockify. Creating new project...")
-            clockify_id = clockify.add_project(game_info.name)["id"]
-            # new_game = {"name": game.name, "id": clockify_id}
-            # logger.info(game_info)
-        else:
-            clockify_id = exists_on_clockify[0]["id"]
+        logger.info("No clockify ID. Adding to clockify...")
+        clockify_id = clockify.add_project(game.name)["id"]
+        new_game = {"name": game.name, "id": clockify_id}
+        game_info = await utils.get_new_game_info(new_game)
         game_to_add = models.Game(
             name=game_info.name,
             dev=game_info.dev,

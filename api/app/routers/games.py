@@ -85,13 +85,8 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     """
     Create new game
     """
-    if game.clockify_id is None:
-        check_new_game = await utils.get_new_game_info(game.name)
-        name = check_new_game.name
-    else:
-        name = game.name
-    games_db = games.get_game_by_name(db, name)
+    games_db = games.get_game_by_name(db, game.name)
     for game_db in games_db:
-        if game_db.name == name:
+        if game_db.name == game.name:
             raise HTTPException(status_code=400, detail="Game already in DB")
     return await games.new_game(db=db, game=game)

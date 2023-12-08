@@ -39,13 +39,12 @@ async def sync_data(
         config.silent = True
     clockify.sync_clockify_tags(db)
     users_db = users.get_users(db)
-    logger.info("Total users: " + str(users_db.count()))
     logger.info("Sync clockify entries...")
     for user in users_db:
-        logger.info(user)
-        logger.info("##################")
-        logger.info("#### " + user.name + " ####")
-        logger.info("##################")
+        if user.name is not None:
+            logger.info("####" + user.name + "####")
+        else:
+            logger.info("####" + user.username + "####")
         total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
         if total_entries < 1:
             logger.info(user.name + " not played in the last 24h")

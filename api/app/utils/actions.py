@@ -41,6 +41,7 @@ async def sync_data(
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:
+        users.create_user_statistics(db, user.id)
         if user.name is not None and user.name != "":
             user_name = str(user.name)
         else:
@@ -286,14 +287,14 @@ async def ranking_players_hours(db: Session):
                 + ")"
                 + "\n"
             )
-            users.update_current_ranking_hours(db, i + 1, player.id)
+            users.update_current_ranking_hours(db, i + 1, player.user_id)
             if not config.silent:
                 logger.info(msg)
                 await utils.send_message(msg)
         logger.info(msg)
     logger.info("Updating players ranking...")
-    most_played = users.current_ranking_hours(db)
+    current_ranking = users.current_ranking_hours(db)
     i = 1
-    for user in most_played:
-        users.update_current_ranking_hours(db, i, user.id)
+    for user in current_ranking:
+        users.update_current_ranking_hours(db, i, user.user_id)
         i += 1

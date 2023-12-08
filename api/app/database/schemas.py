@@ -20,7 +20,7 @@ class User(UserBase):
     is_admin: Union[int, None] = 0
     email: Union[str, None] = None
     is_active: Union[int, None] = 0
-    played_time: Union[int, None] = 0
+    # played_time: Union[int, None] = 0
     clockify_id: Union[str, None] = None
     # current_ranking_hours: Union[int, None] = None
     # current_streak: Union[int, None] = 0

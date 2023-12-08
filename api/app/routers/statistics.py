@@ -80,15 +80,15 @@ def get_ranking_statistics(
         if ranking_type == RankingStatisticsTypes.hours:
             data = rankings.user_hours_players(db)
         elif ranking_type == RankingStatisticsTypes.days:
-            data = rankings.user_days_players(db)
+            data = rankings.user_days_played(db)
         elif ranking_type == RankingStatisticsTypes.user_played_games:
             data = rankings.user_played_games(db)
         elif ranking_type == RankingStatisticsTypes.completed_games:
             data = rankings.user_completed_games(db)
         elif ranking_type == RankingStatisticsTypes.achievements:
-            data = [{"message": "Achievements is nos implemented yet"}]
+            data = [{"message": "Achievements is not implemented yet"}]
         elif ranking_type == RankingStatisticsTypes.ratio:
-            data = [{"message": "Ratio is nos implemented yet"}]
+            data = [{"message": "Ratio is not implemented yet"}]
         elif ranking_type == RankingStatisticsTypes.current_streak:
             data = rankings.user_current_streak(db)
         elif ranking_type == RankingStatisticsTypes.best_streak:
@@ -98,7 +98,7 @@ def get_ranking_statistics(
         elif ranking_type == RankingStatisticsTypes.platform_played:
             data = rankings.platform_played_games(db)
         elif ranking_type == RankingStatisticsTypes.debt:
-            data = [{"message": "Debt is nos implemented yet"}]
+            data = [{"message": "Debt is not implemented yet"}]
         elif ranking_type == RankingStatisticsTypes.last_played:
             data = rankings.games_last_played(db)
         else:

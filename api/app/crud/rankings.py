@@ -24,9 +24,12 @@ def user_hours_players(db: Session, limit: int = None) -> list[models.User]:
             select(
                 (models.User.id).label("user_id"),
                 models.User.name,
-                models.User.played_time,
+                models.UserStatistics.played_time,
             )
-            .order_by(desc(models.User.played_time))
+            .join(
+                models.UserStatistics, models.User.id == models.UserStatistics.user_id
+            )
+            .order_by(desc(models.UserStatistics.played_time))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -34,20 +37,24 @@ def user_hours_players(db: Session, limit: int = None) -> list[models.User]:
         logger.info(e)
 
 
-def user_days_players(db: Session, limit: int = None) -> list[models.User]:
+def user_days_played(db: Session, limit: int = None) -> list[models.User]:
     try:
         stmt = (
             select(
                 (models.User.id).label("user_id"),
                 models.User.name,
-                models.User.played_days,
+                models.UserStatistics.played_days,
             )
-            .order_by(desc(models.User.played_days))
+            .join(
+                models.UserStatistics, models.User.id == models.UserStatistics.user_id
+            )
+            # .group_by(models.User.id, models.User.name)
+            .order_by(desc(models.UserStatistics.played_days))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
     except Exception as e:
-        logger.info(e)
+        logger.info("Error getting user days player: " + str(e))
         raise e
 
 
@@ -57,9 +64,14 @@ def user_best_streak(db: Session, limit: int = None):
             select(
                 (models.User.id).label("user_id"),
                 models.User.name,
-                models.User.best_streak,
+                models.UserStatistics.best_streak,
+                models.UserStatistics.best_streak_date,
             )
-            .order_by(desc(models.User.best_streak))
+            .join(
+                models.UserStatistics, models.User.id == models.UserStatistics.user_id
+            )
+            # .group_by(models.User.id, models.User.name)
+            .order_by(desc(models.UserStatistics.best_streak))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -74,9 +86,13 @@ def user_current_streak(db: Session, limit: int = None):
             select(
                 (models.User.id).label("user_id"),
                 models.User.name,
-                models.User.current_streak,
+                models.UserStatistics.current_streak,
             )
-            .order_by(desc(models.User.current_streak))
+            .join(
+                models.UserStatistics, models.User.id == models.UserStatistics.user_id
+            )
+            # .group_by(models.User.id, models.User.name)
+            .order_by(desc(models.UserStatistics.current_streak))
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
@@ -88,10 +104,10 @@ def user_current_streak(db: Session, limit: int = None):
 def user_ranking_achievements(db: Session, limit: int = None):
     return (
         db.query(
-            models.UserAchievements.user_id, func.count(models.UserAchievements.user_id)
+            models.UserAchievement.user_id, func.count(models.UserAchievement.user_id)
         )
-        .group_by(models.UserAchievements.user_id)
-        .order_by(func.count(models.UserAchievements.user_id).desc())
+        .group_by(models.UserAchievement.user_id)
+        .order_by(func.count(models.UserAchievement.user_id).desc())
         .limit(limit)
     )
 
@@ -177,6 +193,25 @@ def user_last_played_games(db: Session, limit: int = None):
 
 
 def games_most_played(db: Session, limit: int = 10):
+    try:
+        stmt = (
+            select(
+                (models.Game.id).label("game_id"),
+                models.Game.name,
+                models.GameStatistics.played_time,
+            )
+            .join(
+                models.GameStatistics, models.Game.id == models.GameStatistics.game_id
+            )
+            # .group_by(models.User.id, models.User.name)
+            .order_by(desc(models.GameStatistics.played_time))
+            .limit(limit)
+        )
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.info(e)
+        raise e
+
     stmt = (
         select(models.Game.name, models.Game.played_time)
         .order_by(desc(models.Game.played_time))
@@ -191,12 +226,12 @@ def platform_played_games(db: Session, limit: int = None):
         stmt = (
             select(
                 (models.UserGame.platform).label("tag_id"),
-                models.ClockifyTags.name,
+                models.ClockifyTag.name,
                 func.count(models.UserGame.platform),
             )
             .join(
-                models.ClockifyTags,
-                models.UserGame.platform == models.ClockifyTags.id,
+                models.ClockifyTag,
+                models.UserGame.platform == models.ClockifyTag.id,
             )
             .group_by(models.UserGame.platform)
             .order_by(func.count(models.UserGame.platform).desc())

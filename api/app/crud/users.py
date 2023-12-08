@@ -113,14 +113,37 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-
-        return (
-            db.query(models.User).filter(models.User.username == user.username).first()
+        user_statistics = models.UserStatistics(
+            user_id=db_user.id, current_ranking_hours=1000
         )
+        db.add(user_statistics)
+        db.commit()
+        db.refresh(user_statistics)
+        return db_user
+
+        # return (
+        #     db.query(models.User).filter(models.User.username == user.username).first()
+        # )
     except SQLAlchemyError as e:
         db.rollback()
         logger.info("Error creating user: " + str(e))
         raise
+
+
+def create_user_statistics(db: Session, user_id: id):
+    try:
+        user_statistics = models.UserStatistics(
+            user_id=user_id, current_ranking_hours=1000
+        )
+        db.add(user_statistics)
+        db.commit()
+        db.refresh(user_statistics)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        if "Duplicate" not in str(e):
+            logger.info("Error creating user statistics: " + str(e))
+            raise e
 
 
 def update_user(db: Session, user: schemas.UserUpdate):

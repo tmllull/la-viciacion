@@ -41,13 +41,14 @@ async def sync_data(
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:
-        if user.name is not None:
-            logger.info("####" + user.name + "####")
+        if user.name is not None and user.name != "":
+            user_name = str(user.name)
         else:
-            logger.info("####" + user.username + "####")
+            user_name = str(user.username)
+        logger.info("#### " + str(user_name) + " ####")
         total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
         if total_entries < 1:
-            logger.info(user.name + " not played in the last 24h")
+            logger.info(str(user_name) + " not played in the last 24h")
             continue
         logger.info("Updating played days...")
         played_days = time_entries.get_played_days(db, user.id)

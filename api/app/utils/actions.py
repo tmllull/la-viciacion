@@ -37,6 +37,7 @@ async def sync_data(
     if sync_all:
         start_date = config.START_DATE
         config.silent = True
+        config.sync_all = True
     clockify.sync_clockify_tags(db)
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")

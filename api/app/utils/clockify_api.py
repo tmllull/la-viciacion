@@ -64,6 +64,16 @@ class ClockifyApi:
         )
         return response.json()
 
+    def get_project_by_name(self, project_name) -> json:
+        method = self.GET
+        endpoint = "/workspaces/{}/projects?name={}&strict-name-search=true".format(
+            config.CLOCKIFY_WORKSPACE, project_name
+        )
+        response = self.send_clockify_request(
+            method, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
+        )
+        return response.json()
+
     def get_project_id_by_strict_name(self, game_name, api_key):
         if api_key is None:
             return self.API_USER_NOT_ADDED

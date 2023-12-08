@@ -113,12 +113,19 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        user_statistics = models.UserStatistics(
-            user_id=db_user.id, current_ranking_hours=1000
-        )
-        db.add(user_statistics)
-        db.commit()
-        db.refresh(user_statistics)
+        try:
+            user_statistics = models.UserStatistics(
+                user_id=db_user.id, current_ranking_hours=1000
+            )
+            db.add(user_statistics)
+            db.commit()
+        except Exception as e:
+            if "Duplicate" not in str(e):
+                #     db.rollback()
+                # else:
+                logger.info("Error adding new game statistics: " + str(e))
+                raise e
+        # db.refresh(user_statistics)
         return db_user
 
         # return (

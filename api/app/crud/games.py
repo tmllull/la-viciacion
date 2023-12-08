@@ -2,6 +2,7 @@ import datetime
 from typing import Union
 
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..database import models, schemas
@@ -29,7 +30,7 @@ def get_game_by_name(db: Session, name: str) -> list[models.Game]:
 
 
 def get_game_by_id(db: Session, game_id: int) -> models.Game:
-    logger.info("Searching game by id: " + str(game_id))
+    # logger.info("Searching game by id: " + str(game_id))
     return db.query(models.Game).filter(models.Game.id == game_id).first()
 
 
@@ -40,12 +41,17 @@ def get_game_by_clockify_id(db: Session, id: str) -> models.Game:
 
 async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
     logger.info("Adding new game to DB: " + game.name)
+    game_info = await utils.get_new_game_info(game.name)
     if game.clockify_id is None or not utils.check_hex(game.clockify_id):
-        logger.info("No clockify ID. Adding to clockify...")
-        clockify_id = clockify.add_project(game.name)["id"]
-        new_game = {"name": game.name, "id": clockify_id}
-        game_info = await utils.get_new_game_info(new_game)
-        # logger.info(game_info)
+        logger.info("No clockify ID...")
+        exists_on_clockify = clockify.get_project_by_name(game_info.name)
+        if len(exists_on_clockify) == 0:
+            logger.info("Game not exists on Clockify. Creating new project...")
+            clockify_id = clockify.add_project(game_info.name)["id"]
+            # new_game = {"name": game.name, "id": clockify_id}
+            # logger.info(game_info)
+        else:
+            clockify_id = exists_on_clockify[0]["id"]
         game_to_add = models.Game(
             name=game_info.name,
             dev=game_info.dev,
@@ -54,7 +60,7 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
             release_date=game_info.release_date,
             clockify_id=clockify_id,
             genres=game_info.genres,
-            # avg_time=game_info.avg_time,
+            avg_time=game_info.avg_time,
             # current_ranking=1000000000,
         )
     else:
@@ -66,26 +72,50 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
             release_date=game.release_date,
             clockify_id=game.clockify_id,
             genres=game.genres,
-            # avg_time=game.avg_time,
+            avg_time=game.avg_time,
             # current_ranking=1000000000,
         )
     try:
         db.add(game_to_add)
         db.commit()
         db.refresh(game_to_add)
+        game_added = game_to_add
+        try:
+            game_statistics = models.GameStatistics(
+                game_id=game_added.id, current_ranking=100000000
+            )
+            db.add(game_statistics)
+            db.commit()
+            # db.refresh(game_statistics)
+        except Exception as e:
+            db.rollback()
+            if "Duplicate" not in str(e):
+                # else:
+                logger.info("Error adding new game statistics: " + str(e))
+                raise e
+        return game_added
+    except Exception as e:
+        db.rollback()
+        if "Duplicate" not in str(e):
+            # db.rollback()
+            # else:
+            logger.info("Error adding new game: " + str(e))
+            raise e
+
+
+def create_game_statistics(db: Session, game_id: int):
+    try:
         game_statistics = models.GameStatistics(
-            game_id=game_to_add.id, current_ranking=100000000
+            game_id=game_id, current_ranking=1000000
         )
         db.add(game_statistics)
         db.commit()
         db.refresh(game_statistics)
-        return game_to_add
-    except Exception as e:
+
+    except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            #     db.rollback()
-            # else:
-            logger.info("Error adding new game: " + str(e))
+            logger.info("Error creating user statistics: " + str(e))
             raise e
 
 

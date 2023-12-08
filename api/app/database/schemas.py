@@ -80,7 +80,7 @@ class Game(BaseModel):
     image_url: Union[str, None] = None
     genres: Union[str, None] = None
     # played_time: Union[int, None] = 0
-    # avg_time: Union[int, None] = 0
+    avg_time: Union[int, None] = 0
     # current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
 

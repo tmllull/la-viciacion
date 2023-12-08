@@ -82,17 +82,17 @@ def date_from_datetime(datetime: str):
     return datetime.split(" ")[0]
 
 
-async def get_game_info(game):
+async def get_game_info(game_name):
     # Rawg
-    game_request = requests.get(config.RAWG_URL + game)
+    game_request = requests.get(config.RAWG_URL + game_name)
     try:
         rawg_content = json.loads(game_request.content)["results"][0]
     except Exception:
         rawg_content = None
     # HLTB
-    game = game.replace(":", "")
-    game = game.replace("/", "")
-    results_list = await HowLongToBeat().async_search(game)
+    game_name = game_name.replace(":", "")
+    game_name = game_name.replace("/", "")
+    results_list = await HowLongToBeat().async_search(game_name)
     if results_list is not None and len(results_list) > 0:
         best_element = max(results_list, key=lambda element: element.similarity)
         hltb_content = best_element.json_content
@@ -102,9 +102,8 @@ async def get_game_info(game):
     return {"rawg": rawg_content, "hltb": hltb_content}
 
 
-async def get_new_game_info(game) -> schemas.NewGame:
-    game_name = game["name"]
-    project_id = game["id"]
+async def get_new_game_info(game_name: str) -> schemas.NewGame:
+    # project_id = game["id"]
     released = ""
     genres = ""
     steam_id = ""
@@ -142,7 +141,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
         image_url=image_url,
         genres=genres,
         avg_time=avg_time,
-        clockify_id=project_id,
+        # clockify_id=project_id,
     )
     return new_game
 

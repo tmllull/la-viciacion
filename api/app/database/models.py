@@ -128,7 +128,7 @@ class Game(Base):
     image_url = Column(String(255))
     genres = Column(String(255))
     # played_time = Column(Integer)
-    # avg_time = Column(Integer)
+    avg_time = Column(Integer)
     # current_ranking = Column(Integer)
     clockify_id = Column(String(255))
 

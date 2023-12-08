@@ -4,6 +4,7 @@ from typing import Union
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
+from ..config import Config
 from ..database import models, schemas
 from ..utils import actions
 from ..utils import actions as actions
@@ -13,6 +14,7 @@ from ..utils.clockify_api import ClockifyApi
 from . import clockify, games, users
 
 clockify_api = ClockifyApi()
+config = Config()
 
 
 def get_users_played_time(db: Session):
@@ -127,14 +129,14 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 project = clockify_api.get_project_by_id(entry["projectId"])
                 game_name = project["name"]
                 new_game_info = await utils.get_new_game_info(project)
-                # logger.info("Checkpoint 1")
                 new_game = await games.new_game(db, new_game_info)
-                # logger.info("Checkpoint 2")
                 game_id = new_game.id
+            # Add game to GameStatistics (if needed)
+            games.create_game_statistics(db, game_id)
             # Check if player already plays the game
-            # logger.info("Checkpoint 3")
-            already_playing = users.get_game_by_id(db, user.id, game_id)
             # logger.info("Checkpoint 4")
+            already_playing = users.get_game_by_id(db, user.id, game_id)
+            # logger.info("Checkpoint 5")
             if not already_playing:
                 logger.info(
                     "USER NOT PLAYING GAME: " + game_name + " - " + str(game_id)

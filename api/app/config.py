@@ -50,3 +50,4 @@ class Config:
             self.CORS_ORIGINS = json.loads(os.environ["CORS_ORIGINS"])
 
         self.silent = False
+        self.sync_all = False

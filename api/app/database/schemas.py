@@ -79,9 +79,9 @@ class Game(BaseModel):
     steam_id: Union[str, None] = None
     image_url: Union[str, None] = None
     genres: Union[str, None] = None
-    played_time: Union[int, None] = 0
-    avg_time: Union[int, None] = 0
-    current_ranking: Optional[Union[int, None]] = 10000000
+    # played_time: Union[int, None] = 0
+    # avg_time: Union[int, None] = 0
+    # current_ranking: Optional[Union[int, None]] = 10000000
     clockify_id: Union[str, None] = None
 
     class Config:

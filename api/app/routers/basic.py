@@ -80,7 +80,16 @@ async def login_for_access_token(
         )
     access_token_expires = timedelta(minutes=int(config.ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = auth.create_access_token(
-        data={"username": user.username, "is_admin": user.is_admin},
+        data={
+            "id": user.id,
+            "username": user.username,
+            "name": user.name,
+            "email": user.email,
+            "telegram_id": user.telegram_id,
+            "clockify_id": user.clockify_id,
+            "is_admin": user.is_admin,
+            "is_active": user.is_active,
+        },
         expires_delta=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}

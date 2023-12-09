@@ -13,13 +13,18 @@ env VITE_API_URL=$API_URL
 COPY src/ src/
 COPY vite.config.js .
 COPY index.html .
-
-RUN ls -la
+COPY postcss.config.cjs .
+COPY tailwind.config.js .
 
 RUN npm run build
 
 # Stage 2 - Running image
-FROM nginx
-
-COPY --from=build-stage /usr/src/app/dist /usr/share/nginx/html
+FROM nginx:1.25-alpine
+COPY --from=build-stage --chown=nginx /usr/src/app/dist /usr/share/nginx/html
+COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./config/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY public/ /usr/share/nginx/html/public/
+
+USER nginx
+EXPOSE 3000
+CMD ["nginx", "-g", "daemon off;"]

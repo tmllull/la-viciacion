@@ -42,6 +42,10 @@ def convert_hours_minutes_to_seconds(time) -> int:
     return time * 3600
 
 
+def convert_date_from_text(date: str):
+    return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+
+
 def change_timezone_clockify(time) -> str:
     date_time = isoparse(time)
     spain_timezone = pytz.timezone("Europe/Madrid")

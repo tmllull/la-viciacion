@@ -172,7 +172,12 @@ class ClockifyApi:
                         entries.append(entry)
                 else:
                     has_entries = False
-            return entries
+
+            def get_date(elem):
+                return datetime.datetime.fromisoformat(elem["timeInterval"]["start"])
+
+            ordered_entries = sorted(entries, key=get_date)
+            return ordered_entries
         except Exception as e:
             logger.info("Error getting time entries: " + str(e))
             raise e

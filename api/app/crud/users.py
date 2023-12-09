@@ -3,8 +3,7 @@ import json
 from typing import Union
 
 import bcrypt
-from sqlalchemy import (asc, create_engine, desc, func, or_, select, text,
-                        update)
+from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -252,10 +251,14 @@ def get_avatar(db: Session, username: str):
 
 
 def add_new_game(
-    db: Session, game: schemas.NewGameUser, user: models.User
+    db: Session, game: schemas.NewGameUser, user: models.User, start_date: str = None
 ) -> models.UserGame:
     logger.info("Adding new user game...")
     try:
+        if start_date is None:
+            started_date = datetime.datetime.now()
+        else:
+            started_date = utils.convert_date_from_text(start_date)
         game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
         user_game = models.UserGame(
             user_id=user.id,
@@ -263,7 +266,7 @@ def add_new_game(
             game_id=game_db.id,
             project_clockify_id=game_db.clockify_id,
             platform=game.platform,
-            started_date=datetime.datetime.now(),
+            started_date=started_date,
         )
         db.add(user_game)
         db.commit()

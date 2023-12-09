@@ -144,7 +144,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 new_user_game = schemas.NewGameUser(
                     project_clockify_id=entry["projectId"], platform=platform
                 )
-                users.add_new_game(db, new_user_game, user)
+                users.add_new_game(db, new_user_game, user, start)
                 already_playing = users.get_game_by_id(db, user.id, game_id)
             # TODO: revise if this else is needed and how to implement it properly
             elif platform is not None and already_playing.platform != platform:

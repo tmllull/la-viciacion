@@ -244,7 +244,6 @@ class UserAchievement(Base):
     __tablename__ = "users_achievements"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user = Column(String(255))
     user_id = Column(Integer)
     achievement_id = Column(Integer)
     date = Column(Date)
@@ -255,7 +254,6 @@ class UserAchievementHistorical(Base):
     __tablename__ = "users_achievements_historical"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user = Column(String(255))
     user_id = Column(Integer)
     achievement_id = Column(Integer)
     date = Column(Date)

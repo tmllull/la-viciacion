@@ -16,9 +16,8 @@ import EmptyContent from '/src/components/common/EmptyContent';
  * @param {...commonReducerData} data - Redux common reducer data object.
  * @param {function} renderItem - Function called to render each element on the list.
  * @param {function} loadPage - Function called when the trigger to load more data is reached.
- * @param {Object} options - An object containing additional options.
- * @param {string} options.title - Title to be shown on the top of the list.
- * @param {string} options.emptyContent
+ * @param {string} title - Title to be shown on the top of the list.
+ * @param {string} emptyContent
  * @returns {React.JSX.Element|*|null}
  * @constructor
  */
@@ -26,10 +25,8 @@ export default function AsyncListContainer({
     data,
     renderItem,
     loadPage,
-    options: {
-        title = 'This title needs to change',
-        emptyContent,
-    } = {},
+    title = 'This title needs to change',
+    emptyContent,
 }) {
     // const [spying, setSpying] = useState(false);
     // const [page, setPage] = useState(false)

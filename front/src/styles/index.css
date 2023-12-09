@@ -1,0 +1,12 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import "components/loader";
+@import "pages/loader";
+
+
+.main-container {
+    height: 100vh;
+    overflow-y: auto;
+}

@@ -18,4 +18,9 @@ export default defineConfig({
             src: 'src',
         },
     },
+    define: {
+        // By default, Vite doesn't include shims for NodeJS/
+        // necessary dark-mode to work for some reason I don't understand
+        global: {},
+    },
 });

@@ -161,9 +161,9 @@ def update_user(db: Session, user: schemas.UserUpdate):
         name = user.name if user.name is not None else db_user.name
         # username = user.username if user.username is not None else db_user.username
         email = user.email if user.email is not None else db_user.email
-        telegram_id = (
-            user.telegram_id if user.telegram_id is not None else db_user.telegram_id
-        )
+        # telegram_id = (
+        #     user.telegram_id if user.telegram_id is not None else db_user.telegram_id
+        # )
         is_admin = user.is_admin if user.is_admin is not None else db_user.is_admin
         is_active = user.is_active if user.is_active is not None else db_user.is_active
         clockify_id = (
@@ -181,7 +181,7 @@ def update_user(db: Session, user: schemas.UserUpdate):
             update(models.User)
             .where(models.User.username == user.username)
             .values(
-                telegram_id=telegram_id,
+                # telegram_id=telegram_id,
                 name=name,
                 email=email,
                 is_admin=is_admin,

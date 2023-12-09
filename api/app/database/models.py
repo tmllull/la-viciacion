@@ -55,7 +55,7 @@ class User(Base):
     name = Column(String(255))
     username = Column(String(255))
     password = Column(String(255))
-    telegram_id = Column(BigInteger)
+    # telegram_id = Column(BigInteger)
     clockify_id = Column(String(255))
     email = Column(String(255))
     is_admin = Column(Integer)

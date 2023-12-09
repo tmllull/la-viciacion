@@ -96,7 +96,7 @@ class MyUtils:
     def check_valid_chat(self, update: Update) -> bool:
         try:
             username = update.message.from_user.username
-            user_id = update.message.from_user.id
+            # user_id = update.message.from_user.id
             chat_id = update.message.chat_id
             if chat_id < 0:
                 if chat_id != config.TELEGRAM_GROUP_ID:
@@ -106,10 +106,10 @@ class MyUtils:
             url = config.API_URL + "/users/" + username
             response = self.make_request("GET", url)
             if response.status_code == 200:
-                user = {"username": username, "telegram_id": user_id}
-                url = config.API_URL + "/users"
-                response = self.make_request("PUT", url, json=user)
-                logger.info(response.json())
+                # user = {"username": username, "telegram_id": user_id}
+                # url = config.API_URL + "/users"
+                # response = self.make_request("PUT", url, json=user)
+                # logger.info(response.json())
                 return response.json()
             else:
                 logger.info("Error on request to check valid chat!")

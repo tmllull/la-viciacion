@@ -8,6 +8,8 @@ COPY yarn.lock .
 
 RUN yarn install
 
+env VITE_API_URL=$API_URL
+
 COPY src/ src/
 COPY vite.config.js .
 COPY index.html .

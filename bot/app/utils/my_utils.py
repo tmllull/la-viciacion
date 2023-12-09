@@ -151,11 +151,8 @@ class MyUtils:
         await self.reply_message(update, context, chat_id)
 
     async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if self.check_valid_chat(update):
-            msg = msgs.command_list
-            await self.reply_message(update, context, msg)
-        else:
-            await self.reply_message(update, context, msgs.forbidden)
+        msg = msgs.command_list
+        await self.reply_message(update, context, msg)
 
     def convert_time_to_hours(self, seconds):
         if seconds is None:

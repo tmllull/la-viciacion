@@ -79,6 +79,18 @@ class ClockifyApi:
         )
         return response.json()
 
+    def update_project_name(self, project_id, project_name):
+        # /workspaces/{workspaceId}/projects/{projectId}
+        logger.info("Updating clockify name project")
+        data = {"name": project_name}
+        response = self.send_clockify_request(
+            "PUT",
+            "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/projects/" + project_id,
+            data,
+            config.CLOCKIFY_ADMIN_API_KEY,
+        )
+        return response.json()
+
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
         method = None
         data = None
@@ -165,8 +177,31 @@ class ClockifyApi:
             logger.info("Error getting time entries: " + str(e))
             raise e
 
-    def add_time_entry(self, player, date, time):
+    def update_time_entry():
+        # /workspaces/{workspaceId}/time-entries/{id}
         return
+
+    def create_time_entry(
+        self, user_api_key, project_id, platform, start_date=None, end_date=None
+    ):
+        # /workspaces/{workspaceId}/time-entries
+        if start_date is None or end_date is None:
+            start_date = ""
+            end_date = ""
+        data = {
+            "description": "string",
+            "end": end_date,
+            "projectId": project_id,
+            "start": start_date,
+            "tagIds": [platform],
+        }
+        response = self.send_clockify_request(
+            "POST",
+            "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/time-entries",
+            data,
+            user_api_key,
+        )
+        return response.json()
 
     def get_tags(self):
         response = self.send_clockify_request(

@@ -90,3 +90,17 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
         if game_db.name == game.name:
             raise HTTPException(status_code=400, detail="Game already in DB")
     return await games.new_game(db=db, game=game)
+
+
+@router.put("/{game_id}", response_model=schemas.Game, status_code=200)
+@version(1)
+async def update_game(
+    game_id: int, game: schemas.UpdateGame, db: Session = Depends(get_db)
+):
+    """
+    Create new game
+    """
+    game_db = games.get_game_by_id(db, game_id)
+    if game_db is None:
+        raise HTTPException(status_code=404, detail="Game not exists")
+    return games.update_game(db=db, game_id=game_id, game=game)

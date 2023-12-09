@@ -3,7 +3,8 @@ import json
 from typing import Union
 
 import bcrypt
-from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
+from sqlalchemy import (asc, create_engine, desc, func, or_, select, text,
+                        update)
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -156,7 +157,7 @@ def create_user_statistics(db: Session, user_id: id):
 
 def update_user(db: Session, user: schemas.UserUpdate):
     try:
-        logger.info(user)
+        # logger.info(user)
         db_user = get_user_by_username(db, user.username)
         name = user.name if user.name is not None else db_user.name
         # username = user.username if user.username is not None else db_user.username

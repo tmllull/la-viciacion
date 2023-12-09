@@ -114,6 +114,17 @@ class NewGame(BaseModel):
     #     from_attributes = True
 
 
+class UpdateGame(BaseModel):
+    name: str
+    dev: Optional[Union[str, None]] = None
+    release_date: Optional[Union[datetime.date, None]] = None
+    steam_id: Optional[Union[str, None]] = None
+    image_url: Optional[Union[str, None]] = None
+    genres: Optional[Union[str, None]] = None
+    avg_time: Optional[Union[int, None]] = None
+    clockify_id: Optional[Union[str, None]] = None
+
+
 class NewGameUser(BaseModel):
     project_clockify_id: str
     platform: Union[str, None] = None

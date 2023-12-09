@@ -83,7 +83,7 @@ def date_from_datetime(datetime: str):
     return datetime.split(" ")[0]
 
 
-async def get_game_info(game):
+async def get_game_info(game: str):
     # Rawg
     game_request = requests.get(config.RAWG_URL + game)
     try:

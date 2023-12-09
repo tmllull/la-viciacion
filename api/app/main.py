@@ -5,7 +5,7 @@ from fastapi_versioning import VersionedFastAPI
 from .config import Config
 from .database import models
 from .database.database import SessionLocal, engine
-from .routers import admin, basic, bot, games, statistics, users
+from .routers import admin, basic, bot, games, statistics, users, utils
 from .utils import logger
 
 models.Base.metadata.create_all(bind=engine)
@@ -20,6 +20,7 @@ app.include_router(users.router)
 app.include_router(games.router)
 app.include_router(statistics.router)
 app.include_router(bot.router)
+app.include_router(utils.router)
 
 app = VersionedFastAPI(app, version_format="{major}", prefix_format="/api/v{major}")
 

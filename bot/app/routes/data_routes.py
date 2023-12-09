@@ -80,8 +80,23 @@ class DataRoutes:
             return ConversationHandler.END
         context.user_data[GAME] = update.message.text
         logger.info("Received game: " + context.user_data[GAME])
+        url = config.API_URL + "/utils/platforms"
+        platforms = utils.make_request("GET", url).json()
+        logger.info(platforms)
+        keyboard = []
+        # logger.info(played_games)
+        for platform in platforms:
+            keyboard.append([platform["name"]])
+        keyboard.append(["Otra"])
+        reply_markup = ReplyKeyboardMarkup(
+            keyboard,
+            one_time_keyboard=True,
+            input_field_placeholder="",
+            resize_keyboard=True,
+            selective=True,
+        )
         await update.message.reply_text(
-            "¿Para qué plataforma?", reply_markup=ReplyKeyboardRemove()
+            "¿Para qué plataforma?", reply_markup=reply_markup
         )
         return utils.EXCEL_ADD_GAME_PLATFORM
 
@@ -201,6 +216,12 @@ class DataRoutes:
         try:
             if "Sí" in str(update.message.text):
                 logger.info("Add new game confirmed")
+                url = config.API_URL + "/utils/platforms"
+                platforms = utils.make_request("GET", url).json()
+                # logger.info(played_games)
+                for platform in platforms:
+                    if context.user_data[PLATFORM] == platform["name"]:
+                        context.user_data[PLATFORM] = platform["id"]
                 endpoint = "/workspaces/{}/projects".format(config.CLOCKIFY_WORKSPACE)
                 url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
                 data = {"name": context.user_data[GAME]}
@@ -299,7 +320,7 @@ class DataRoutes:
         keyboard = []
         # logger.info(played_games)
         for played_game in played_games:
-            url = config.API_URL + "/games/" + str(played_game["id"])
+            url = config.API_URL + "/games/" + str(played_game["game_id"])
             game = utils.make_request("GET", url).json()
             # logger.info(game)
             keyboard.append([game["name"]])

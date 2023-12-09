@@ -7,6 +7,7 @@ import requests
 import telegram
 from dateutil.parser import isoparse
 from howlongtobeatpy import HowLongToBeat
+from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
@@ -173,3 +174,15 @@ async def send_message(msg):
             parse_mode=telegram.constants.ParseMode.MARKDOWN,
         )
     print("Message sent successfully!")
+
+
+def get_platforms(db: Session):
+    try:
+        stmt = select(
+            models.ClockifyTag.id,
+            models.ClockifyTag.name,
+        )
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.info(e)
+        raise e

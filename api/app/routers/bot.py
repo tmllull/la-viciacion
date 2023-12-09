@@ -9,10 +9,9 @@ from .. import auth
 from ..crud import users as users_crud
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
-from ..routers import admin, games, statistics, users
+from ..routers import admin, games, statistics, users, utils
 from ..utils import actions as actions
 from ..utils import logger as logger
-from ..utils import my_utils as utils
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -189,3 +188,12 @@ def get_user_statistics(
     db: Session = Depends(get_db),
 ):
     return admin.activate_account(username, db)
+
+
+@router.get("/utils/platforms")
+@version(1)
+def platforms(
+    db: Session = Depends(get_db),
+):
+    """ """
+    return utils.platforms(db)

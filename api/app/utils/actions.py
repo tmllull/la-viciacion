@@ -47,16 +47,23 @@ async def sync_data(
         else:
             user_name = str(user.username)
         logger.info("#### " + str(user_name) + " ####")
+
+        # Create user statistics entry (if needed)
         users.create_user_statistics(db, user.id)
+
+        # Update clockify_id for user if has not been set and email matches with a valid user on Clockify
         if user.clockify_id is None or not utils.check_hex(user.clockify_id):
             users.update_clockify_id(
                 db, user.username, clockify_api.get_user_by_email(user.email)
             )
-        # return
+
+        # Sync time_entries from Clockify with local DB
         total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
         if total_entries < 1:
             logger.info(str(user_name) + " not played in the last 24h")
             continue
+
+        # Update some user statistics
         logger.info("Updating played days...")
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
@@ -77,14 +84,20 @@ async def sync_data(
         # logger.info("Played time updated...")
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
         # use 'entries'
+
+    # Update some game statistics
     logger.info("Updating played time for games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
         games.update_total_played_time(db, game[0], game[1])
-    logger.info("Updating played time for users...")
-    played_time_users = time_entries.get_users_played_time(db)
-    for user in played_time_users:
-        users.update_played_time(db, user[0], user[1])
+
+    # # TODO: Check if this can be done in the previous users loop
+    # logger.info("Updating played time for users...")
+    # played_time_users = time_entries.get_users_played_time(db)
+    # for user in played_time_users:
+    #     users.update_played_time(db, user[0], user[1])
+
+    # Check rankings
     await ranking_games_hours(db)
     await ranking_players_hours(db)
     end_time = time.time()

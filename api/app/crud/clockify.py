@@ -19,7 +19,7 @@ def sync_clockify_tags(db: Session):
     for tag in tags:
         try:
             if "tracker" not in tag["name"]:
-                new_tag = models.ClockifyTags(id=tag["id"], name=tag["name"])
+                new_tag = models.ClockifyTag(id=tag["id"], name=tag["name"])
                 db.add(new_tag)
                 db.commit()
         except Exception:
@@ -28,7 +28,7 @@ def sync_clockify_tags(db: Session):
 
 def get_tag_by_id(db: Session, tag_id):
     return (
-        db.query(models.ClockifyTags.name)
-        .filter(models.ClockifyTags.id == tag_id)
+        db.query(models.ClockifyTag.name)
+        .filter(models.ClockifyTag.id == tag_id)
         .first()
     )

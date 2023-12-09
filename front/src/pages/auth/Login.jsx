@@ -1,13 +1,11 @@
+import { Button, Input } from '@nextui-org/react';
 import { useState } from 'react';
 import { Container } from 'react-grid-easy';
 import { useDispatch } from 'react-redux';
-import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
-import { Toast } from 'primereact/toast';
 
 import { login } from '/src/redux/actions/authActions.js';
 import { useNavigation } from '/src/utils/navigationUtils.js';
-import { APP_ROUTES } from '/src/constants/appRoutes.js';
+
 
 export default function Login() {
     const dispatch = useDispatch();
@@ -20,7 +18,9 @@ export default function Login() {
     });
 
     function handleLogin(event) {
-        event.preventDefault();
+        if (typeof event?.preventDefault === 'function') {
+            event.preventDefault();
+        }
         setLoading(true);
         dispatch(login({
             data: formData,
@@ -47,40 +47,47 @@ export default function Login() {
 
 
     return (
-        <Container className='login-page'>
-            <form onSubmit={handleLogin}>
-
-                <div className='p-inputgroup flex-1'>
-                    <span className='p-inputgroup-addon'>
-                        <i className='fa-solid fa-user' />
-                    </span>
-                    <InputText
+        <div className='login-page'>
+            <form className='login-page__form' onSubmit={handleLogin}>
+                <Container vertical divisions={3}>
+                    <Input
+                        className='login-page__form-input'
+                        label='Username'
+                        labelPlacement='outside'
                         onSubmit={handleLogin}
+                        onChange={onChange}
                         placeholder='Username'
                         value={formData.username}
                         id='username'
-                        onChange={onChange}
+                        startContent={
+                            <i className='fa-solid fa-user' />
+                        }
                     />
-                </div>
-                <div className='p-inputgroup flex-1'>
-                    <span className='p-inputgroup-addon'>
-                        <i className='fa-solid fa-lock' />
-                    </span>
-                    <InputText
+                    <Input
+                        className='login-page__form-input'
+                        label='Passwprd'
+                        type='password'
+                        labelPlacement='outside'
                         onSubmit={handleLogin}
+                        onChange={onChange}
                         placeholder='Password'
                         value={formData.password}
-                        type='password'
                         id='password'
-                        onChange={onChange}
+                        startContent={
+                            <i className='fa-solid fa-lock' />
+                        }
                     />
-                </div>
-                <Button
-                    label='Submit'
-                    icon='fa-regular fa-check'
-                    loading={loading}
-                />
+                    <Button
+                        color='primary'
+                        variant='shadow'
+                        endContent={<i className='fa-regular fa-check' />}
+                        isLoading={loading}
+                        onPress={handleLogin}
+                    >
+                        Submit
+                    </Button>
+                </Container>
             </form>
-        </Container>
+        </div>
     );
 }

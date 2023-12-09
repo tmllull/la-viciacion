@@ -5,6 +5,13 @@ forbidden = (
     + "este bot. Habla con mi creador, a mi no me mires."
 )
 
+command_list = (
+    "La lista actual de comandos es la siguiente:\n"
+    + "/help - Muestra esta lista\n"
+    + "/menu - Muestra el menú interactivo\n"
+    + "/activate - Activa tu cuenta"
+)
+
 
 def start(name):
     return (

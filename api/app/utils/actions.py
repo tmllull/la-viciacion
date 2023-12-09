@@ -272,7 +272,7 @@ async def ranking_players_hours(db: Session):
         logger.info("Changes in player ranking")
         msg = "📣📣 Actualización del ránking de horas 📣📣\n"
         for i, player in enumerate(played_time_db):
-            name = users.get_user_by_id(db, player.user_id).name
+            name = str(users.get_user_by_id(db, player.user_id).name)
             hours = player.played_time
             if hours is None:
                 hours = 0
@@ -285,7 +285,7 @@ async def ranking_players_hours(db: Session):
             diff = diff.replace("+", "↑")
             diff = diff.replace("-", "↓")
             if diff != "0":
-                name = "*" + name + "*"
+                name = "*" + str(name) + "*"
             else:
                 diff = diff.replace("0", "=")
             if diff_raw > 1:

@@ -76,27 +76,26 @@ def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEnt
         )
 
 
-def get_played_days(db: Session, user_id: int) -> list:
+def get_played_days(
+    db: Session, user_id: int, start_date: str = None, end_date: str = None
+) -> list:
     played_days = []
+    if start_date is None:
+        start_date = "2000-01-01"
+    if end_date is None:
+        end_date = "3000-12-31"
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start))
         .filter(models.TimeEntry.user_id == user_id)
+        .filter(func.DATE(models.TimeEntry.start) >= start_date)
+        .filter(func.DATE(models.TimeEntry.end) >= start_date)
+        .filter(func.DATE(models.TimeEntry.start) <= end_date)
+        .filter(func.DATE(models.TimeEntry.end) <= end_date)
         .distinct()
+        .all()
     )
     for played_day in played_start_days:
         played_days.append(played_day[0])
-    played_end_days = (
-        db.query(func.DATE(models.TimeEntry.end))
-        .filter(models.TimeEntry.user_id == user_id)
-        .distinct()
-    )
-    for played_day in played_end_days:
-        if (
-            played_day[0] != ""
-            and played_day[0] is not None
-            and played_day[0] not in played_days
-        ):
-            played_days.append(played_day[0])
     return sorted(played_days)
 
 

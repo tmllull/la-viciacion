@@ -51,8 +51,10 @@ class UserUpdate(BaseModel):
     name: Union[str, None] = None
     username: str
     password: Union[str, None] = None
+    email: Union[str, None] = None
     telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
+    is_active: Union[int, None] = None
     clockify_id: Union[str, None] = None
 
     class Config:

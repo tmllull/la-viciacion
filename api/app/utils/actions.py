@@ -42,12 +42,17 @@ async def sync_data(
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:
-        users.create_user_statistics(db, user.id)
         if user.name is not None and user.name != "":
             user_name = str(user.name)
         else:
             user_name = str(user.username)
         logger.info("#### " + str(user_name) + " ####")
+        users.create_user_statistics(db, user.id)
+        if user.clockify_id is None or not utils.check_hex(user.clockify_id):
+            users.update_clockify_id(
+                db, user.username, clockify_api.get_user_by_email(user.email)
+            )
+        # return
         total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
         if total_entries < 1:
             logger.info(str(user_name) + " not played in the last 24h")

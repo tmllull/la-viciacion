@@ -64,32 +64,20 @@ class ClockifyApi:
         )
         return response.json()
 
-    def get_project_by_name(self, project_name) -> json:
+    def get_project_by_name(self, project_name, strict=False) -> json:
         method = self.GET
-        endpoint = "/workspaces/{}/projects?name={}&strict-name-search=true".format(
-            config.CLOCKIFY_WORKSPACE, project_name
-        )
+        if strict:
+            endpoint = "/workspaces/{}/projects?name={}&strict-name-search=true".format(
+                config.CLOCKIFY_WORKSPACE, project_name
+            )
+        else:
+            endpoint = "/workspaces/{}/projects?name={}".format(
+                config.CLOCKIFY_WORKSPACE, project_name
+            )
         response = self.send_clockify_request(
             method, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
         )
         return response.json()
-
-    def get_project_id_by_strict_name(self, game_name, api_key):
-        if api_key is None:
-            return self.API_USER_NOT_ADDED
-        else:
-            method = self.GET
-            endpoint = (
-                "/workspaces/{0}/projects?name={1}&strict-name-search=true".format(
-                    config.CLOCKIFY_WORKSPACE, game_name
-                )
-            )
-            data = None
-            response = self.send_clockify_request(method, endpoint, data, api_key)
-            if response.status_code == 200 and len(response.json()) > 0:
-                return response.json()[0].get("id")
-            else:
-                Exception(game_name + " not exists")
 
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
         method = None
@@ -188,3 +176,13 @@ class ClockifyApi:
             config.CLOCKIFY_ADMIN_API_KEY,
         )
         return response.json()
+
+    def get_user_by_email(self, email):
+        method = self.GET
+        endpoint = "/workspaces/{}/users".format(config.CLOCKIFY_WORKSPACE)
+        response = self.send_clockify_request(
+            method, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
+        )
+        for user in response.json():
+            if user["email"] == email:
+                return user

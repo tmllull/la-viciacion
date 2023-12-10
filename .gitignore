@@ -346,6 +346,7 @@ sketch
 .env.production.local
 .env.production
 front/.env.production
+update.sh
 
 
 npm-debug.log*

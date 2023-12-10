@@ -8,13 +8,12 @@ COPY yarn.lock .
 
 RUN yarn install
 
-env VITE_API_URL=$API_URL
-
 COPY src/ src/
 COPY vite.config.js .
 COPY index.html .
 COPY postcss.config.cjs .
 COPY tailwind.config.js .
+COPY .env.production .
 
 RUN npm run build
 

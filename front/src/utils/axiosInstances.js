@@ -2,7 +2,7 @@ import Axios from 'axios';
 
 import { getUserToken } from '/src/utils/authUtils.js';
 
-const { API_URL } = import.meta.env;
+const { VITE_API_URL: API_URL } = import.meta.env;
 
 export function publicApi(headers) {
     return Axios.create({

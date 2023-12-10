@@ -80,7 +80,7 @@ def get_ranking_statistics(
         elif ranking_type == RankingStatisticsTypes.achievements:
             data = [{"message": "Achievements is not implemented yet"}]
         elif ranking_type == RankingStatisticsTypes.ratio:
-            data = [{"message": "Ratio is not implemented yet"}]
+            data = rankings.user_ratio(db)
         elif ranking_type == RankingStatisticsTypes.current_streak:
             data = rankings.user_current_streak(db)
         elif ranking_type == RankingStatisticsTypes.best_streak:

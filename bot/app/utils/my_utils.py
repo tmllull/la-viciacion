@@ -159,7 +159,7 @@ class MyUtils:
             return "0h0m"
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
-        return f"{hours}h{minutes}m"
+        return f"{hours}h {minutes}m"
 
     def convert_hours_minutes_to_seconds(self, time) -> int:
         if time is None:
@@ -209,144 +209,147 @@ class MyUtils:
             platform = platform.replace("Pc", "PC")
         return platform
 
-    async def notify_new_game(
-        self, player, game, slug, picture_url, platform, total_games
-    ):
-        logger.info("TBI")
-        return
-        if not self.silent:
-            m_text = " ha empezado su juego nº " + str(total_games) + ": "
-            msg = (
-                "*"
-                + player
-                + "*"
-                + m_text
-                + "["
-                + game
-                + "](https://rawg.io/games/"
-                + slug
-                + ") para "
-                + str(platform.strip())
-                + "."
-            )
-            try:
-                await self.send_photo(msg, picture_url)
-            except Exception as e:
-                print(e)
-                await self.send_message(msg)
+    def load_json_response(self, response):
+        return json.loads(json.dumps(response))
 
-    async def add_new_game(self, game):
-        logger.info("TBI")
-        return
-        try:
-            logger.info("Adding game " + game)
-            mean_time = "0"
-            released = ""
-            genres = ""
-            real_name = ""
-            steam_id = ""
-            rawg_info, hltb_info, hltb_main_story = await self.get_game_info(game)
-            if rawg_info is not None:
-                try:
-                    steam_id = hltb_info["profile_steam"]
-                except Exception:
-                    steam_id = ""
-                if rawg_info["released"] is not None:
-                    released = datetime.datetime.strptime(
-                        rawg_info["released"], "%Y-%m-%d"
-                    ).date()
-                else:
-                    released = None
-                for genre in rawg_info["genres"]:
-                    genres += genre["name"] + ","
-                genres = genres[:-1]
+    # async def notify_new_game(
+    #     self, player, game, slug, picture_url, platform, total_games
+    # ):
+    #     logger.info("TBI")
+    #     return
+    #     if not self.silent:
+    #         m_text = " ha empezado su juego nº " + str(total_games) + ": "
+    #         msg = (
+    #             "*"
+    #             + player
+    #             + "*"
+    #             + m_text
+    #             + "["
+    #             + game
+    #             + "](https://rawg.io/games/"
+    #             + slug
+    #             + ") para "
+    #             + str(platform.strip())
+    #             + "."
+    #         )
+    #         try:
+    #             await self.send_photo(msg, picture_url)
+    #         except Exception as e:
+    #             print(e)
+    #             await self.send_message(msg)
 
-            dev = ""
-            picture_url = rawg_info["background_image"]
-            if hltb_info is not None:
-                dev = hltb_info["profile_dev"]
-            clockify_project = clockify.add_project(game)
-            project_id = clockify.get_project_id_by_strict_name(
-                game, config.CLOCKIFY_ADMIN_API_KEY
-            )
-            total_games = self.db.add_new_game(
-                game,
-                dev,
-                steam_id,
-                released,
-                genres,
-                hltb_main_story,
-                project_id,
-                picture_url,
-            )
-            # clockify_project = clockify.add_project(game)
-            # logger.info(clockify_project)
-        except Exception as e:
-            if "Duplicate" not in str(e):
-                logger.exception(e)
+    # async def add_new_game(self, game):
+    #     logger.info("TBI")
+    #     return
+    #     try:
+    #         logger.info("Adding game " + game)
+    #         mean_time = "0"
+    #         released = ""
+    #         genres = ""
+    #         real_name = ""
+    #         steam_id = ""
+    #         rawg_info, hltb_info, hltb_main_story = await self.get_game_info(game)
+    #         if rawg_info is not None:
+    #             try:
+    #                 steam_id = hltb_info["profile_steam"]
+    #             except Exception:
+    #                 steam_id = ""
+    #             if rawg_info["released"] is not None:
+    #                 released = datetime.datetime.strptime(
+    #                     rawg_info["released"], "%Y-%m-%d"
+    #                 ).date()
+    #             else:
+    #                 released = None
+    #             for genre in rawg_info["genres"]:
+    #                 genres += genre["name"] + ","
+    #             genres = genres[:-1]
 
-    async def complete_game(
-        self, player, game, score, total_time, formatted_time, seconds
-    ):
-        logger.info("TBI")
-        return
-        try:
-            total_games = self.db.complete_game(
-                player, game, score, formatted_time, seconds
-            )
-            logger.info(player + " has completed " + game + " in " + str(total_time))
-            await self.notify_completed_game(player, game, total_games, formatted_time)
-        except Exception as e:
-            if "UNIQUE" not in str(e):
-                logger.exception(e)
+    #         dev = ""
+    #         picture_url = rawg_info["background_image"]
+    #         if hltb_info is not None:
+    #             dev = hltb_info["profile_dev"]
+    #         clockify_project = clockify.add_project(game)
+    #         project_id = clockify.get_project_id_by_strict_name(
+    #             game, config.CLOCKIFY_ADMIN_API_KEY
+    #         )
+    #         total_games = self.db.add_new_game(
+    #             game,
+    #             dev,
+    #             steam_id,
+    #             released,
+    #             genres,
+    #             hltb_main_story,
+    #             project_id,
+    #             picture_url,
+    #         )
+    #         # clockify_project = clockify.add_project(game)
+    #         # logger.info(clockify_project)
+    #     except Exception as e:
+    #         if "Duplicate" not in str(e):
+    #             logger.exception(e)
 
-    async def notify_completed_game(self, player, game, total_games, formatted_time):
-        logger.info("TBI")
-        return
-        if not self.silent:
-            mean_time = float(self.db.mean_time_game(game))
-            if mean_time > 0:
-                h_mean = str(mean_time).split(".")[0]
-                remaining_minutes = mean_time - float(str(mean_time).split(".")[0])
-                m_mean = round(remaining_minutes * 60)
-            else:
-                h_mean = 0
-                m_mean = 0
-            m_text = " ha completado su juego nº " + str(total_games) + ": "
-            msg = "*" + player + "*" + m_text + "_" + game + "_"
-            msg = msg + " en " + formatted_time + ". "
-            mean_time = str(h_mean) + "h" + str(m_mean) + "m"
-            if h_mean != 0 and m_mean != 0:
-                if formatted_time == mean_time:
-                    msg = msg + "Y encima ha clavado la media de tiempo: "
-                    await self.just_in_time(player, game)
-                else:
-                    msg = msg + "La media está en "
-                msg = msg + str(h_mean) + "h" + str(m_mean) + "m."
-            # print(msg)
-            await self.send_message(msg)
+    # async def complete_game(
+    #     self, player, game, score, total_time, formatted_time, seconds
+    # ):
+    #     logger.info("TBI")
+    #     return
+    #     try:
+    #         total_games = self.db.complete_game(
+    #             player, game, score, formatted_time, seconds
+    #         )
+    #         logger.info(player + " has completed " + game + " in " + str(total_time))
+    #         await self.notify_completed_game(player, game, total_games, formatted_time)
+    #     except Exception as e:
+    #         if "UNIQUE" not in str(e):
+    #             logger.exception(e)
 
-    async def just_in_time(self, player, game):
-        logger.info("TBI")
-        return
-        try:
-            self.db.just_in_time(player)
-            await self.send_message(msgs.just_in_time(player, game))
-        except Exception as e:
-            logger.exception(e)
+    # async def notify_completed_game(self, player, game, total_games, formatted_time):
+    #     logger.info("TBI")
+    #     return
+    #     if not self.silent:
+    #         mean_time = float(self.db.mean_time_game(game))
+    #         if mean_time > 0:
+    #             h_mean = str(mean_time).split(".")[0]
+    #             remaining_minutes = mean_time - float(str(mean_time).split(".")[0])
+    #             m_mean = round(remaining_minutes * 60)
+    #         else:
+    #             h_mean = 0
+    #             m_mean = 0
+    #         m_text = " ha completado su juego nº " + str(total_games) + ": "
+    #         msg = "*" + player + "*" + m_text + "_" + game + "_"
+    #         msg = msg + " en " + formatted_time + ". "
+    #         mean_time = str(h_mean) + "h" + str(m_mean) + "m"
+    #         if h_mean != 0 and m_mean != 0:
+    #             if formatted_time == mean_time:
+    #                 msg = msg + "Y encima ha clavado la media de tiempo: "
+    #                 await self.just_in_time(player, game)
+    #             else:
+    #                 msg = msg + "La media está en "
+    #             msg = msg + str(h_mean) + "h" + str(m_mean) + "m."
+    #         # print(msg)
+    #         await self.send_message(msg)
 
-    # def convert_clockify_duration(self, duration):
-    #     match = re.match(r"PT(\d+H)?(\d+M)?", duration)
-    #     if match:
-    #         horas_str = match.group(1)
-    #         minutos_str = match.group(2)
+    # async def just_in_time(self, player, game):
+    #     logger.info("TBI")
+    #     return
+    #     try:
+    #         self.db.just_in_time(player)
+    #         await self.send_message(msgs.just_in_time(player, game))
+    #     except Exception as e:
+    #         logger.exception(e)
 
-    #         horas = int(horas_str[:-1]) if horas_str else 0
-    #         minutos = int(minutos_str[:-1]) if minutos_str else 0
+    # # def convert_clockify_duration(self, duration):
+    # #     match = re.match(r"PT(\d+H)?(\d+M)?", duration)
+    # #     if match:
+    # #         horas_str = match.group(1)
+    # #         minutos_str = match.group(2)
 
-    #         # Convertir horas y minutos a segundos
-    #         segundos = horas * 3600 + minutos * 60
+    # #         horas = int(horas_str[:-1]) if horas_str else 0
+    # #         minutos = int(minutos_str[:-1]) if minutos_str else 0
 
-    #         return segundos
-    #     else:
-    #         return 0
+    # #         # Convertir horas y minutos a segundos
+    # #         segundos = horas * 3600 + minutos * 60
+
+    # #         return segundos
+    # #     else:
+    # #         return 0

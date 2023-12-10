@@ -118,27 +118,31 @@ def main() -> None:
                 #     pattern="^" + "ranking_rated_games" + "$",
                 # ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_achievements,
+                    ranking_routes.achievements,
                     pattern="^" + "ranking_achievements" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_completed,
+                    ranking_routes.user_completed_games,
                     pattern="^" + "ranking_completed" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_days, pattern="^" + "ranking_days" + "$"
+                    ranking_routes.days_players,
+                    pattern="^" + "ranking_days" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_hours, pattern="^" + "ranking_hours" + "$"
+                    ranking_routes.hours_player,
+                    pattern="^" + "ranking_hours" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_played, pattern="^" + "ranking_played" + "$"
+                    ranking_routes.user_played_games,
+                    pattern="^" + "ranking_played" + "$",
                 ),
                 CallbackQueryHandler(
                     ranking_routes.ranking_ratio, pattern="^" + "ranking_ratio" + "$"
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_streak, pattern="^" + "ranking_streak" + "$"
+                    ranking_routes.best_streak,
+                    pattern="^" + "ranking_streak" + "$",
                 ),
                 CallbackQueryHandler(
                     ranking_routes.ranking_debt, pattern="^" + "ranking_debt" + "$"

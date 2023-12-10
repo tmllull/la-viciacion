@@ -5,7 +5,7 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..crud import rankings
+from ..crud import rankings, users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -80,7 +80,7 @@ def get_ranking_statistics(
         elif ranking_type == RankingStatisticsTypes.achievements:
             data = [{"message": "Achievements is not implemented yet"}]
         elif ranking_type == RankingStatisticsTypes.ratio:
-            data = [{"message": "Ratio is not implemented yet"}]
+            data = rankings.user_ratio(db)
         elif ranking_type == RankingStatisticsTypes.current_streak:
             data = rankings.user_current_streak(db)
         elif ranking_type == RankingStatisticsTypes.best_streak:
@@ -109,9 +109,10 @@ class UserStatisticsTypes(str, Enum):
     streak = "streak"
 
 
-@router.get("/users")
+@router.get("/users/{username}")
 @version(1)
 def get_user_statistics(
+    username: str,
     ranking: str = None,
     db: Session = Depends(get_db),
 ):
@@ -127,7 +128,7 @@ def get_user_statistics(
         elif ranking_type == UserStatisticsTypes.completed_games:
             data = {"message": "TBI"}
         elif ranking_type == UserStatisticsTypes.top_games:
-            data = {"message": "TBI"}
+            data = users.top_games(db, username)
         elif ranking_type == UserStatisticsTypes.achievements:
             data = {"message": "TBI"}
         elif ranking_type == UserStatisticsTypes.streak:

@@ -117,7 +117,7 @@ def user_played_games(db: Session, limit: int = None):
         stmt = (
             select(
                 models.UserGame.user_id,
-                func.count(models.UserGame.game_id).label("game_count"),
+                func.count(models.UserGame.game_id).label("played_games"),
                 models.User.name,
             )
             .join(models.User, models.User.id == models.UserGame.user_id)
@@ -133,19 +133,23 @@ def user_played_games(db: Session, limit: int = None):
 
 def user_completed_games(db: Session, limit: int = None):
     try:
-        stmt = (
-            select(
-                models.UserGame.user_id,
-                models.User.name,
-                func.count(models.UserGame.game_id),
+        user_list = users.get_users(db)
+        data = []
+        for user in user_list:
+            user_data = {}
+            stmt = (
+                select(
+                    func.count(models.UserGame.game_id),
+                )
+                .filter(models.UserGame.user_id == user.id)
+                .filter(models.UserGame.completed == 1)
             )
-            .group_by(models.UserGame.user_id)
-            .join(models.User, models.User.id == models.UserGame.user_id)
-            .filter(models.UserGame.completed == 1)
-            .order_by(func.count(models.UserGame.game_id).desc())
-            .limit(limit)
-        )
-        return db.execute(stmt).fetchall()
+            completed = db.execute(stmt).fetchone()[0]
+            user_data["user_id"] = user.id
+            user_data["name"] = user.name
+            user_data["completed_games"] = completed
+            data.append(user_data)
+        return data
     except Exception as e:
         logger.info(e)
         raise e
@@ -164,9 +168,17 @@ def games_last_played(db: Session, limit: int = 10):
                 models.Game.clockify_id == models.TimeEntry.project_clockify_id,
             )
             .order_by(desc(models.TimeEntry.start))
-            .limit(limit)
         )
-        return db.execute(stmt).fetchall()
+        result = db.execute(stmt).fetchall()
+        unique_names = set()
+        unique_data = []
+        for item in result:
+            if item["name"] not in unique_names:
+                unique_names.add(item["name"])
+                unique_data.append(item)
+            if len(unique_data) == limit:
+                break
+        return unique_data
     except Exception as e:
         logger.info(e)
         raise e
@@ -212,32 +224,56 @@ def games_most_played(db: Session, limit: int = 10):
         logger.info(e)
         raise e
 
-    stmt = (
-        select(models.Game.name, models.Game.played_time)
-        .order_by(desc(models.Game.played_time))
-        .limit(limit)
-    )
-    result_db = db.execute(stmt).fetchall()
-    return result_db
-
 
 def platform_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
                 (models.UserGame.platform).label("tag_id"),
-                models.ClockifyTag.name,
+                models.PlatformTag.name,
                 func.count(models.UserGame.platform),
             )
             .join(
-                models.ClockifyTag,
-                models.UserGame.platform == models.ClockifyTag.id,
+                models.PlatformTag,
+                models.UserGame.platform == models.PlatformTag.id,
             )
             .group_by(models.UserGame.platform)
             .order_by(func.count(models.UserGame.platform).desc())
             .limit(limit)
         )
         return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.info(e)
+        raise e
+
+
+def user_ratio(db: Session):
+    try:
+        user_list = users.get_users(db)
+        data = []
+        for user in user_list:
+            user_data = {}
+            stmt = select(
+                func.count(models.UserGame.game_id),
+            ).filter(models.UserGame.user_id == user.id)
+            played = db.execute(stmt).fetchone()[0]
+            stmt = (
+                select(
+                    func.count(models.UserGame.game_id),
+                )
+                .filter(models.UserGame.user_id == user.id)
+                .filter(models.UserGame.completed == 1)
+            )
+            completed = db.execute(stmt).fetchone()[0]
+            if played == 0 or completed == 0:
+                ratio = 0
+            else:
+                ratio = round((completed / played), 2)
+            user_data["user_id"] = user.id
+            user_data["name"] = user.name
+            user_data["ratio"] = ratio
+            data.append(user_data)
+        return data
     except Exception as e:
         logger.info(e)
         raise e

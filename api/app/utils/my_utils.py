@@ -185,8 +185,8 @@ async def send_message(msg):
 def get_platforms(db: Session):
     try:
         stmt = select(
-            models.ClockifyTag.id,
-            models.ClockifyTag.name,
+            models.PlatformTag.id,
+            models.PlatformTag.name,
         )
         return db.execute(stmt).fetchall()
     except Exception as e:

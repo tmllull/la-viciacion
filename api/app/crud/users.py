@@ -378,15 +378,39 @@ def update_played_time(db: Session, user_id, played_time):
         raise e
 
 
-def top_games(db: Session, player, limit: int = 10):
+def top_games(db: Session, username: str, limit: int = 10):
     try:
+        user = get_user_by_username(db, username)
         stmt = (
-            select(models.UserGame.game, models.UserGame.played_time)
-            .where(models.UserGame.player == player)
+            select(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.User.name,
+                models.UserGame.played_time.label("total_played_time"),
+            )
+            .join(models.User, models.User.id == models.UserGame.user_id)
+            .join(models.Game, models.Game.id == models.UserGame.game_id)
+            .where(models.UserGame.user_id == user.id)
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.User.name,
+                models.UserGame.played_time,
+            )
             .order_by(desc(models.UserGame.played_time))
             .limit(limit)
         )
-        return db.execute(stmt)
+        return db.execute(stmt).fetchall()
+
+        # stmt = (
+        #     select(models.UserGame.game_id, models.UserGame.played_time)
+        #     .where(models.UserGame. == player)
+        #     .order_by(desc(models.UserGame.played_time))
+        #     .limit(limit)
+        # )
+        # return db.execute(stmt)
     except Exception as e:
         logger.info(e)
         raise e

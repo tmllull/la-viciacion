@@ -108,12 +108,24 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             end = entry["timeInterval"]["end"]
             duration = entry["timeInterval"]["duration"]
             platform = None
+            completed = None
             if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
-                platform = entry["tagIds"][0]
+                # platform = entry["tagIds"][0]
                 # Revise the following code if needed
-                # platform = clockify.get_tag_by_id(db, entry["tagIds"][0])
-                # if platform is not None:
-                #     platform = platform[0]
+                # logger.info(entry["tagIds"])
+                for tag in entry["tagIds"]:
+                    # logger.info(tag)
+                    platform_check = clockify.get_platform_by_tag_id(db, tag)
+                    # logger.info(platform_check)
+                    if platform is None and platform_check is not None:
+                        platform = tag
+                        continue
+                    completed_check = clockify.check_completed_tag_by_id(db, tag)
+                    # logger.info(completed_check)
+                    if completed is None and completed_check is not None:
+                        # logger.info("Game completed!")
+                        completed = 1
+
             start = utils.change_timezone_clockify(start)
             if end is not None and end != "":
                 end = utils.change_timezone_clockify(end)
@@ -152,6 +164,16 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                     .where(models.UserGame.id == already_playing.id)
                     .values(
                         platform=platform,
+                    )
+                )
+                db.execute(stmt)
+                db.commit()
+            elif completed is not None:
+                stmt = (
+                    update(models.UserGame)
+                    .where(models.UserGame.id == already_playing.id)
+                    .values(
+                        completed=completed,
                     )
                 )
                 db.execute(stmt)

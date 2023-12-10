@@ -279,8 +279,16 @@ class TimeEntry(Base):
     __table_args__ = (UniqueConstraint("id"),)
 
 
-class ClockifyTag(Base):
-    __tablename__ = "clockify_tags"
+class PlatformTag(Base):
+    __tablename__ = "platform_tags"
+
+    id = Column(String(255), primary_key=True)
+    name = Column(String(255))
+    __table_args__ = (UniqueConstraint("id"),)
+
+
+class OtherTag(Base):
+    __tablename__ = "other_tags"
 
     id = Column(String(255), primary_key=True)
     name = Column(String(255))

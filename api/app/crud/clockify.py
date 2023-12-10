@@ -19,16 +19,26 @@ def sync_clockify_tags(db: Session):
     for tag in tags:
         try:
             if "tracker" not in tag["name"]:
-                new_tag = models.ClockifyTag(id=tag["id"], name=tag["name"])
-                db.add(new_tag)
-                db.commit()
+                if "Completed" not in tag["name"]:
+                    new_tag = models.PlatformTag(id=tag["id"], name=tag["name"])
+                    db.add(new_tag)
+                    db.commit()
+                else:
+                    new_tag = models.OtherTag(id=tag["id"], name=tag["name"])
+                    db.add(new_tag)
+                    db.commit()
         except Exception:
             db.rollback()
 
 
-def get_tag_by_id(db: Session, tag_id):
+def get_platform_by_tag_id(db: Session, tag_id):
     return (
-        db.query(models.ClockifyTag.name)
-        .filter(models.ClockifyTag.id == tag_id)
+        db.query(models.PlatformTag.name)
+        .filter(models.PlatformTag.id == tag_id)
         .first()
     )
+
+
+def check_completed_tag_by_id(db: Session, tag_id):
+    # logger.info("Check completed tag: " + str(tag_id))
+    return db.query(models.OtherTag.name).filter(models.OtherTag.id == tag_id).first()

@@ -104,7 +104,7 @@ def update_user(
     db_user = users.get_user_by_username(db, user_data.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-    return users.update_user(db=db, user=user_data)
+    return users.update_user_as_admin(db=db, user=user_data)
 
 
 @router.get("/activate/{username}")

@@ -1,7 +1,16 @@
 import datetime
 from enum import Enum
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Response,
+    Security,
+    UploadFile,
+)
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
@@ -73,10 +82,16 @@ def get_user(username: str, db: Session = Depends(get_db)):
 
 @router.put("/", response_model=schemas.User)
 @version(1)
-def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
+def update_user(
+    user: schemas.UserUpdate,
+    active_user: models.User = Security(auth.get_current_active_user),
+    db: Session = Depends(get_db),
+):
     """
     Update user
     """
+    if active_user.username != user.username:
+        raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
     db_user = users.get_user_by_username(db, user.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)

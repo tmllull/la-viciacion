@@ -21,28 +21,6 @@ from .database import Base
 # from sqlalchemy.orm import relationship
 
 
-# class User(Base):
-#     __tablename__ = "users"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     email = Column(String, unique=True, index=True)
-#     hashed_password = Column(String)
-#     is_active = Column(Boolean, default=True)
-
-#     items = relationship("Item", back_populates="owner")
-
-
-# class Item(Base):
-#     __tablename__ = "items"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     title = Column(String(255), index=True)
-#     description = Column(String(255), index=True)
-#     owner_id = Column(Integer, ForeignKey("users.id"))
-
-#     owner = relationship("Users", back_populates="items")
-
-
 #############################
 #### LA VICIACION TABLES ####
 #############################
@@ -55,19 +33,13 @@ class User(Base):
     name = Column(String(255))
     username = Column(String(255))
     password = Column(String(255))
-    # telegram_id = Column(BigInteger)
+    telegram_id = Column(BigInteger)
     clockify_id = Column(String(255))
+    clockify_key = Column(String(255))
     email = Column(String(255))
     is_admin = Column(Integer)
     is_active = Column(Integer)
     avatar = Column(LargeBinary)
-    # played_time = Column(Integer)
-    # current_ranking_hours = Column(Integer)
-    # current_streak = Column(Integer)
-    # best_streak = Column(Integer)
-    # best_streak_date = Column(Date)
-    # played_days = Column(Integer)
-    # unplayed_streak = Column(Integer)
 
     # games = relationship("UsersGames", back_populates="user")
     # ranking = relationship("RankingUsers", back_populates="user")

@@ -22,8 +22,10 @@ from ..utils import actions as actions
 from ..utils import logger as logger
 from ..utils import messages as msg
 from ..utils import my_utils as utils
+from ..utils.clockify_api import ClockifyApi
 
 models.Base.metadata.create_all(bind=engine)
+clockify_api = ClockifyApi()
 
 router = APIRouter(
     prefix="/users",
@@ -123,6 +125,9 @@ async def add_game_to_user(
         new_game = users.add_new_game(db=db, game=game, user=user)
         game_name = games.get_game_by_clockify_id(db, game.project_clockify_id).name
         total_games = played_games.count() + 1
+        clockify_api.create_empty_time_entry(
+            user.clockify_key, game.project_clockify_id, game.platform
+        )
         await utils.send_message(
             user.name
             + " acaba de empezar su juego número "

@@ -186,15 +186,14 @@ class ClockifyApi:
         # /workspaces/{workspaceId}/time-entries/{id}
         return
 
-    def create_time_entry(
-        self, user_api_key, project_id, platform, start_date=None, end_date=None
-    ):
+    def create_empty_time_entry(self, user_api_key, project_id, platform):
         # /workspaces/{workspaceId}/time-entries
-        if start_date is None or end_date is None:
-            start_date = ""
-            end_date = ""
+        # start_date = datetime.datetime.utcnow() - datetime.timedelta(seconds=1)
+        # start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+        start_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         data = {
-            "description": "string",
+            # "description": "string",
             "end": end_date,
             "projectId": project_id,
             "start": start_date,

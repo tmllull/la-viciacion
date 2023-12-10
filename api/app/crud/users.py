@@ -164,10 +164,60 @@ def update_user(db: Session, user: schemas.UserUpdate):
         # telegram_id = (
         #     user.telegram_id if user.telegram_id is not None else db_user.telegram_id
         # )
+        clockify_id = (
+            user.clockify_id if user.clockify_id is not None else db_user.clockify_id
+        )
+        clockify_key = (
+            user.clockify_key if user.clockify_key is not None else db_user.clockify_key
+        )
+        if user.password is not None:
+            salt = bcrypt.gensalt()
+
+            # Hashing the password
+            hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), salt)
+            password = hashed_password
+        else:
+            password = db_user.password
+        stmt = (
+            update(models.User)
+            .where(models.User.username == user.username)
+            .values(
+                # telegram_id=telegram_id,
+                name=name,
+                email=email,
+                password=password,
+                clockify_id=clockify_id,
+                clockify_key=clockify_key,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+        return (
+            db.query(models.User).filter(models.User.username == user.username).first()
+        )
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error updating user: " + str(e))
+        raise
+
+
+def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
+    try:
+        # logger.info(user)
+        db_user = get_user_by_username(db, user.username)
+        name = user.name if user.name is not None else db_user.name
+        # username = user.username if user.username is not None else db_user.username
+        email = user.email if user.email is not None else db_user.email
+        # telegram_id = (
+        #     user.telegram_id if user.telegram_id is not None else db_user.telegram_id
+        # )
         is_admin = user.is_admin if user.is_admin is not None else db_user.is_admin
         is_active = user.is_active if user.is_active is not None else db_user.is_active
         clockify_id = (
             user.clockify_id if user.clockify_id is not None else db_user.clockify_id
+        )
+        clockify_key = (
+            user.clockify_key if user.clockify_key is not None else db_user.clockify_key
         )
         if user.password is not None:
             salt = bcrypt.gensalt()
@@ -188,6 +238,7 @@ def update_user(db: Session, user: schemas.UserUpdate):
                 is_active=is_active,
                 password=password,
                 clockify_id=clockify_id,
+                clockify_key=clockify_key,
             )
         )
         db.execute(stmt)

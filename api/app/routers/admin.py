@@ -92,7 +92,7 @@ async def sync_data(
 @router.put("/update_user", response_model=schemas.User)
 @version(1)
 def update_user(
-    user_data: schemas.UserUpdate,
+    user_data: schemas.UserUpdateForAdmin,
     user: models.User = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):

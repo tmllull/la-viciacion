@@ -16,21 +16,29 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     name: Union[str, None] = None
+    telegram_id: Union[int, None] = None
+    is_admin: Union[int, None] = 0
+    email: Union[str, None] = None
+    is_active: Union[int, None] = 0
+    clockify_id: Union[str, None] = None
+    clockify_key: Union[str, None] = None
+
+    class Config:
+        from_attributes = True
+
+
+class UserForAdmins(UserBase):
+    id: int
+    name: Union[str, None] = None
     # telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = 0
     email: Union[str, None] = None
     is_active: Union[int, None] = 0
-    # played_time: Union[int, None] = 0
     clockify_id: Union[str, None] = None
-    # current_ranking_hours: Union[int, None] = None
-    # current_streak: Union[int, None] = 0
-    # best_streak: Union[int, None] = 0
-    # best_streak_date: Union[datetime.date, None] = None
-    # played_days: Union[int, None] = 0
-    # unplayed_streak: Union[int, None] = None
+    clockify_key: Union[str, None] = None
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
 class UserStatistics(BaseModel):
@@ -43,8 +51,8 @@ class UserStatistics(BaseModel):
     played_days: Union[int, None] = 0
     unplayed_streak: Union[int, None] = None
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
 class UserUpdate(BaseModel):
@@ -53,12 +61,26 @@ class UserUpdate(BaseModel):
     password: Union[str, None] = None
     email: Union[str, None] = None
     # telegram_id: Union[int, None] = None
+    clockify_id: Union[str, None] = None
+    clockify_key: Union[str, None] = None
+
+    # class Config:
+    #     from_attributes = True
+
+
+class UserUpdateForAdmin(BaseModel):
+    name: Union[str, None] = None
+    username: str
+    password: Union[str, None] = None
+    email: Union[str, None] = None
+    # telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     is_active: Union[int, None] = None
     clockify_id: Union[str, None] = None
+    clockify_key: Union[str, None] = None
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
 # class TelegramUser(BaseModel):

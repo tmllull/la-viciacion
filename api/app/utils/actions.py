@@ -308,7 +308,7 @@ async def ranking_players_hours(db: Session):
             )
             users.update_current_ranking_hours(db, i + 1, player.user_id)
         if not config.silent:
-            logger.info(msg)
+            # logger.info(msg)
             await utils.send_message(msg)
         logger.info(msg)
     logger.info("Updating players ranking...")

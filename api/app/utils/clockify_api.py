@@ -186,26 +186,39 @@ class ClockifyApi:
         # /workspaces/{workspaceId}/time-entries/{id}
         return
 
-    def create_empty_time_entry(self, user_api_key, project_id, platform):
+    def create_empty_time_entry(
+        self, db, user_api_key, project_id, platform, completed=False
+    ):
         # /workspaces/{workspaceId}/time-entries
         # start_date = datetime.datetime.utcnow() - datetime.timedelta(seconds=1)
         # start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-        start_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        end_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        data = {
-            # "description": "string",
-            "end": end_date,
-            "projectId": project_id,
-            "start": start_date,
-            "tagIds": [platform],
-        }
-        response = self.send_clockify_request(
-            "POST",
-            "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/time-entries",
-            data,
-            user_api_key,
-        )
-        return response.json()
+        try:
+            if user_api_key is not None:
+                start_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                end_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                tags = []
+                tags.append(platform)
+                if completed:
+                    logger.info("Add completed tag to time entry.")
+                    tags.append(utils.get_completed_tag(db)[0])
+                data = {
+                    # "description": "string",
+                    "end": end_date,
+                    "projectId": project_id,
+                    "start": start_date,
+                    "tagIds": tags,
+                }
+                response = self.send_clockify_request(
+                    "POST",
+                    "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/time-entries",
+                    data,
+                    user_api_key,
+                )
+                return response.json()
+            else:
+                logger.info("Invalid Clockify API Key")
+        except Exception as e:
+            logger.warning("Error creating empty entry: " + str(e))
 
     def get_tags(self):
         response = self.send_clockify_request(

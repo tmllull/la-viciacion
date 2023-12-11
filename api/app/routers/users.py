@@ -129,7 +129,7 @@ async def add_game_to_user(
         game_name = game_db.name
         total_games = played_games.count() + 1
         clockify_api.create_empty_time_entry(
-            user.clockify_key, game.project_clockify_id, game.platform
+            db, user.clockify_key, game.project_clockify_id, game.platform
         )
         await utils.send_message(
             user.name
@@ -184,6 +184,13 @@ async def complete_game(username: str, game_id: int, db: Session = Depends(get_d
         avg_time = game_info["hltb"]["comp_main"]
         games.update_avg_time_game(db, game_id, avg_time)
         game = games.get_game_by_id(db, game_id)
+        clockify_response = clockify_api.create_empty_time_entry(
+            db,
+            user.clockify_key,
+            db_game.clockify_id,
+            user_game.platform,
+            completed=True,
+        )
         message = (
             user.name
             + " acaba de completar su juego número "

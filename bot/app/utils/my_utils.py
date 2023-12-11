@@ -104,6 +104,7 @@ class MyUtils:
                 else:
                     return True
             url = config.API_URL + "/users/" + username
+            logger.info(url)
             response = self.make_request("GET", url)
             if response.status_code == 200:
                 # user = {"username": username, "telegram_id": user_id}
@@ -112,8 +113,11 @@ class MyUtils:
                 # logger.info(response.json())
                 return response.json()
             else:
-                logger.info("Error on request to check valid chat!")
+                logger.info(
+                    "Error on request to check valid chat: " + str(response.status_code)
+                )
                 logger.info(response.json())
+                logger.info("Response above.")
                 return False
         except Exception as e:
             logger.info("Error checking valid chat: " + str(e))

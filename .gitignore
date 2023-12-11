@@ -358,5 +358,5 @@ yarn-error.log*
 logs.log
 *.crt
 .gitlab-ci.yml
-db
+db*
 docker-compose.yml

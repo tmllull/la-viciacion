@@ -311,6 +311,8 @@ def add_new_game(
         else:
             started_date = utils.convert_date_from_text(start_date)
         game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
+        if game_db is None:
+            return None
         user_game = models.UserGame(
             user_id=user.id,
             completed=0,

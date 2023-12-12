@@ -28,6 +28,34 @@ def check_hex(s):
         return False
 
 
+def validate_password_requirements(password):
+    # Length
+    if len(password) < 12 or len(password) > 24:
+        return False
+
+    # Uppercase
+    if not re.search(r"[A-Z]", password):
+        return False
+
+    # Lowercase
+    if not re.search(r"[a-z]", password):
+        return False
+
+    # Special character
+    if not re.search(r"[!@#$%^&*()_+{}\[\]:;<>,.?/~\\-]", password):
+        return False
+
+    return True
+
+
+def validate_email_format(email):
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
+
+
 def convert_time_to_hours(seconds) -> str:
     if seconds is None:
         return "0h0m"

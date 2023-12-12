@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import Union
+from typing import Tuple, Union
 
 import bcrypt
 from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
@@ -103,15 +103,25 @@ def get_user_by_id(db: Session, id: int) -> models.User:
         raise
 
 
-def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+def create_user(
+    db: Session, user: schemas.UserCreate
+) -> Union[Tuple[bool, models.User], Tuple[bool, int]]:
     # generating the salt
     salt = bcrypt.gensalt()
+
+    # Check password length and email format
+    if not utils.validate_email_format(user.email):
+        return (False, 1)
+    if not utils.validate_password_requirements(user.password):
+        return (False, 0)
 
     # Hashing the password
     hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), salt)
 
     try:
-        db_user = models.User(username=user.username, password=hashed_password)
+        db_user = models.User(
+            username=user.username, password=hashed_password, email=user.email
+        )
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -131,7 +141,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
             else:
                 logger.warning("User already exists in DB")
         # db.refresh(user_statistics)
-        return db_user
+        return True, db_user
 
         # return (
         #     db.query(models.User).filter(models.User.username == user.username).first()

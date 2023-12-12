@@ -13,6 +13,7 @@ from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import logger as logger
+from ..utils import messages as msg
 from ..utils import my_utils as utils
 
 models.Base.metadata.create_all(bind=engine)
@@ -58,12 +59,26 @@ async def login(
 @router.post("/signup")
 @version(1)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """Register new user
+
+    Password requirements:
+    - Length must be between 12 and 24 characters
+    - 1 Uppercase letter
+    - 1 Lowercase letter
+    - 1 Special character
+    """
     if user.invitation_key != config.INVITATION_KEY:
-        raise HTTPException(status_code=400, detail="Invalid invitation key")
+        raise HTTPException(status_code=400, detail=msg.INVALID_INVITATION_KEY)
     db_user = users.get_user_by_username(db, username=user.username)
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    return users.create_user(db=db, user=user)
+        raise HTTPException(status_code=400, detail=msg.USER_ALREADY_EXISTS)
+    validation, new_user = users.create_user(db=db, user=user)
+    if not validation:
+        if new_user == 0:
+            raise HTTPException(status_code=400, detail=msg.PASSWORD_REQUIREMENTS)
+        if new_user == 1:
+            raise HTTPException(status_code=400, detail=msg.EMAIL_VALIDATION)
+    return new_user
 
 
 @router.post("/token", response_model=auth.Token)

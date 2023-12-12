@@ -9,6 +9,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    email: str
     password: str
     invitation_key: str
 

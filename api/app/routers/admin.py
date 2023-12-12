@@ -51,6 +51,7 @@ def init(
     Init base data
     """
     try:
+        logger.info("Creating admin users")
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
         achievements.populate_achievements(db)

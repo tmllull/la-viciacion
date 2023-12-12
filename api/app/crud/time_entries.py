@@ -110,20 +110,13 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             platform = None
             completed = None
             if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
-                # platform = entry["tagIds"][0]
-                # Revise the following code if needed
-                # logger.info(entry["tagIds"])
                 for tag in entry["tagIds"]:
-                    # logger.info(tag)
                     platform_check = clockify.get_platform_by_tag_id(db, tag)
-                    # logger.info(platform_check)
                     if platform is None and platform_check is not None:
                         platform = tag
                         continue
                     completed_check = clockify.check_completed_tag_by_id(db, tag)
-                    # logger.info(completed_check)
                     if completed is None and completed_check is not None:
-                        # logger.info("Game completed!")
                         completed = 1
 
             start = utils.change_timezone_clockify(start)
@@ -145,9 +138,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             # Add game to GameStatistics (if needed)
             games.create_game_statistics(db, game_id)
             # Check if player already plays the game
-            # logger.info("Checkpoint 4")
             already_playing = users.get_game_by_id(db, user.id, game_id)
-            # logger.info("Checkpoint 5")
             if not already_playing:
                 logger.info(
                     "USER NOT PLAYING GAME: " + game_name + " - " + str(game_id)
@@ -155,7 +146,7 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 new_user_game = schemas.NewGameUser(
                     project_clockify_id=entry["projectId"], platform=platform
                 )
-                users.add_new_game(db, new_user_game, user, start)
+                await users.add_new_game(db, new_user_game, user, start)
                 already_playing = users.get_game_by_id(db, user.id, game_id)
             # TODO: revise if this else is needed and how to implement it properly
             elif platform is not None and already_playing.platform != platform:
@@ -168,16 +159,16 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 )
                 db.execute(stmt)
                 db.commit()
-            elif completed is not None:
-                stmt = (
-                    update(models.UserGame)
-                    .where(models.UserGame.id == already_playing.id)
-                    .values(
-                        completed=completed,
-                    )
-                )
-                db.execute(stmt)
-                db.commit()
+            elif completed is not None and already_playing.completed != 1:
+                logger.info("Completing game " + str(game.id) + "...")
+                await users.complete_game(db, user.id, game.id)
+                # stmt = (
+                #     update(models.UserGame)
+                #     .where(models.UserGame.id == already_playing.id)
+                #     .values(completed=completed, completed_date=start)
+                # )
+                # db.execute(stmt)
+                # db.commit()
             stmt = select(models.TimeEntry).where(models.TimeEntry.id == entry["id"])
             # Check if time entry already exists (to update it if needed)
             exists = db.execute(stmt).first()

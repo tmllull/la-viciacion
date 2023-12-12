@@ -43,6 +43,7 @@ def convert_hours_minutes_to_seconds(time) -> int:
 
 
 def convert_date_from_text(date: str):
+    logger.debug("Converting date")
     if date is None or date == "":
         return date
     return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
@@ -179,7 +180,7 @@ async def send_message(msg):
             chat_id=config.TELEGRAM_GROUP_ID,
             parse_mode=telegram.constants.ParseMode.MARKDOWN,
         )
-    print("Message sent successfully!")
+    logger.info("Message sent successfully!")
 
 
 def get_platforms(db: Session):

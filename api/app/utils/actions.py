@@ -9,7 +9,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import clockify, games, rankings, time_entries, users
+from ..crud import achievements, clockify, games, rankings, time_entries, users
 from ..database import models, schemas
 from . import logger
 from . import my_utils as utils
@@ -39,6 +39,7 @@ async def sync_data(
         config.silent = True
         config.sync_all = True
     clockify.sync_clockify_tags(db)
+    achievements.populate_achievements(db)
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:

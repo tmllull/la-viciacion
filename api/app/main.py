@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_versioning import VersionedFastAPI
@@ -31,3 +33,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_timestamp_to_logs(request, call_next):
+    start_time = datetime.datetime.now()
+    response = await call_next(request)
+    end_time = datetime.datetime.now()
+
+    # Calcula la duración de la solicitud
+    duration = end_time - start_time
+
+    # Registra la hora actual y la duración en los logs
+    logger.info(
+        f'REQUEST - "{request.method} {request.url.path}" - {response.status_code} - {duration}'
+    )
+
+    return response

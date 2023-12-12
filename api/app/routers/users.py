@@ -114,31 +114,25 @@ async def add_game_to_user(
     )
     if already_playing:
         raise HTTPException(status_code=409, detail=msg.USER_ALREADY_PLAYING)
-    # played_games = users.get_games(db, user.id)
-    # for played_game in played_games:
-    #     if played_game.project_clockify_id == game.project_clockify_id:
-    #         raise HTTPException(
-    #             status_code=409, detail="User is already playing this game"
-    #         )
     try:
-        played_games = users.get_games(db, user.id)
-        new_game = users.add_new_game(db=db, game=game, user=user)
+        # played_games = users.get_games(db, user.id)
+        new_game = await users.add_new_game(db=db, game=game, user=user)
         game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
         if game_db is None:
             raise HTTPException(status_code=404, detail=msg.GAME_NOT_FOUND)
-        game_name = game_db.name
-        total_games = played_games.count() + 1
-        clockify_api.create_empty_time_entry(
-            db, user.clockify_key, game.project_clockify_id, game.platform
-        )
-        await utils.send_message(
-            user.name
-            + " acaba de empezar su juego número "
-            + str(total_games)
-            + ": *"
-            + game_name
-            + "*"
-        )
+        # game_name = game_db.name
+        # total_games = played_games.count() + 1
+        # clockify_api.create_empty_time_entry(
+        #     db, user.clockify_key, game.project_clockify_id, game.platform
+        # )
+        # await utils.send_message(
+        #     user.name
+        #     + " acaba de empezar su juego número "
+        #     + str(total_games)
+        #     + ": *"
+        #     + game_name
+        #     + "*"
+        # )
         return new_game
     except Exception as e:
         logger.info(e)
@@ -178,38 +172,34 @@ async def complete_game(username: str, game_id: int, db: Session = Depends(get_d
             raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
         if user_game.completed == 1:
             raise HTTPException(status_code=409, detail=msg.GAME_ALREADY_COMPLETED)
-        num_completed_games, completion_time = users.complete_game(db, user.id, game_id)
-        db_game = games.get_game_by_id(db, game_id)
-        game_info = await utils.get_game_info(db_game.name)
-        avg_time = game_info["hltb"]["comp_main"]
-        games.update_avg_time_game(db, game_id, avg_time)
-        game = games.get_game_by_id(db, game_id)
-        clockify_response = clockify_api.create_empty_time_entry(
-            db,
-            user.clockify_key,
-            db_game.clockify_id,
-            user_game.platform,
-            completed=True,
-        )
-        message = (
-            user.name
-            + " acaba de completar su juego número "
-            + str(num_completed_games)
-            + ": *"
-            + game.name
-            + "* en "
-            + str(utils.convert_time_to_hours(completion_time))
-            + ". La media está en "
-            + str(utils.convert_time_to_hours(avg_time))
-            + "."
-        )
-        logger.info(message)
-        await utils.send_message(message)
-        return {
-            "completed_games": num_completed_games,
-            "completion_time": completion_time,
-            "avg_time": avg_time,
-        }
+        await users.complete_game(db, user.id, game_id)
+        # db_game = games.get_game_by_id(db, game_id)
+        # game_info = await utils.get_game_info(db_game.name)
+        # avg_time = game_info["hltb"]["comp_main"]
+        # games.update_avg_time_game(db, game_id, avg_time)
+        # game = games.get_game_by_id(db, game_id)
+        # clockify_response = clockify_api.create_empty_time_entry(
+        #     db,
+        #     user.clockify_key,
+        #     db_game.clockify_id,
+        #     user_game.platform,
+        #     completed=True,
+        # )
+        # message = (
+        #     user.name
+        #     + " acaba de completar su juego número "
+        #     + str(num_completed_games)
+        #     + ": *"
+        #     + game.name
+        #     + "* en "
+        #     + str(utils.convert_time_to_hours(completion_time))
+        #     + ". La media está en "
+        #     + str(utils.convert_time_to_hours(avg_time))
+        #     + "."
+        # )
+        # logger.info(message)
+        # await utils.send_message(message)
+        return {"Game completed"}
     except Exception as e:
         logger.info(e)
         raise HTTPException(

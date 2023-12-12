@@ -14,7 +14,7 @@ from ..utils import my_utils as utils
 from ..utils.clockify_api import ClockifyApi
 from . import games
 
-clockify = ClockifyApi()
+clockify_api = ClockifyApi()
 config = Config()
 
 #################
@@ -23,7 +23,6 @@ config = Config()
 
 
 def create_admin_user(db: Session, username: str):
-    logger.info("Creating admin users")
     try:
         db_user = db.query(models.User).filter(models.User.username == username).first()
         if db_user is None:
@@ -38,7 +37,7 @@ def create_admin_user(db: Session, username: str):
             db.commit()
             logger.info("Admin user created")
         else:
-            logger.warning("User already exists")
+            logger.warning(username + " already exists as admin")
     except SQLAlchemyError as e:
         db.rollback()
         logger.error("Error creating admin user: " + str(e))
@@ -326,7 +325,7 @@ def get_avatar(db: Session, username: str):
         raise
 
 
-def add_new_game(
+async def add_new_game(
     db: Session, game: schemas.NewGameUser, user: models.User, start_date: str = None
 ) -> models.UserGame:
     logger.info("Adding new user game...")
@@ -349,6 +348,18 @@ def add_new_game(
         db.add(user_game)
         db.commit()
         db.refresh(user_game)
+        played_games = get_games(db, user.id)
+        clockify_api.create_empty_time_entry(
+            db, user.clockify_key, game.project_clockify_id, game.platform
+        )
+        await utils.send_message(
+            user.name
+            + " acaba de empezar su juego número "
+            + str(played_games)
+            + ": *"
+            + game_db.name
+            + "*"
+        )
         logger.info("Game added!")
         return user_game
     except SQLAlchemyError as e:
@@ -518,9 +529,12 @@ def game_is_completed(db: Session, player, game) -> bool:
     return False
 
 
-def complete_game(db: Session, user_id, game_id):
+async def complete_game(db: Session, user_id, game_id, completed_date: str = None):
     try:
-        logger.info("Completing game...")
+        if completed_date is None:
+            completed_date = datetime.datetime.now()
+        else:
+            completed_date = utils.convert_date_from_text(completed_date)
         stmt = (
             update(models.UserGame)
             .where(
@@ -529,23 +543,61 @@ def complete_game(db: Session, user_id, game_id):
             )
             .values(
                 completed=1,
-                completed_date=datetime.datetime.now().date(),
+                completed_date=completed_date,
             )
         )
         db.execute(stmt)
         db.commit()
         logger.info("Game completed")
+        db_game = games.get_game_by_id(db, game_id)
+        user = get_user_by_id(db, user_id)
+        user_game = get_game_by_clockify_id(db, user_id, db_game.clockify_id)
+        game_info = await utils.get_game_info(db_game.name)
+        if game_info["hltb"] is not None:
+            avg_time = game_info["hltb"]["comp_main"]
+        else:
+            avg_time = 0
+        games.update_avg_time_game(db, game_id, avg_time)
+        game = games.get_game_by_id(db, game_id)
+        clockify_response = clockify_api.create_empty_time_entry(
+            db,
+            user.clockify_key,
+            db_game.clockify_id,
+            user_game.platform,
+            completed=True,
+        )
         num_completed_games = (
             db.query(models.UserGame.game_id)
             .filter_by(user_id=user_id, completed=1)
             .count()
         )
-        user_game = get_game_by_id(db, user_id, game_id)
         completion_time = user_game.completion_time
-        return num_completed_games, completion_time
+        message = (
+            user.name
+            + " acaba de completar su juego número "
+            + str(num_completed_games)
+            + ": *"
+            + game.name
+            + "* en "
+            + str(utils.convert_time_to_hours(completion_time))
+            + ". La media está en "
+            + str(utils.convert_time_to_hours(avg_time))
+            + "."
+        )
+        logger.info(message)
+        await utils.send_message(message)
+        # num_completed_games = (
+        #     db.query(models.UserGame.game_id)
+        #     .filter_by(user_id=user_id, completed=1)
+        #     .count()
+        # )
+        # user_game = get_game_by_id(db, user_id, game_id)
+        # completion_time = user_game.completion_time
+        # return num_completed_games, completion_time
 
     except Exception as e:
         db.rollback()
+        logger.error("Error completing game CHECKPOINT")
         logger.error("Error completing game: " + str(e))
         raise e
 

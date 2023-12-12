@@ -120,6 +120,7 @@ def create_game_statistics(db: Session, game_id: int):
 
 
 def update_avg_time_game(db: Session, game_id: str, avg_time: int):
+    logger.info("Updating avg time for game...")
     try:
         stmt = (
             update(models.Game)

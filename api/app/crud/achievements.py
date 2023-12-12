@@ -25,7 +25,6 @@ def populate_achievements(db: Session):
     logger.info("Populating achievements")
     for achievement in list(AchievementsElems):
         key = achievement.name
-        logger.info(key)
         title = achievement.value["title"]
         message = achievement.value["message"]
         ach_db = (

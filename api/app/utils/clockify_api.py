@@ -206,6 +206,7 @@ class ClockifyApi:
                     "end": end_date,
                     "projectId": project_id,
                     "start": start_date,
+                    "description": "BipBup. ¡Juego completado!",
                     "tagIds": tags,
                 }
                 response = self.send_clockify_request(

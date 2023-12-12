@@ -216,10 +216,10 @@ class TimeEntrie(BaseModel):
         from_attributes = True
 
 
-class CompletedGame(BaseModel):
-    completed_games: Union[int, None]
-    completion_time: Union[int, None]
-    avg_time: Union[int, None]
+# class CompletedGame(BaseModel):
+#     completed_games: Union[int, None]
+#     completion_time: Union[int, None]
+#     avg_time: Union[int, None]
 
 
 # class RankingsResponse(BaseModel):

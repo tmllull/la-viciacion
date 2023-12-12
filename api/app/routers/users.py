@@ -159,7 +159,7 @@ def get_games(
     return played_games
 
 
-@router.patch("/{username}/complete-game", response_model=schemas.CompletedGame)
+@router.patch("/{username}/complete-game")
 @version(1)
 async def complete_game(username: str, game_id: int, db: Session = Depends(get_db)):
     """
@@ -173,32 +173,6 @@ async def complete_game(username: str, game_id: int, db: Session = Depends(get_d
         if user_game.completed == 1:
             raise HTTPException(status_code=409, detail=msg.GAME_ALREADY_COMPLETED)
         await users.complete_game(db, user.id, game_id)
-        # db_game = games.get_game_by_id(db, game_id)
-        # game_info = await utils.get_game_info(db_game.name)
-        # avg_time = game_info["hltb"]["comp_main"]
-        # games.update_avg_time_game(db, game_id, avg_time)
-        # game = games.get_game_by_id(db, game_id)
-        # clockify_response = clockify_api.create_empty_time_entry(
-        #     db,
-        #     user.clockify_key,
-        #     db_game.clockify_id,
-        #     user_game.platform,
-        #     completed=True,
-        # )
-        # message = (
-        #     user.name
-        #     + " acaba de completar su juego número "
-        #     + str(num_completed_games)
-        #     + ": *"
-        #     + game.name
-        #     + "* en "
-        #     + str(utils.convert_time_to_hours(completion_time))
-        #     + ". La media está en "
-        #     + str(utils.convert_time_to_hours(avg_time))
-        #     + "."
-        # )
-        # logger.info(message)
-        # await utils.send_message(message)
         return {"Game completed"}
     except Exception as e:
         logger.info(e)

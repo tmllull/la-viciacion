@@ -89,7 +89,7 @@ def user_games(
     return users.get_games(username, limit, completed, db)
 
 
-@router.patch("/users/{username}/complete-game", response_model=schemas.CompletedGame)
+@router.patch("/users/{username}/complete-game")
 @version(1)
 async def complete_game(username: str, game_id: int, db: Session = Depends(get_db)):
     """

@@ -46,7 +46,7 @@ class DataRoutes:
             logger.info("Update data menu...")
             query = update.callback_query
             await query.answer()
-            keyboard = kb.EXCEL_ACTIONS
+            keyboard = kb.DATA_ACTIONS
             reply_markup = ReplyKeyboardMarkup(
                 keyboard,
                 one_time_keyboard=True,
@@ -80,6 +80,27 @@ class DataRoutes:
             return ConversationHandler.END
         context.user_data[GAME] = update.message.text
         logger.info("Received game: " + context.user_data[GAME])
+        url = (
+            config.API_URL
+            + "/users/"
+            + str(update.message.from_user.username)
+            + "/games"
+        )
+        response = utils.make_request("GET", url=url)
+        played_games = response.json()
+        context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
+        for played_game in played_games:
+            url = config.API_URL + "/games/" + str(played_game["game_id"])
+            game_info = utils.make_request("GET", url).json()
+            game_name = game_info["name"]
+            if game_name == context.user_data[GAME]:
+                await update.message.reply_text(
+                    "Ya tienes añadido "
+                    + str(context.user_data[GAME])
+                    + " a tu lista de juegos.",
+                    reply_markup=ReplyKeyboardRemove(),
+                )
+                return ConversationHandler.END
         url = config.API_URL + "/utils/platforms"
         platforms = utils.make_request("GET", url).json()
         logger.info(platforms)
@@ -87,7 +108,7 @@ class DataRoutes:
         # logger.info(played_games)
         for platform in platforms:
             keyboard.append([platform["name"]])
-        keyboard.append(["Otra"])
+        keyboard.append(kb.CANCEL)
         reply_markup = ReplyKeyboardMarkup(
             keyboard,
             one_time_keyboard=True,
@@ -104,6 +125,12 @@ class DataRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         try:
+            if "❌" in update.message.text:
+                await update.message.reply_text(
+                    "Acción cancelada",
+                    reply_markup=ReplyKeyboardRemove(),
+                )
+                return ConversationHandler.END
             context.user_data[PLATFORM] = update.message.text
             logger.info("Received platform: " + context.user_data[PLATFORM])
             url = config.API_URL + "/games/rawg/" + str(context.user_data[GAME])
@@ -146,33 +173,33 @@ class DataRoutes:
             context.user_data[GENRES] = genres[:-1]
             context.user_data[MEAN_TIME] = hltb_info["comp_main"]
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
-            url = (
-                config.API_URL
-                + "/users/"
-                + str(update.message.from_user.username)
-                + "/games"
-            )
-            response = utils.make_request("GET", url=url)
-            played_games = response.json()
-            context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
-            for played_game in played_games:
-                url = config.API_URL + "/games/" + str(played_game["game_id"])
-                game_info = utils.make_request("GET", url).json()
-                game_name = game_info["name"]
-                # logger.info(game_info)
-                # await update.message.reply_text(
-                #     "Checkoint",
-                #     reply_markup=ReplyKeyboardRemove(),
-                # )
-                # return ConversationHandler.END
-                if game_name == context.user_data[GAME]:
-                    await update.message.reply_text(
-                        "Ya tienes añadido "
-                        + str(context.user_data[GAME])
-                        + " a tu lista de juegos.",
-                        reply_markup=ReplyKeyboardRemove(),
-                    )
-                    return ConversationHandler.END
+            # url = (
+            #     config.API_URL
+            #     + "/users/"
+            #     + str(update.message.from_user.username)
+            #     + "/games"
+            # )
+            # response = utils.make_request("GET", url=url)
+            # played_games = response.json()
+            # context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
+            # for played_game in played_games:
+            #     url = config.API_URL + "/games/" + str(played_game["game_id"])
+            #     game_info = utils.make_request("GET", url).json()
+            #     game_name = game_info["name"]
+            #     # logger.info(game_info)
+            #     # await update.message.reply_text(
+            #     #     "Checkoint",
+            #     #     reply_markup=ReplyKeyboardRemove(),
+            #     # )
+            #     # return ConversationHandler.END
+            #     if game_name == context.user_data[GAME]:
+            #         await update.message.reply_text(
+            #             "Ya tienes añadido "
+            #             + str(context.user_data[GAME])
+            #             + " a tu lista de juegos.",
+            #             reply_markup=ReplyKeyboardRemove(),
+            #         )
+            #         return ConversationHandler.END
             msg = "¿Quieres añadir un nuevo juego con los siguiente datos?:\n"
             msg += (
                 "Juego: "
@@ -380,13 +407,13 @@ class DataRoutes:
                 )
                 response = utils.make_request("PATCH", url)
                 if response.status_code == 200:
-                    completed_games = response.json()["completed_games"]
-                    completed_time = response.json()["completion_time"]
-                    avg_time = response.json()["avg_time"]
+                    # completed_games = response.json()["completed_games"]
+                    # completed_time = response.json()["completion_time"]
+                    # avg_time = response.json()["avg_time"]
 
                     await update.message.reply_text(
-                        "Juego número "
-                        + str(completed_games)
+                        "Juego"
+                        # + str(completed_games)
                         + " marcado como completado",
                         reply_markup=ReplyKeyboardRemove(),
                     )
@@ -502,267 +529,267 @@ class DataRoutes:
     ##### ADD TIME #####
     ####################
 
-    async def add_time(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        logger.info("Add time to game...")
-        username = update.message.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        games = requests.get(config.API_URL + "/??????")
-        keyboard = []
-        for game in games:
-            keyboard.append([game[0]])
-        keyboard.append(kb.CANCEL)
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "Escoge un juego, pero ten en cuenta "
-            + "que de momento sólo puede añadirse tiempo al día actual:",
-            reply_markup=reply_markup,
-        )
-        return utils.EXCEL_TIME_SELECT_GAME
+    # async def add_time(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    #     logger.info("Add time to game...")
+    #     username = update.message.from_user.username
+    #     await utils.response_conversation(update, context, "TBI")
+    #     return
+    #     games = requests.get(config.API_URL + "/??????")
+    #     keyboard = []
+    #     for game in games:
+    #         keyboard.append([game[0]])
+    #     keyboard.append(kb.CANCEL)
+    #     reply_markup = ReplyKeyboardMarkup(
+    #         keyboard,
+    #         one_time_keyboard=True,
+    #         input_field_placeholder="",
+    #         resize_keyboard=True,
+    #         selective=True,
+    #     )
+    #     await update.message.reply_text(
+    #         "Escoge un juego, pero ten en cuenta "
+    #         + "que de momento sólo puede añadirse tiempo al día actual:",
+    #         reply_markup=reply_markup,
+    #     )
+    #     return utils.EXCEL_TIME_SELECT_GAME
 
-    async def add_time_game_select(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Received game")
-        message = update.message.text
-        context.user_data[GAME] = message
-        await update.message.reply_text(
-            "¿Cuánto tiempo has jugado? El formato debe ser HH:MM.  (/cancel para cancelar)",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return utils.EXCEL_ADD_TIME
+    # async def add_time_game_select(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     logger.info("Received game")
+    #     message = update.message.text
+    #     context.user_data[GAME] = message
+    #     await update.message.reply_text(
+    #         "¿Cuánto tiempo has jugado? El formato debe ser HH:MM.  (/cancel para cancelar)",
+    #         reply_markup=ReplyKeyboardRemove(),
+    #     )
+    #     return utils.EXCEL_ADD_TIME
 
-    async def add_time_time_select(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Received time")
-        if update.message.text == "/cancel" or update.message.text.lower() == "cancel":
-            await utils.reply_message(update, context, "Pos nah. Taluego.")
-            return ConversationHandler.END
-        username = update.message.from_user.username
-        message = update.message.text
-        context.user_data[TIME] = message
-        try:
-            time_to_add_temp = datetime.strptime(message, "%H:%M")
-        except Exception as e:
-            await update.message.reply_text("El formato de tiempo no es correcto.")
-        col_num = int(datetime.now().strftime("%j")) + 9
+    # async def add_time_time_select(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     logger.info("Received time")
+    #     if update.message.text == "/cancel" or update.message.text.lower() == "cancel":
+    #         await utils.reply_message(update, context, "Pos nah. Taluego.")
+    #         return ConversationHandler.END
+    #     username = update.message.from_user.username
+    #     message = update.message.text
+    #     context.user_data[TIME] = message
+    #     try:
+    #         time_to_add_temp = datetime.strptime(message, "%H:%M")
+    #     except Exception as e:
+    #         await update.message.reply_text("El formato de tiempo no es correcto.")
+    #     col_num = int(datetime.now().strftime("%j")) + 9
 
-        # game_row = result.fetchone()[0]
-        # row_num = game_row + 2
+    #     # game_row = result.fetchone()[0]
+    #     # row_num = game_row + 2
 
-        time_to_add = timedelta(
-            minutes=time_to_add_temp.minute, hours=time_to_add_temp.hour
-        )
+    #     time_to_add = timedelta(
+    #         minutes=time_to_add_temp.minute, hours=time_to_add_temp.hour
+    #     )
 
-        context.user_data[TIME] = time_to_add
-        msg = "Juego: *" + context.user_data[GAME] + "*\n"
-        msg += "Tiempo añadido: " + str(time_to_add_temp.strftime("%H:%M")) + "\n"
-        keyboard = kb.YES_NO
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "¿Quieres confirmar la siguiente información?\n\n" + msg,
-            reply_markup=reply_markup,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN,
-        )
-        return utils.EXCEL_CONFIRM_TIME
+    #     context.user_data[TIME] = time_to_add
+    #     msg = "Juego: *" + context.user_data[GAME] + "*\n"
+    #     msg += "Tiempo añadido: " + str(time_to_add_temp.strftime("%H:%M")) + "\n"
+    #     keyboard = kb.YES_NO
+    #     reply_markup = ReplyKeyboardMarkup(
+    #         keyboard,
+    #         one_time_keyboard=True,
+    #         input_field_placeholder="",
+    #         resize_keyboard=True,
+    #         selective=True,
+    #     )
+    #     await update.message.reply_text(
+    #         "¿Quieres confirmar la siguiente información?\n\n" + msg,
+    #         reply_markup=reply_markup,
+    #         parse_mode=telegram.constants.ParseMode.MARKDOWN,
+    #     )
+    #     return utils.EXCEL_CONFIRM_TIME
 
-    async def add_time_confirmation(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        try:
-            if "Sí" in str(update.message.text):
-                logger.info("Add time confirmed")
-                username = update.message.from_user.username
+    # async def add_time_confirmation(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     try:
+    #         if "Sí" in str(update.message.text):
+    #             logger.info("Add time confirmed")
+    #             username = update.message.from_user.username
 
-                await update.message.reply_text(
-                    "TBI", reply_markup=ReplyKeyboardRemove()
-                )
-                return
-                # await update.message.reply_text(
-                #     "Tiempo añadido", reply_markup=ReplyKeyboardRemove()
-                # )
-                return ConversationHandler.END
-            else:
-                await update.message.reply_text(
-                    "Operación cancelada", reply_markup=ReplyKeyboardRemove()
-                )
-                return ConversationHandler.END
-        except Exception as e:
-            logger.info(e)
-            await update.message.reply_text("Algo ha salido mal al añadir el tiempo")
-            return ConversationHandler.END
+    #             await update.message.reply_text(
+    #                 "TBI", reply_markup=ReplyKeyboardRemove()
+    #             )
+    #             return
+    #             # await update.message.reply_text(
+    #             #     "Tiempo añadido", reply_markup=ReplyKeyboardRemove()
+    #             # )
+    #             return ConversationHandler.END
+    #         else:
+    #             await update.message.reply_text(
+    #                 "Operación cancelada", reply_markup=ReplyKeyboardRemove()
+    #             )
+    #             return ConversationHandler.END
+    #     except Exception as e:
+    #         logger.info(e)
+    #         await update.message.reply_text("Algo ha salido mal al añadir el tiempo")
+    #         return ConversationHandler.END
 
-    async def active_timer(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Active timer select game....")
-        username = update.message.from_user.username
-        # TODO: TBI
-        return "TBI"
-        if username not in config.CLOCKIFY_USERS_API:
-            await update.message.reply_text(
-                "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-            return ConversationHandler.END
-        await utils.response_conversation(update, context, "TBI")
-        return
-        games = requests.get(config.API_URL + "/??????")
-        keyboard = []
-        for game in games:
-            keyboard.append([game[0]])
-        keyboard.append(kb.CANCEL)
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "Escoge un juego para iniciar el contador de tiempo:",
-            reply_markup=reply_markup,
-        )
-        return utils.EXCEL_START_TIMER
+    # async def active_timer(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     logger.info("Active timer select game....")
+    #     username = update.message.from_user.username
+    #     # TODO: TBI
+    #     return "TBI"
+    #     if username not in config.CLOCKIFY_USERS_API:
+    #         await update.message.reply_text(
+    #             "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
+    #             reply_markup=ReplyKeyboardRemove(),
+    #         )
+    #         return ConversationHandler.END
+    #     await utils.response_conversation(update, context, "TBI")
+    #     return
+    #     games = requests.get(config.API_URL + "/??????")
+    #     keyboard = []
+    #     for game in games:
+    #         keyboard.append([game[0]])
+    #     keyboard.append(kb.CANCEL)
+    #     reply_markup = ReplyKeyboardMarkup(
+    #         keyboard,
+    #         one_time_keyboard=True,
+    #         input_field_placeholder="",
+    #         resize_keyboard=True,
+    #         selective=True,
+    #     )
+    #     await update.message.reply_text(
+    #         "Escoge un juego para iniciar el contador de tiempo:",
+    #         reply_markup=reply_markup,
+    #     )
+    #     return utils.EXCEL_START_TIMER
 
-    async def active_timer_validation(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Received game")
-        message = update.message.text
-        context.user_data[GAME] = message
-        keyboard = kb.YES_NO
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "¿Seguro que quieres inciar el timer en el juego *"
-            + message
-            + "*?"
-            + "En el caso de tener el timer activado, se parará para iniciar este (El registro previo de tiempo se "
-            "añadirá normalmente)",
-            reply_markup=reply_markup,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN,
-        )
-        return utils.EXCEL_START_TIMER_COMPLETED
+    # async def active_timer_validation(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     logger.info("Received game")
+    #     message = update.message.text
+    #     context.user_data[GAME] = message
+    #     keyboard = kb.YES_NO
+    #     reply_markup = ReplyKeyboardMarkup(
+    #         keyboard,
+    #         one_time_keyboard=True,
+    #         input_field_placeholder="",
+    #         resize_keyboard=True,
+    #         selective=True,
+    #     )
+    #     await update.message.reply_text(
+    #         "¿Seguro que quieres inciar el timer en el juego *"
+    #         + message
+    #         + "*?"
+    #         + "En el caso de tener el timer activado, se parará para iniciar este (El registro previo de tiempo se "
+    #         "añadirá normalmente)",
+    #         reply_markup=reply_markup,
+    #         parse_mode=telegram.constants.ParseMode.MARKDOWN,
+    #     )
+    #     return utils.EXCEL_START_TIMER_COMPLETED
 
-    async def active_timer_confirmation(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        try:
-            if "Sí" in str(update.message.text):
-                logger.info("Start timer confirmed")
-                response = clockify.active_clockify_timer(
-                    context.user_data[GAME], context.user_data["username"]
-                )
-                if response == clockify.RESPONSE_OK:
-                    await update.message.reply_text(
-                        "Timer del juego iniciado", reply_markup=ReplyKeyboardRemove()
-                    )
-                elif response == clockify.USER_NOT_EXISTS:
-                    await update.message.reply_text(
-                        "El usuario no esta activado en Clockify",
-                        reply_markup=ReplyKeyboardRemove(),
-                    )
-                elif response == clockify.API_USER_NOT_ADDED:
-                    await update.message.reply_text(
-                        "El usuario no tiene acceso a las funcionalidades del timer via bot, ponte en contacto con el "
-                        "administrador para solicitar acceso",
-                        reply_markup=ReplyKeyboardRemove(),
-                    )
-            else:
-                await update.message.reply_text(
-                    "Cancelada acción de inciar timer",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-        except Exception as e:
-            await update.message.reply_text(
-                "Algo ha salido mal", reply_markup=ReplyKeyboardRemove()
-            )
-        return ConversationHandler.END
+    # async def active_timer_confirmation(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     try:
+    #         if "Sí" in str(update.message.text):
+    #             logger.info("Start timer confirmed")
+    #             response = clockify.active_clockify_timer(
+    #                 context.user_data[GAME], context.user_data["username"]
+    #             )
+    #             if response == clockify.RESPONSE_OK:
+    #                 await update.message.reply_text(
+    #                     "Timer del juego iniciado", reply_markup=ReplyKeyboardRemove()
+    #                 )
+    #             elif response == clockify.USER_NOT_EXISTS:
+    #                 await update.message.reply_text(
+    #                     "El usuario no esta activado en Clockify",
+    #                     reply_markup=ReplyKeyboardRemove(),
+    #                 )
+    #             elif response == clockify.API_USER_NOT_ADDED:
+    #                 await update.message.reply_text(
+    #                     "El usuario no tiene acceso a las funcionalidades del timer via bot, ponte en contacto con el "
+    #                     "administrador para solicitar acceso",
+    #                     reply_markup=ReplyKeyboardRemove(),
+    #                 )
+    #         else:
+    #             await update.message.reply_text(
+    #                 "Cancelada acción de inciar timer",
+    #                 reply_markup=ReplyKeyboardRemove(),
+    #             )
+    #     except Exception as e:
+    #         await update.message.reply_text(
+    #             "Algo ha salido mal", reply_markup=ReplyKeyboardRemove()
+    #         )
+    #     return ConversationHandler.END
 
-    async def stop_timer(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        logger.info("Stop timer...")
-        # TODO: TBI
-        return "TBI"
-        username = update.message.from_user.username
-        if username not in config.CLOCKIFY_USERS_API:
-            await update.message.reply_text(
-                "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-            return ConversationHandler.END
-        keyboard = kb.YES_NO
-        reply_markup = ReplyKeyboardMarkup(
-            keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="",
-            resize_keyboard=True,
-            selective=True,
-        )
-        await update.message.reply_text(
-            "¿Seguro que quieres parar el timer actualmente activo?",
-            reply_markup=reply_markup,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN,
-        )
-        return utils.EXCEL_STOP_TIMER
+    # async def stop_timer(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     logger.info("Stop timer...")
+    #     # TODO: TBI
+    #     return "TBI"
+    #     username = update.message.from_user.username
+    #     if username not in config.CLOCKIFY_USERS_API:
+    #         await update.message.reply_text(
+    #             "No tienes acceso a esta funcionalidad. Ponte en contacto con el administrador.",
+    #             reply_markup=ReplyKeyboardRemove(),
+    #         )
+    #         return ConversationHandler.END
+    #     keyboard = kb.YES_NO
+    #     reply_markup = ReplyKeyboardMarkup(
+    #         keyboard,
+    #         one_time_keyboard=True,
+    #         input_field_placeholder="",
+    #         resize_keyboard=True,
+    #         selective=True,
+    #     )
+    #     await update.message.reply_text(
+    #         "¿Seguro que quieres parar el timer actualmente activo?",
+    #         reply_markup=reply_markup,
+    #         parse_mode=telegram.constants.ParseMode.MARKDOWN,
+    #     )
+    #     return utils.EXCEL_STOP_TIMER
 
-    async def stop_timer_confirmation(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        try:
-            if "Sí" in str(update.message.text):
-                logger.info("Stop timer confirmed....")
-                response = clockify.stop_active_clockify_timer(
-                    context.user_data["username"]
-                )
-                if response == clockify.RESPONSE_OK:
-                    await update.message.reply_text(
-                        "Timer del juego parado", reply_markup=ReplyKeyboardRemove()
-                    )
-                elif response == clockify.ERROR_TIMER_ACTIVE:
-                    await update.message.reply_text(
-                        "No tienes ningun timer activado",
-                        reply_markup=ReplyKeyboardRemove(),
-                    )
-                elif response == clockify.USER_NOT_EXISTS:
-                    await update.message.reply_text(
-                        "El usuario no esta activado en Clockify",
-                        reply_markup=ReplyKeyboardRemove(),
-                    )
-                elif response == clockify.API_USER_NOT_ADDED:
-                    await update.message.reply_text(
-                        "El usuario no tiene acceso a las funcionalidades del timer via bot, ponte en contacto con el "
-                        "administrador para solicitar acceso",
-                        reply_markup=ReplyKeyboardRemove(),
-                    )
-            else:
-                await update.message.reply_text(
-                    "Cancelada acción de parar timer",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-        except Exception as e:
-            await update.message.reply_text("Algo ha salido mal")
-        return ConversationHandler.END
+    # async def stop_timer_confirmation(
+    #     self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    # ) -> int:
+    #     try:
+    #         if "Sí" in str(update.message.text):
+    #             logger.info("Stop timer confirmed....")
+    #             response = clockify.stop_active_clockify_timer(
+    #                 context.user_data["username"]
+    #             )
+    #             if response == clockify.RESPONSE_OK:
+    #                 await update.message.reply_text(
+    #                     "Timer del juego parado", reply_markup=ReplyKeyboardRemove()
+    #                 )
+    #             elif response == clockify.ERROR_TIMER_ACTIVE:
+    #                 await update.message.reply_text(
+    #                     "No tienes ningun timer activado",
+    #                     reply_markup=ReplyKeyboardRemove(),
+    #                 )
+    #             elif response == clockify.USER_NOT_EXISTS:
+    #                 await update.message.reply_text(
+    #                     "El usuario no esta activado en Clockify",
+    #                     reply_markup=ReplyKeyboardRemove(),
+    #                 )
+    #             elif response == clockify.API_USER_NOT_ADDED:
+    #                 await update.message.reply_text(
+    #                     "El usuario no tiene acceso a las funcionalidades del timer via bot, ponte en contacto con el "
+    #                     "administrador para solicitar acceso",
+    #                     reply_markup=ReplyKeyboardRemove(),
+    #                 )
+    #         else:
+    #             await update.message.reply_text(
+    #                 "Cancelada acción de parar timer",
+    #                 reply_markup=ReplyKeyboardRemove(),
+    #             )
+    #     except Exception as e:
+    #         await update.message.reply_text("Algo ha salido mal")
+    #     return ConversationHandler.END
 
     async def cancel_data(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE

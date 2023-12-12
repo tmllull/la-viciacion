@@ -607,7 +607,6 @@ async def complete_game(db: Session, user_id, game_id, completed_date: str = Non
 
     except Exception as e:
         db.rollback()
-        logger.error("Error completing game CHECKPOINT")
         logger.error("Error completing game: " + str(e))
         raise e
 

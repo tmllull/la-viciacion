@@ -1,6 +1,7 @@
 from telegram import InlineKeyboardButton
 
 EXIT = "❌ Salir"
+# EXIT = "❌ Cancelar"
 
 ACTIVATE_ACCOUNT = [
     [
@@ -106,11 +107,17 @@ RANKING_MENU = [
 
 YES_NO = [["✅ Sí", "❌ No"]]
 
-EXCEL_ACTIONS = [
-    ["🆕 Añadir juego", "⏲ Añadir tiempo"],
-    ["✅ Completar juego", "📝 Puntuar juego"],
-    ["▶️ Activar timer", "⏹ Parar timer"],
+DATA_ACTIONS = [
+    ["🆕 Añadir juego", "✅ Completar juego"],
+    ["📝 Puntuar juego"],
     [EXIT],
 ]
+
+# EXCEL_ACTIONS = [
+#     ["🆕 Añadir juego", "⏲ Añadir tiempo"],
+#     ["✅ Completar juego", "📝 Puntuar juego"],
+#     ["▶️ Activar timer", "⏹ Parar timer"],
+#     [EXIT],
+# ]
 
 CANCEL = [EXIT]

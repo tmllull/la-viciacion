@@ -180,40 +180,40 @@ def main() -> None:
                 MessageHandler(
                     filters.Regex("^(🆕 Añadir juego)$"), data_routes.add_game
                 ),
-                MessageHandler(
-                    filters.Regex("^(⏲ Añadir tiempo)$"), data_routes.add_time
-                ),
+                # MessageHandler(
+                #     filters.Regex("^(⏲ Añadir tiempo)$"), data_routes.add_time
+                # ),
                 MessageHandler(
                     filters.Regex("^(✅ Completar juego)$"), data_routes.complete_game
                 ),
                 MessageHandler(
                     filters.Regex("^(📝 Puntuar juego)$"), data_routes.rate_game
                 ),
-                MessageHandler(
-                    filters.Regex("^(▶️ Activar timer)$"), data_routes.active_timer
-                ),
-                MessageHandler(
-                    filters.Regex("^(⏹ Parar timer)$"), data_routes.stop_timer
-                ),
+                # MessageHandler(
+                #     filters.Regex("^(▶️ Activar timer)$"), data_routes.active_timer
+                # ),
+                # MessageHandler(
+                #     filters.Regex("^(⏹ Parar timer)$"), data_routes.stop_timer
+                # ),
                 MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
                 MessageHandler(None, data_routes.cancel_data),
             ],
-            utils.EXCEL_TIME_SELECT_GAME: [
-                MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
-                MessageHandler(None, data_routes.add_time_game_select),
-            ],
-            utils.EXCEL_ADD_TIME: [
-                MessageHandler(None, data_routes.add_time_time_select),
-            ],
-            utils.EXCEL_CONFIRM_TIME: [
-                MessageHandler(
-                    filters.Regex(FILTER_YES), data_routes.add_time_confirmation
-                ),
-                MessageHandler(
-                    filters.Regex(FILTER_NO), data_routes.add_time_confirmation
-                ),
-                MessageHandler(None, data_routes.cancel_data),
-            ],
+            # utils.EXCEL_TIME_SELECT_GAME: [
+            #     MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
+            #     MessageHandler(None, data_routes.add_time_game_select),
+            # ],
+            # utils.EXCEL_ADD_TIME: [
+            #     MessageHandler(None, data_routes.add_time_time_select),
+            # ],
+            # utils.EXCEL_CONFIRM_TIME: [
+            #     MessageHandler(
+            #         filters.Regex(FILTER_YES), data_routes.add_time_confirmation
+            #     ),
+            #     MessageHandler(
+            #         filters.Regex(FILTER_NO), data_routes.add_time_confirmation
+            #     ),
+            #     MessageHandler(None, data_routes.cancel_data),
+            # ],
             utils.EXCEL_COMPLETE_GAME: [
                 MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
                 MessageHandler(None, data_routes.complete_game_validation),
@@ -258,28 +258,28 @@ def main() -> None:
                 ),
                 MessageHandler(None, data_routes.cancel_data),
             ],
-            utils.EXCEL_START_TIMER: [
-                MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
-                MessageHandler(None, data_routes.active_timer_validation),
-            ],
-            utils.EXCEL_START_TIMER_COMPLETED: [
-                MessageHandler(
-                    filters.Regex(FILTER_YES), data_routes.active_timer_confirmation
-                ),
-                MessageHandler(
-                    filters.Regex(FILTER_NO), data_routes.active_timer_confirmation
-                ),
-                MessageHandler(None, data_routes.cancel_data),
-            ],
-            utils.EXCEL_STOP_TIMER: [
-                MessageHandler(
-                    filters.Regex(FILTER_YES), data_routes.stop_timer_confirmation
-                ),
-                MessageHandler(
-                    filters.Regex(FILTER_NO), data_routes.stop_timer_confirmation
-                ),
-                MessageHandler(None, data_routes.cancel_data),
-            ],
+            # utils.EXCEL_START_TIMER: [
+            #     MessageHandler(filters.Regex(FILTER_EXIT), data_routes.cancel_data),
+            #     MessageHandler(None, data_routes.active_timer_validation),
+            # ],
+            # utils.EXCEL_START_TIMER_COMPLETED: [
+            #     MessageHandler(
+            #         filters.Regex(FILTER_YES), data_routes.active_timer_confirmation
+            #     ),
+            #     MessageHandler(
+            #         filters.Regex(FILTER_NO), data_routes.active_timer_confirmation
+            #     ),
+            #     MessageHandler(None, data_routes.cancel_data),
+            # ],
+            # utils.EXCEL_STOP_TIMER: [
+            #     MessageHandler(
+            #         filters.Regex(FILTER_YES), data_routes.stop_timer_confirmation
+            #     ),
+            #     MessageHandler(
+            #         filters.Regex(FILTER_NO), data_routes.stop_timer_confirmation
+            #     ),
+            #     MessageHandler(None, data_routes.cancel_data),
+            # ],
         },
         fallbacks=[CommandHandler("menu", basic_routes.menu)],
         per_user=True,

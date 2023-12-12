@@ -1,7 +1,5 @@
 FROM python:3.11-slim-bookworm
 
-ENV TZ=Europe/London
-
 WORKDIR /app
 
 COPY . .

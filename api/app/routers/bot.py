@@ -55,6 +55,15 @@ def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
     return users.update_user(user, db)
 
 
+@router.patch("/users", response_model=schemas.User)
+@version(1)
+def update_user(user: schemas.TelegramUser, db: Session = Depends(get_db)):
+    """
+    Update user Telegram ID
+    """
+    return users_crud.update_user_telegram_id(db, user)
+
+
 @router.post("/users/{username}/new_game", response_model=schemas.UserGame)
 @version(1)
 async def add_game_to_user(

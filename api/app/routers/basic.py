@@ -86,7 +86,7 @@ async def login_for_access_token(
             "username": user.username,
             "name": user.name,
             "email": user.email,
-            # "telegram_id": user.telegram_id,
+            "telegram_id": user.telegram_id,
             "clockify_id": user.clockify_id,
             "is_admin": user.is_admin,
             "is_active": user.is_active,

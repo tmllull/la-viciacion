@@ -30,7 +30,7 @@ class User(UserBase):
 class UserForAdmins(UserBase):
     id: int
     name: Union[str, None] = None
-    # telegram_id: Union[int, None] = None
+    telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = 0
     email: Union[str, None] = None
     is_active: Union[int, None] = 0
@@ -60,7 +60,7 @@ class UserUpdate(BaseModel):
     username: str
     password: Union[str, None] = None
     email: Union[str, None] = None
-    # telegram_id: Union[int, None] = None
+    telegram_id: Union[int, None] = None
     clockify_id: Union[str, None] = None
     clockify_key: Union[str, None] = None
 
@@ -73,7 +73,7 @@ class UserUpdateForAdmin(BaseModel):
     username: str
     password: Union[str, None] = None
     email: Union[str, None] = None
-    # telegram_id: Union[int, None] = None
+    telegram_id: Union[int, None] = None
     is_admin: Union[int, None] = None
     is_active: Union[int, None] = None
     clockify_id: Union[str, None] = None
@@ -83,9 +83,9 @@ class UserUpdateForAdmin(BaseModel):
     #     from_attributes = True
 
 
-# class TelegramUser(BaseModel):
-#     telegram_name: str
-#     telegram_id: int
+class TelegramUser(BaseModel):
+    username: str
+    telegram_id: int
 
 
 # class GamesInfoBase(BaseModel):

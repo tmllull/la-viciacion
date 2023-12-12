@@ -17,6 +17,12 @@ class BasicRoutes:
     async def activate_account(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        if update.message.chat_id < 0:
+            await utils.response_conversation(
+                update,
+                context,
+                "Esta opción sólo puede usarse en un chat directo con el bot",
+            )
         user = utils.check_valid_chat(update)
         if user:
             if user["is_active"]:
@@ -29,7 +35,7 @@ class BasicRoutes:
             await update.message.reply_text(
                 "Hola "
                 + update.message.from_user.first_name
-                + ". Por favor, antes de poder usar el bot debes activar tu cuenta.",
+                + ". Por favor, activa tu cuenta antes de usar el bot.",
                 reply_markup=reply_markup,
             )
             return utils.ACTIVATE_ACCOUNT
@@ -52,22 +58,12 @@ class BasicRoutes:
             if response.status_code == 200:
                 logger.info("Account validated")
                 await query.edit_message_text(
-                    text="Tu cuenta ha sido validada. Ya puedes usar el bot"
+                    text="Tu cuenta ha sido activada. Ya puedes usar el bot"
                 )
                 return ConversationHandler.END
             elif response.status_code == 409:
-                await query.edit_message_text(
-                    text="Tu cuenta ya ha sido validada. Ya puedes usar el bot"
-                )
+                await query.edit_message_text(text="Tu cuenta ya ha sido activada.")
                 return ConversationHandler.END
-                # logger.info("Account already validated")
-                # utils.response_conversation(
-                #     update, context, "Tu cuenta ya ha sido validada"
-                # )
-                # await update.message.reply_text(
-                #     "Tu cuenta ha sido validada. Ya puedes usar el bot"
-                # )
-                # return ConversationHandler.END
         except Exception as e:
             logger.info(e)
             await query.edit_message_text(
@@ -78,7 +74,6 @@ class BasicRoutes:
     async def menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info(update.message.from_user.username + " has started conversation...")
         user = utils.check_valid_chat(update)
-        # logger.info(update.message.from_user.username + " exists on DB")
         if user:
             if user["is_active"]:
                 tg_info = update.message.from_user
@@ -99,7 +94,9 @@ class BasicRoutes:
                 return utils.MAIN_MENU
             else:
                 await utils.reply_message(
-                    update, context, "Debes activar tu cuenta primero."
+                    update,
+                    context,
+                    "Para poder usar el bot, primero debes activar tu cuenta primero usando el comando /activate en un chat directo con el bot.",
                 )
         else:
             await utils.reply_message(update, context, msgs.forbidden)

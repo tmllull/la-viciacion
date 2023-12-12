@@ -161,9 +161,9 @@ def update_user(db: Session, user: schemas.UserUpdate):
         name = user.name if user.name is not None else db_user.name
         # username = user.username if user.username is not None else db_user.username
         email = user.email if user.email is not None else db_user.email
-        # telegram_id = (
-        #     user.telegram_id if user.telegram_id is not None else db_user.telegram_id
-        # )
+        telegram_id = (
+            user.telegram_id if user.telegram_id is not None else db_user.telegram_id
+        )
         clockify_id = (
             user.clockify_id if user.clockify_id is not None else db_user.clockify_id
         )
@@ -182,7 +182,7 @@ def update_user(db: Session, user: schemas.UserUpdate):
             update(models.User)
             .where(models.User.username == user.username)
             .values(
-                # telegram_id=telegram_id,
+                telegram_id=telegram_id,
                 name=name,
                 email=email,
                 password=password,
@@ -208,9 +208,9 @@ def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
         name = user.name if user.name is not None else db_user.name
         # username = user.username if user.username is not None else db_user.username
         email = user.email if user.email is not None else db_user.email
-        # telegram_id = (
-        #     user.telegram_id if user.telegram_id is not None else db_user.telegram_id
-        # )
+        telegram_id = (
+            user.telegram_id if user.telegram_id is not None else db_user.telegram_id
+        )
         is_admin = user.is_admin if user.is_admin is not None else db_user.is_admin
         is_active = user.is_active if user.is_active is not None else db_user.is_active
         clockify_id = (
@@ -231,7 +231,7 @@ def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
             update(models.User)
             .where(models.User.username == user.username)
             .values(
-                # telegram_id=telegram_id,
+                telegram_id=telegram_id,
                 name=name,
                 email=email,
                 is_admin=is_admin,
@@ -249,6 +249,26 @@ def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
     except SQLAlchemyError as e:
         db.rollback()
         logger.info("Error updating user: " + str(e))
+        raise
+
+
+def update_user_telegram_id(db: Session, user: schemas.TelegramUser):
+    try:
+        stmt = (
+            update(models.User)
+            .where(models.User.username == user.username)
+            .values(
+                telegram_id=user.telegram_id,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+        return (
+            db.query(models.User).filter(models.User.username == user.username).first()
+        )
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.info("Error updating TelegramID user: " + str(e))
         raise
 
 

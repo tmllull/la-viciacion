@@ -19,7 +19,7 @@ def sync_clockify_tags(db: Session):
     for tag in tags:
         try:
             if "tracker" not in tag["name"]:
-                if "Completed" not in tag["name"]:
+                if "Completed" not in tag["name"] and "Retired" not in tag["name"]:
                     new_tag = models.PlatformTag(id=tag["id"], name=tag["name"])
                     db.add(new_tag)
                     db.commit()

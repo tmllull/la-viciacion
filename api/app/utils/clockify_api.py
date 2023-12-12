@@ -198,17 +198,17 @@ class ClockifyApi:
                 end_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
                 tags = []
                 tags.append(platform)
-                if completed:
-                    logger.info("Add completed tag to time entry.")
-                    tags.append(utils.get_completed_tag(db)[0])
                 data = {
                     # "description": "string",
                     "end": end_date,
                     "projectId": project_id,
                     "start": start_date,
-                    "description": "BipBup. ¡Juego completado!",
                     "tagIds": tags,
                 }
+                if completed:
+                    logger.info("Add completed tag to time entry.")
+                    tags.append(utils.get_completed_tag(db)[0])
+                    data["description"] = "BipBup. ¡Juego completado!"
                 response = self.send_clockify_request(
                     "POST",
                     "/workspaces/" + config.CLOCKIFY_WORKSPACE + "/time-entries",

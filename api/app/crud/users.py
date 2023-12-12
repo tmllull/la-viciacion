@@ -347,6 +347,7 @@ async def add_new_game(
         game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
         if game_db is None:
             return None
+        info_game = await utils.get_game_info(game_db.name)
         user_game = models.UserGame(
             user_id=user.id,
             completed=0,
@@ -358,17 +359,23 @@ async def add_new_game(
         db.add(user_game)
         db.commit()
         db.refresh(user_game)
-        played_games = get_games(db, user.id)
+        played_games = get_games(db, user.id).count()
         clockify_api.create_empty_time_entry(
             db, user.clockify_key, game.project_clockify_id, game.platform
+        )
+        started_game = (
+            "["
+            + game_db.name
+            + "](https://rawg.io/games/"
+            + info_game["rawg"]["slug"]
+            + ")\n"
         )
         await utils.send_message(
             user.name
             + " acaba de empezar su juego número "
             + str(played_games)
-            + ": *"
-            + game_db.name
-            + "*"
+            + ": "
+            + started_game
         )
         logger.info("Game added!")
         return user_game

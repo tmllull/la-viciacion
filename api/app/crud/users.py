@@ -37,9 +37,11 @@ def create_admin_user(db: Session, username: str):
             db.add(db_user)
             db.commit()
             logger.info("Admin user created")
+        else:
+            logger.warning("User already exists")
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error creating admin user: " + str(e))
+        logger.error("Error creating admin user: " + str(e))
         if "Duplicate entry" not in str(e):
             logger.info(e)
         else:
@@ -58,7 +60,7 @@ def get_users(db: Session) -> list[models.User]:
     try:
         return db.query(models.User)
     except SQLAlchemyError as e:
-        logger.info("Error getting users: " + str(e))
+        logger.error("Error getting users: " + str(e))
         raise
 
 
@@ -70,7 +72,7 @@ def is_admin(db: Session, username: str) -> models.User:
             .first()
         )
     except SQLAlchemyError as e:
-        logger.info("Error checking is user is admin: " + str(e))
+        logger.error("Error checking is user is admin: " + str(e))
         raise
 
 
@@ -82,7 +84,7 @@ def is_active(db: Session, username: str) -> models.User:
             .first()
         )
     except SQLAlchemyError as e:
-        logger.info("Error checking is user is active: " + str(e))
+        logger.error("Error checking is user is active: " + str(e))
         raise
 
 
@@ -90,7 +92,7 @@ def get_user_by_username(db: Session, username: str) -> models.User:
     try:
         return db.query(models.User).filter(models.User.username == username).first()
     except SQLAlchemyError as e:
-        logger.info("Error getting user by username: " + str(e))
+        logger.error("Error getting user by username: " + str(e))
         raise
 
 
@@ -98,7 +100,7 @@ def get_user_by_id(db: Session, id: int) -> models.User:
     try:
         return db.query(models.User).filter(models.User.id == id).first()
     except SQLAlchemyError as e:
-        logger.info("Error getting user by id: " + str(e))
+        logger.error("Error getting user by id: " + str(e))
         raise
 
 
@@ -121,11 +123,14 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
             db.add(user_statistics)
             db.commit()
         except Exception as e:
+            db.rollback()
             if "Duplicate" not in str(e):
                 #     db.rollback()
                 # else:
-                logger.info("Error adding new game statistics: " + str(e))
+                logger.error("Error adding new game statistics: " + str(e))
                 raise e
+            else:
+                logger.warning("User already exists in DB")
         # db.refresh(user_statistics)
         return db_user
 
@@ -134,7 +139,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
         # )
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error creating user: " + str(e))
+        logger.error("Error creating user: " + str(e))
         raise
 
 
@@ -150,7 +155,7 @@ def create_user_statistics(db: Session, user_id: id):
     except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            logger.info("Error creating user statistics: " + str(e))
+            logger.error("Error creating user statistics: " + str(e))
             raise e
 
 
@@ -197,7 +202,7 @@ def update_user(db: Session, user: schemas.UserUpdate):
         )
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error updating user: " + str(e))
+        logger.error("Error updating user: " + str(e))
         raise
 
 
@@ -248,7 +253,7 @@ def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
         )
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error updating user: " + str(e))
+        logger.error("Error updating user: " + str(e))
         raise
 
 
@@ -268,7 +273,7 @@ def update_user_telegram_id(db: Session, user: schemas.TelegramUser):
         )
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error updating TelegramID user: " + str(e))
+        logger.error("Error updating TelegramID user: " + str(e))
         raise
 
 
@@ -287,7 +292,7 @@ def update_clockify_id(db: Session, username: str, user_clockify):
             db.commit()
         except SQLAlchemyError as e:
             db.rollback()
-            logger.info("Error updating user clockify_id: " + str(e))
+            logger.error("Error updating user clockify_id: " + str(e))
             raise
 
     else:
@@ -305,7 +310,7 @@ def upload_avatar(db: Session, username: str, avatar: bytes):
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error adding avatar: " + str(e))
+        logger.error("Error adding avatar: " + str(e))
         raise
 
 
@@ -317,7 +322,7 @@ def get_avatar(db: Session, username: str):
             .first()
         )
     except SQLAlchemyError as e:
-        logger.info("Error getting avatar: " + str(e))
+        logger.error("Error getting avatar: " + str(e))
         raise
 
 
@@ -348,7 +353,7 @@ def add_new_game(
         return user_game
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error adding new game user: " + str(e))
+        logger.error("Error adding new game user: " + str(e))
         raise
 
 
@@ -369,7 +374,7 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error updating game: " + str(e))
+        logger.error("Error updating game: " + str(e))
         raise
 
 
@@ -388,7 +393,7 @@ def update_played_time_game(db: Session, user_id: str, game: str, time: int):
         # TODO: Check games time achievements
     except SQLAlchemyError as e:
         db.rollback()
-        logger.info("Error updating played time game: " + str(e))
+        logger.error("Error updating played time game: " + str(e))
         raise
 
 
@@ -433,7 +438,7 @@ def update_played_days(db: Session, user_id: int, played_days):
         db.commit()
     except Exception as e:
         db.rollback()
-        logger.info(e)
+        logger.error(e)
         raise e
 
 
@@ -447,7 +452,7 @@ def update_played_time(db: Session, user_id, played_time):
         db.execute(stmt)
         db.commit()
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         raise e
 
 
@@ -485,7 +490,7 @@ def top_games(db: Session, username: str, limit: int = 10):
         # )
         # return db.execute(stmt)
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         raise e
 
 
@@ -497,7 +502,7 @@ def get_streaks(db: Session, player):
             models.UserStatistics.best_streak_date,
         ).filter_by(name=player)
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         raise e
 
 
@@ -541,12 +546,13 @@ def complete_game(db: Session, user_id, game_id):
 
     except Exception as e:
         db.rollback()
+        logger.error("Error completing game: " + str(e))
         raise e
 
 
 def update_streaks(db: Session, user_id, current_streak, best_streak, best_streak_date):
     try:
-        logger.info("Update streaks...")
+        logger.info("Updating streaks...")
         stmt = (
             update(models.UserStatistics)
             .where(models.UserStatistics.user_id == user_id)
@@ -560,7 +566,7 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
         db.commit()
     except Exception as e:
         db.rollback()
-        logger.info(e)
+        logger.error("Error updating streaks: " + str(e))
         raise e
 
 
@@ -590,7 +596,7 @@ def current_ranking_hours(
             .limit(limit)
         )
     except Exception as e:
-        logger.info(e)
+        logger.error("Error getting current ranking hours: " + str(e))
 
 
 def update_current_ranking_hours(db: Session, ranking, user_id):
@@ -625,5 +631,5 @@ def activate_account(db: Session, username: str):
         return True
     except Exception as e:
         db.rollback()
-        logger.info(e)
+        logger.error("Error activating account: " + str(e))
         raise e

@@ -3,7 +3,7 @@ from enum import Enum
 
 class AchievementsElems(Enum):
     # Format -> KEY = {"title":"", "message":""}
-    # Time
+    # Time sessions/day
     PLAYED_LESS_5_MIN = {"title": "Lo he abierto sin querer", "message": "###"}
     PLAYED_8_HOURS_DAY = {
         "title": "Una jornada laboral",
@@ -17,6 +17,8 @@ class AchievementsElems(Enum):
         "title": "No paro ni a cagar",
         "message": "El otro mensaje",
     }
+
+    # Time on game
     PLAYED_8_HOURS_GAME_DAY = {
         "title": "Mi trabajo es jugar",
         "message": "Lo de estar 8 horas trabajando no suele gustar, pero jugando ya es otra cosa. "
@@ -39,8 +41,12 @@ class AchievementsElems(Enum):
         "title": "Una jornada laboral",
         "message": "El otro mensaje",
     }
-    PLAYED_1000_HOURS = {"title": "Una jornada laboral", "message": "El otro mensaje"}
-    JUST_IN_TIME = {"title": "Justo a tiempo", "message": ""}
+
+    # Total time
+    PLAYED_100_HOURS = {"title": "", "message": ""}
+    PLAYED_200_HOURS = {"title": "", "message": ""}
+    PLAYED_500_HOURS = {"title": "", "message": ""}
+    PLAYED_1000_HOURS = {"title": "", "message": ""}
 
     # Games
     PLAYED_42_GAMES = {
@@ -77,6 +83,31 @@ class AchievementsElems(Enum):
     STREAK_300_DAYS = {"title": "", "message": ""}
     STREAK_365_DAYS = {"title": "", "message": ""}
 
+    # Others
+    JUST_IN_TIME = {"title": "Justo a tiempo", "message": ""}
 
-def played_time():
+
+def user_played_time(
+    user,
+):
+    return
+
+
+def user_session_time(user, time_entry):
+    return
+
+
+def user_played_days(user):
+    return
+
+
+def user_played_games(user):
+    return
+
+
+def user_played_hours_game(user):
+    return
+
+
+def user_streak(user, streak):
     return

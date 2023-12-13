@@ -74,29 +74,27 @@ MY_DATA = [
 
 RANKING_MENU = [
     [
-        InlineKeyboardButton("📅 Días", callback_data="ranking_days"),
-        InlineKeyboardButton("⌚ Horas", callback_data="ranking_hours"),
+        InlineKeyboardButton("📅 Días", callback_data="user_days"),
+        InlineKeyboardButton("⌚ Horas", callback_data="user_hours"),
     ],
     [
-        InlineKeyboardButton("🎮 Jugados", callback_data="ranking_played"),
-        InlineKeyboardButton("✅ Completados", callback_data="ranking_completed"),
+        InlineKeyboardButton("🎮 Jugados", callback_data="user_played_games"),
+        InlineKeyboardButton("✅ Completados", callback_data="user_completed_games"),
     ],
     [
-        InlineKeyboardButton("🥇 Logros", callback_data="ranking_achievements"),
-        InlineKeyboardButton("🆚 Ratio", callback_data="ranking_ratio"),
+        InlineKeyboardButton("🥇 Logros", callback_data="user_achievements"),
+        InlineKeyboardButton("🆚 Ratio", callback_data="user_ratio"),
     ],
     [
-        InlineKeyboardButton("✨ R. actual", callback_data="ranking_current_streak"),
-        InlineKeyboardButton("⭐ R. máx.", callback_data="ranking_streak"),
+        InlineKeyboardButton("✨ R. actual", callback_data="user_current_streak"),
+        InlineKeyboardButton("⭐ R. máx.", callback_data="user_best_streak"),
     ],
     [
-        InlineKeyboardButton("💸 Deuda técnica", callback_data="ranking_debt"),
-        InlineKeyboardButton(
-            "🆕 Últimos jugados", callback_data="ranking_last_played_games"
-        ),
+        InlineKeyboardButton("💸 Deuda técnica", callback_data="debt"),
+        InlineKeyboardButton("🆕 Últimos jugados", callback_data="games_last_played"),
     ],
     [
-        InlineKeyboardButton("🏟️ Más jugados", callback_data="ranking_most_played"),
+        InlineKeyboardButton("🏟️ Más jugados", callback_data="games_most_played"),
         # InlineKeyboardButton("🖥 Plataforma", callback_data="ranking_platform"),
     ],
     [

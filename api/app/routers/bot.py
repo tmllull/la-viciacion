@@ -156,18 +156,18 @@ async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
 
 
 class RankingStatisticsTypes(str, Enum):
-    hours = "hours"
-    days = "days"
+    user_hours = "user_hours"
+    user_days = "user_days"
     user_played_games = "user_played_games"
-    completed_games = "completed_games"
+    user_completed_games = "user_completed_games"
     achievements = "achievements"
-    ratio = "ratio"
-    current_streak = "current_streak"
-    best_streak = "best_streak"
-    most_played_games = "most_played_games"
-    platform = "platform"
+    user_ratio = "user_ratio"
+    user_current_streak = "user_current_streak"
+    user_best_streak = "user_best_streak"
+    games_most_played = "games_most_played"
+    platform_played = "platform_played"
     debt = "debt"
-    last_played = "last_played"
+    games_last_played = "games_last_played"
 
 
 class UserStatisticsTypes(str, Enum):
@@ -181,7 +181,7 @@ class UserStatisticsTypes(str, Enum):
 @router.get("/statistics/rankings")
 @version(1)
 def get_ranking_statistics(
-    ranking: RankingStatisticsTypes,
+    ranking: str,
     db: Session = Depends(get_db),
 ):
     return statistics.get_ranking_statistics(ranking, db)

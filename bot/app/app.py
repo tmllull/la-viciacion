@@ -118,46 +118,44 @@ def main() -> None:
                 #     pattern="^" + "ranking_rated_games" + "$",
                 # ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_achievements,
-                    pattern="^" + "ranking_achievements" + "$",
+                    ranking_routes.user_achievements,
+                    pattern="^" + "user_achievements" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_completed,
-                    pattern="^" + "ranking_completed" + "$",
+                    ranking_routes.user_completed_games,
+                    pattern="^" + "user_completed_games" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_days_players,
-                    pattern="^" + "ranking_days" + "$",
+                    ranking_routes.user_days,
+                    pattern="^" + "user_days" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_hours_player,
-                    pattern="^" + "ranking_hours" + "$",
+                    ranking_routes.user_hours,
+                    pattern="^" + "user_hours" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_user_played_games,
-                    pattern="^" + "ranking_played" + "$",
+                    ranking_routes.user_played_games,
+                    pattern="^" + "user_played_games" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_ratio, pattern="^" + "ranking_ratio" + "$"
+                    ranking_routes.user_ratio, pattern="^" + "user_ratio" + "$"
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_best_streak,
-                    pattern="^" + "ranking_streak" + "$",
+                    ranking_routes.user_best_streak,
+                    pattern="^" + "user_best_streak" + "$",
+                ),
+                CallbackQueryHandler(ranking_routes.debt, pattern="^" + "debt" + "$"),
+                CallbackQueryHandler(
+                    ranking_routes.games_last_played,
+                    pattern="^" + "games_last_played" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_debt, pattern="^" + "ranking_debt" + "$"
+                    ranking_routes.games_most_played,
+                    pattern="^" + "games_most_played" + "$",
                 ),
                 CallbackQueryHandler(
-                    ranking_routes.ranking_last_played_games,
-                    pattern="^" + "ranking_last_played_games" + "$",
-                ),
-                CallbackQueryHandler(
-                    ranking_routes.ranking_most_played,
-                    pattern="^" + "ranking_most_played" + "$",
-                ),
-                CallbackQueryHandler(
-                    ranking_routes.ranking_current_streak,
-                    pattern="^" + "ranking_current_streak" + "$",
+                    ranking_routes.user_current_streak,
+                    pattern="^" + "user_current_streak" + "$",
                 ),
                 # CallbackQueryHandler(
                 #     ranking_routes.ranking_platform,

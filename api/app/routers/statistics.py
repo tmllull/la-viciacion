@@ -31,18 +31,18 @@ def get_db():
 
 
 class RankingStatisticsTypes(str, Enum):
-    hours = "hours"
-    days = "days"
+    user_hours = "user_hours"
+    user_days = "user_days"
     user_played_games = "user_played_games"
-    completed_games = "completed_games"
+    user_completed_games = "user_completed_games"
     achievements = "achievements"
-    ratio = "ratio"
-    current_streak = "current_streak"
-    best_streak = "best_streak"
-    most_played_games = "most_played_games"
+    user_ratio = "user_ratio"
+    user_current_streak = "user_current_streak"
+    user_best_streak = "user_best_streak"
+    games_most_played = "games_most_played"
     platform_played = "platform_played"
     debt = "debt"
-    last_played = "last_played"
+    games_last_played = "games_last_played"
 
 
 @router.get(
@@ -58,9 +58,9 @@ def get_ranking_statistics(
     """
     Get general rankings. To retrieve only specific rankings, add 'ranking' param with desired rankings, separated by comma (,).
 
-    Allowed values: 'hours', 'days', 'user_played_games',
-    'completed_games', 'achievements', 'ratio', 'current_streak',
-    'best_streak', 'most_played_games', 'platform_played', 'debt', 'last_played'
+    Allowed values: 'user_hours', 'user_days', 'user_played_games',
+    'user_completed_games', 'achievements', 'user_ratio', 'user_current_streak',
+    'user_best_streak', 'games_most_played', 'platform_played', 'debt', 'games_last_played'
     """
     if ranking is not None:
         rankings_list = ranking.split(",")
@@ -69,29 +69,29 @@ def get_ranking_statistics(
     response = []
     for ranking_type in rankings_list:
         content = {}
-        if ranking_type == RankingStatisticsTypes.hours:
+        if ranking_type == RankingStatisticsTypes.user_hours:
             data = rankings.user_hours_players(db)
-        elif ranking_type == RankingStatisticsTypes.days:
+        elif ranking_type == RankingStatisticsTypes.user_days:
             data = rankings.user_days_played(db)
         elif ranking_type == RankingStatisticsTypes.user_played_games:
             data = rankings.user_played_games(db)
-        elif ranking_type == RankingStatisticsTypes.completed_games:
+        elif ranking_type == RankingStatisticsTypes.user_completed_games:
             data = rankings.user_completed_games(db)
         elif ranking_type == RankingStatisticsTypes.achievements:
             data = [{"message": "Achievements is not implemented yet"}]
-        elif ranking_type == RankingStatisticsTypes.ratio:
+        elif ranking_type == RankingStatisticsTypes.user_ratio:
             data = rankings.user_ratio(db)
-        elif ranking_type == RankingStatisticsTypes.current_streak:
+        elif ranking_type == RankingStatisticsTypes.user_current_streak:
             data = rankings.user_current_streak(db)
-        elif ranking_type == RankingStatisticsTypes.best_streak:
+        elif ranking_type == RankingStatisticsTypes.user_best_streak:
             data = rankings.user_best_streak(db)
-        elif ranking_type == RankingStatisticsTypes.most_played_games:
+        elif ranking_type == RankingStatisticsTypes.games_most_played:
             data = rankings.games_most_played(db)
         elif ranking_type == RankingStatisticsTypes.platform_played:
             data = rankings.platform_played_games(db)
         elif ranking_type == RankingStatisticsTypes.debt:
             data = [{"message": "Debt is not implemented yet"}]
-        elif ranking_type == RankingStatisticsTypes.last_played:
+        elif ranking_type == RankingStatisticsTypes.games_last_played:
             data = rankings.games_last_played(db)
         else:
             data = {"message": "More rankings are coming"}

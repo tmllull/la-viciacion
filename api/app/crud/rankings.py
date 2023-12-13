@@ -149,7 +149,8 @@ def user_completed_games(db: Session, limit: int = None):
             user_data["name"] = user.name
             user_data["completed_games"] = completed
             data.append(user_data)
-        return data
+        ordered_data = sorted(data, key=lambda x: x["completed_games"], reverse=True)
+        return ordered_data
     except Exception as e:
         logger.info(e)
         raise e
@@ -165,7 +166,7 @@ def games_last_played(db: Session, limit: int = 10):
             )
             .join(
                 models.Game,
-                models.Game.clockify_id == models.TimeEntry.project_clockify_id,
+                models.Game.id == models.TimeEntry.project_clockify_id,
             )
             .order_by(desc(models.TimeEntry.start))
         )
@@ -273,7 +274,8 @@ def user_ratio(db: Session):
             user_data["name"] = user.name
             user_data["ratio"] = ratio
             data.append(user_data)
-        return data
+        ordered_data = sorted(data, key=lambda x: x["ratio"], reverse=True)
+        return ordered_data
     except Exception as e:
         logger.info(e)
         raise e

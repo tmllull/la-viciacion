@@ -34,10 +34,11 @@ async def sync_data(
     if silent:
         config.silent = True
     start_time = time.time()
+    silent = False
     if sync_all:
         start_date = config.START_DATE
-        config.silent = True
-        config.sync_all = True
+        silent = True
+        # config.sync_all = True
     clockify.sync_clockify_tags(db)
     achievements.populate_achievements(db)
     users_db = users.get_users(db)
@@ -59,7 +60,9 @@ async def sync_data(
             )
 
         # Sync time_entries from Clockify with local DB
-        total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
+        total_entries, entries = await utils.sync_clockify_entries(
+            db, user, start_date, silent
+        )
         if total_entries < 1:
             logger.info(str(user_name) + " not played in the last 24h")
             continue
@@ -99,8 +102,8 @@ async def sync_data(
     #     users.update_played_time(db, user[0], user[1])
 
     # Check rankings
-    await ranking_games_hours(db)
-    await ranking_players_hours(db)
+    await ranking_games_hours(db, silent)
+    await ranking_players_hours(db, silent)
     end_time = time.time()
     logger.info("Elapsed time: " + str(end_time - start_time))
 
@@ -162,7 +165,7 @@ def streak_days(db: Session, user: models.User):
 ####################
 
 
-async def ranking_games_hours(db: Session):
+async def ranking_games_hours(db: Session, silent: bool):
     logger.info("Checking games ranking hours...")
     try:
         msg = ""
@@ -240,7 +243,7 @@ async def ranking_games_hours(db: Session):
                     if i == 10:
                         break
                 i += 1
-            if not config.silent:
+            if not silent:
                 await utils.send_message(msg)
                 logger.info(msg)
     except Exception as e:
@@ -253,7 +256,7 @@ async def ranking_games_hours(db: Session):
         i += 1
 
 
-async def ranking_players_hours(db: Session):
+async def ranking_players_hours(db: Session, silent: bool):
     logger.info("Ranking player hours...")
     played_time_db = users.played_time(db)
     most_played: list[models.User] = []
@@ -308,7 +311,7 @@ async def ranking_players_hours(db: Session):
                 + "\n"
             )
             users.update_current_ranking_hours(db, i + 1, player.user_id)
-        if not config.silent:
+        if not silent:
             # logger.info(msg)
             await utils.send_message(msg)
         logger.info(msg)

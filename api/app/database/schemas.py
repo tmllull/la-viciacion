@@ -97,7 +97,7 @@ class TelegramUser(BaseModel):
 
 
 class Game(BaseModel):
-    id: int
+    id: str
     name: str
     dev: Union[str, None] = None
     release_date: Union[datetime.date, str, None] = None
@@ -107,14 +107,14 @@ class Game(BaseModel):
     # played_time: Union[int, None] = 0
     avg_time: Union[int, None] = 0
     # current_ranking: Optional[Union[int, None]] = 10000000
-    clockify_id: Union[str, None] = None
+    # clockify_id: Union[str, None] = None
 
     class Config:
         from_attributes = True
 
 
 class GameStatistics(BaseModel):
-    game_id: int
+    game_id: str
     played_time: Union[int, None] = 0
     avg_time: Union[int, None] = 0
     current_ranking: Optional[Union[int, None]] = 10000000
@@ -124,6 +124,7 @@ class GameStatistics(BaseModel):
 
 
 class NewGame(BaseModel):
+    clockify_id: Optional[Union[str, None]] = None
     name: str
     dev: Optional[Union[str, None]] = None
     release_date: Optional[Union[datetime.date, None]] = None
@@ -131,7 +132,8 @@ class NewGame(BaseModel):
     image_url: Optional[Union[str, None]] = None
     genres: Optional[Union[str, None]] = None
     avg_time: Optional[Union[int, None]] = None
-    clockify_id: Optional[Union[str, None]] = None
+    slug: Optional[Union[str, None]] = None
+    # clockify_id: Optional[Union[str, None]] = None
 
     # class Config:
     #     from_attributes = True
@@ -145,11 +147,11 @@ class UpdateGame(BaseModel):
     image_url: Optional[Union[str, None]] = None
     genres: Optional[Union[str, None]] = None
     avg_time: Optional[Union[int, None]] = None
-    clockify_id: Optional[Union[str, None]] = None
+    # clockify_id: Optional[Union[str, None]] = None
 
 
 class NewGameUser(BaseModel):
-    project_clockify_id: str
+    game_id: str
     platform: Union[str, None] = None
 
 
@@ -165,8 +167,8 @@ class UserGame(UsersGamesBase):
     # user: Union[str, None] = None
     user_id: Union[int, None] = None
     # game_name: Union[str, None] = None
-    game_id: Union[int, None] = None
-    project_clockify_id: Union[str, None] = None
+    game_id: Union[str, None] = None
+    # project_clockify_id: Union[str, None] = None
     started_date: Union[datetime.date, None] = None
     platform: Union[str, None] = None
     completed: Union[int, None] = None

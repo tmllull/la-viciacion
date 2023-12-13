@@ -99,7 +99,9 @@ def get_played_days(
     return sorted(played_days)
 
 
-async def sync_clockify_entries_db(db: Session, user: models.User, entries):
+async def sync_clockify_entries_db(
+    db: Session, user: models.User, entries, silent: bool
+):
     for entry in entries:
         if entry["projectId"] is None:
             continue
@@ -112,12 +114,11 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             if entry["tagIds"] is not None and len(entry["tagIds"]) > 0:
                 for tag in entry["tagIds"]:
                     platform_check = clockify.get_platform_by_tag_id(db, tag)
-                    if platform is None and platform_check is not None:
-                        platform = tag
-                        continue
                     completed_check = clockify.check_completed_tag_by_id(db, tag)
                     if completed is None and completed_check is not None:
                         completed = 1
+                    if platform is None and platform_check is not None:
+                        platform = tag
 
             start = utils.change_timezone_clockify(start)
             if end is not None and end != "":
@@ -125,11 +126,12 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
             else:
                 end = None
             # Check if game on clockify already exists on local DB
-            game = games.get_game_by_clockify_id(db, entry["projectId"])
+            game = games.get_game_by_id(db, entry["projectId"])
             if game is not None:
                 game_name = game.name
                 game_id = game.id
             else:
+                logger.info("Project " + entry["projectId"] + " not in DB")
                 project = clockify_api.get_project_by_id(entry["projectId"])
                 game_name = project["name"]
                 new_game_info = await utils.get_new_game_info(project)
@@ -143,13 +145,18 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 logger.info(
                     "USER NOT PLAYING GAME: " + game_name + " - " + str(game_id)
                 )
-                new_user_game = schemas.NewGameUser(
-                    project_clockify_id=entry["projectId"], platform=platform
+                new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
+                await users.add_new_game(
+                    db,
+                    game=new_user_game,
+                    user=user,
+                    start_date=start,
+                    silent=silent,
+                    from_sync=True,
                 )
-                await users.add_new_game(db, new_user_game, user, start)
                 already_playing = users.get_game_by_id(db, user.id, game_id)
             # TODO: revise if this else is needed and how to implement it properly
-            elif platform is not None and already_playing.platform != platform:
+            if platform is not None and already_playing.platform != platform:
                 stmt = (
                     update(models.UserGame)
                     .where(models.UserGame.id == already_playing.id)
@@ -159,16 +166,16 @@ async def sync_clockify_entries_db(db: Session, user: models.User, entries):
                 )
                 db.execute(stmt)
                 db.commit()
-            elif completed is not None and already_playing.completed != 1:
+            if completed is not None and already_playing.completed != 1:
                 logger.info("Completing game " + str(game.id) + "...")
-                await users.complete_game(db, user.id, game.id)
-                # stmt = (
-                #     update(models.UserGame)
-                #     .where(models.UserGame.id == already_playing.id)
-                #     .values(completed=completed, completed_date=start)
-                # )
-                # db.execute(stmt)
-                # db.commit()
+                await users.complete_game(
+                    db,
+                    user.id,
+                    game.id,
+                    completed_date=start,
+                    silent=silent,
+                    from_sync=True,
+                )
             stmt = select(models.TimeEntry).where(models.TimeEntry.id == entry["id"])
             # Check if time entry already exists (to update it if needed)
             exists = db.execute(stmt).first()

@@ -336,7 +336,12 @@ def get_avatar(db: Session, username: str):
 
 
 async def add_new_game(
-    db: Session, game: schemas.NewGameUser, user: models.User, start_date: str = None
+    db: Session,
+    game: schemas.NewGameUser,
+    user: models.User,
+    start_date: str = None,
+    silent: bool = False,
+    from_sync=False,
 ) -> models.UserGame:
     logger.info("Adding new user game...")
     try:
@@ -344,15 +349,15 @@ async def add_new_game(
             started_date = datetime.datetime.now()
         else:
             started_date = utils.convert_date_from_text(start_date)
-        game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
+        game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             return None
-        info_game = await utils.get_game_info(game_db.name)
+        # info_game = await utils.get_game_info(game_db.name)
         user_game = models.UserGame(
+            game_id=game_db.id,
             user_id=user.id,
             completed=0,
-            game_id=game_db.id,
-            project_clockify_id=game_db.clockify_id,
+            # project_clockify_id=game_db.clockify_id,
             platform=game.platform,
             started_date=started_date,
         )
@@ -360,23 +365,21 @@ async def add_new_game(
         db.commit()
         db.refresh(user_game)
         played_games = get_games(db, user.id).count()
-        clockify_api.create_empty_time_entry(
-            db, user.clockify_key, game.project_clockify_id, game.platform
-        )
+        if not from_sync:
+            clockify_api.create_empty_time_entry(
+                db, user.clockify_key, game_db.id, game.platform
+            )
         started_game = (
-            "["
-            + game_db.name
-            + "](https://rawg.io/games/"
-            + info_game["rawg"]["slug"]
-            + ")\n"
+            "[" + game_db.name + "](https://rawg.io/games/" + game_db.slug + ")\n"
         )
-        await utils.send_message(
-            user.name
-            + " acaba de empezar su juego número "
-            + str(played_games)
-            + ": "
-            + started_game
-        )
+        if not silent:
+            await utils.send_message(
+                user.name
+                + " acaba de empezar su juego número "
+                + str(played_games)
+                + ": "
+                + started_game
+            )
         logger.info("Game added!")
         return user_game
     except SQLAlchemyError as e:
@@ -406,12 +409,12 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
         raise
 
 
-def update_played_time_game(db: Session, user_id: str, game: str, time: int):
+def update_played_time_game(db: Session, user_id: str, game_id: str, time: int):
     try:
         stmt = (
             update(models.UserGame)
             .where(
-                models.UserGame.project_clockify_id == game,
+                models.UserGame.game_id == game_id,
                 models.UserGame.user_id == user_id,
             )
             .values(played_time=time)
@@ -445,14 +448,14 @@ def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
     return db.query(models.UserGame).filter_by(user_id=user_id, game_id=game_id).first()
 
 
-def get_game_by_clockify_id(
-    db: Session, user_id, project_clockify_id
-) -> models.UserGame:
-    return (
-        db.query(models.UserGame)
-        .filter_by(user_id=user_id, project_clockify_id=project_clockify_id)
-        .first()
-    )
+# def get_game_by_clockify_id(
+#     db: Session, user_id, project_clockify_id
+# ) -> models.UserGame:
+#     return (
+#         db.query(models.UserGame)
+#         .filter_by(user_id=user_id, project_clockify_id=project_clockify_id)
+#         .first()
+#     )
 
 
 def update_played_days(db: Session, user_id: int, played_days):
@@ -546,7 +549,14 @@ def game_is_completed(db: Session, player, game) -> bool:
     return False
 
 
-async def complete_game(db: Session, user_id, game_id, completed_date: str = None):
+async def complete_game(
+    db: Session,
+    user_id,
+    game_id,
+    completed_date: str = None,
+    silent: bool = False,
+    from_sync=False,
+):
     try:
         if completed_date is None:
             completed_date = datetime.datetime.now()
@@ -568,7 +578,7 @@ async def complete_game(db: Session, user_id, game_id, completed_date: str = Non
         logger.info("Game completed")
         db_game = games.get_game_by_id(db, game_id)
         user = get_user_by_id(db, user_id)
-        user_game = get_game_by_clockify_id(db, user_id, db_game.clockify_id)
+        user_game = get_game_by_id(db, user_id, db_game.id)
         game_info = await utils.get_game_info(db_game.name)
         if game_info["hltb"] is not None:
             avg_time = game_info["hltb"]["comp_main"]
@@ -576,13 +586,14 @@ async def complete_game(db: Session, user_id, game_id, completed_date: str = Non
             avg_time = 0
         games.update_avg_time_game(db, game_id, avg_time)
         game = games.get_game_by_id(db, game_id)
-        clockify_response = clockify_api.create_empty_time_entry(
-            db,
-            user.clockify_key,
-            db_game.clockify_id,
-            user_game.platform,
-            completed=True,
-        )
+        if not from_sync:
+            clockify_response = clockify_api.create_empty_time_entry(
+                db,
+                user.clockify_key,
+                game_id,
+                user_game.platform,
+                completed=True,
+            )
         num_completed_games = (
             db.query(models.UserGame.game_id)
             .filter_by(user_id=user_id, completed=1)
@@ -602,7 +613,8 @@ async def complete_game(db: Session, user_id, game_id, completed_date: str = Non
             + "."
         )
         logger.info(message)
-        await utils.send_message(message)
+        if not silent:
+            await utils.send_message(message)
         # num_completed_games = (
         #     db.query(models.UserGame.game_id)
         #     .filter_by(user_id=user_id, completed=1)

@@ -34,9 +34,9 @@ def get_game_by_id(db: Session, game_id: int) -> models.Game:
     return db.query(models.Game).filter(models.Game.id == game_id).first()
 
 
-def get_game_by_clockify_id(db: Session, id: str) -> models.Game:
-    # logger.info("Searching game by clockify id: " + str(id))
-    return db.query(models.Game).filter(models.Game.clockify_id == id).first()
+# def get_game_by_clockify_id(db: Session, id: str) -> models.Game:
+#     # logger.info("Searching game by clockify id: " + str(id))
+#     return db.query(models.Game).filter(models.Game.clockify_id == id).first()
 
 
 async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
@@ -48,26 +48,29 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
         new_game = {"name": game.name, "id": clockify_id}
         game_info = await utils.get_new_game_info(new_game)
         game_to_add = models.Game(
+            id=clockify_id,
             name=game_info.name,
             dev=game_info.dev,
             steam_id=game_info.steam_id,
             image_url=game_info.image_url,
             release_date=game_info.release_date,
-            clockify_id=clockify_id,
+            # clockify_id=clockify_id,
             genres=game_info.genres,
             avg_time=game_info.avg_time,
+            slug=game_info.slug
             # current_ranking=1000000000,
         )
     else:
         game_to_add = models.Game(
+            id=game.clockify_id,
             name=game.name,
             dev=game.dev,
             steam_id=game.steam_id,
             image_url=game.image_url,
             release_date=game.release_date,
-            clockify_id=game.clockify_id,
             genres=game.genres,
             avg_time=game.avg_time,
+            slug=game.slug
             # current_ranking=1000000000,
         )
     try:
@@ -88,6 +91,7 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
                 # else:
                 logger.info("Error adding new game statistics: " + str(e))
                 raise e
+        logger.info("Game added to DB")
         return game_added
     except Exception as e:
         db.rollback()
@@ -146,9 +150,9 @@ def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
         release_date = (
             game.release_date if game.release_date is not None else db_game.release_date
         )
-        clockify_id = (
-            game.clockify_id if game.clockify_id is not None else db_game.clockify_id
-        )
+        # clockify_id = (
+        #     game.clockify_id if game.clockify_id is not None else db_game.clockify_id
+        # )
         genres = game.genres if game.genres is not None else db_game.genres
         avg_time = game.avg_time if game.avg_time is not None else db_game.avg_time
         stmt = (
@@ -160,15 +164,15 @@ def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
                 steam_id=steam_id,
                 image_url=image_url,
                 release_date=release_date,
-                clockify_id=clockify_id,
+                # clockify_id=clockify_id,
                 genres=genres,
                 avg_time=avg_time,
             )
         )
         db.execute(stmt)
         db.commit()
-        if clockify_id is not None:
-            clockify_api.update_project_name(clockify_id, name)
+        # if clockify_id is not None:
+        clockify_api.update_project_name(game_id, name)
         return db.query(models.Game).filter(models.Game.id == game_id).first()
     except Exception as e:
         db.rollback()
@@ -176,9 +180,9 @@ def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
         raise ("Error updating game: " + str(e))
 
 
-def update_total_played_time(db: Session, clockify_id, total_played):
+def update_total_played_time(db: Session, game_id, total_played):
     try:
-        game = get_game_by_clockify_id(db, clockify_id)
+        game = get_game_by_id(db, game_id)
         stmt = (
             update(models.GameStatistics)
             .where(models.GameStatistics.game_id == game.id)

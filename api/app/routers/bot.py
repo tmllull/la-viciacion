@@ -91,11 +91,22 @@ def user_games(
 
 @router.patch("/users/{username}/complete-game")
 @version(1)
-async def complete_game(username: str, game_id: int, db: Session = Depends(get_db)):
+async def complete_game(username: str, game_id: str, db: Session = Depends(get_db)):
     """
-    Complete game by username
+    Complete game
     """
     return await users.complete_game(username, game_id, db)
+
+
+@router.patch("/users/{username}/rate-game")
+@version(1)
+async def rate_game(
+    username: str, game_id: str, score: float, db: Session = Depends(get_db)
+):
+    """
+    Rate game
+    """
+    return await users.rate_game(username, game_id, score, db)
 
 
 #################
@@ -123,7 +134,7 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 
 @router.get("/games/{game_id}", response_model=schemas.Game)
 @version(1)
-async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
+async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
     """
     Get game from DB by id
     """

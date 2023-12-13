@@ -441,12 +441,25 @@ class DataRoutes:
     ) -> int:
         logger.info("Rate game...")
         username = update.message.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        games = requests.get(config.API_URL + "???????")
+        url = config.API_URL + "/users/" + username + "/games"
+        played_games = utils.make_request("GET", url).json()
+        # played_games = requests.get(
+        #     config.API_URL + "/users/" + username + "/games?completed=false"
+        # ).json()
         keyboard = []
-        for game in games:
-            keyboard.append([game[0]])
+        games_list = []
+        # logger.info(played_games)
+        for played_game in played_games:
+            url = config.API_URL + "/games/" + str(played_game["game_id"])
+            game = utils.make_request("GET", url).json()
+            # logger.info(game)
+            games_list.append([game["name"]])
+        # games = requests.get(config.API_URL + "/games").json()
+        # for game in games:
+        #     keyboard.append([game["game"]])
+        games_list = sorted(games_list)
+        for game in games_list:
+            keyboard.append(game)
         keyboard.append(kb.CANCEL)
         reply_markup = ReplyKeyboardMarkup(
             keyboard,
@@ -456,8 +469,7 @@ class DataRoutes:
             selective=True,
         )
         await update.message.reply_text(
-            "Escoge el juego que quieras puntuar:",
-            reply_markup=reply_markup,
+            "Escoge el juego que quieras puntuar:", reply_markup=reply_markup
         )
         return utils.EXCEL_RATE_GAME
 
@@ -509,13 +521,36 @@ class DataRoutes:
             if "Sí" in str(update.message.text):
                 logger.info("Rate game confirmed")
                 username = context.user_data["username"]
-                await update.message.reply_text(
-                    "TBI", reply_markup=ReplyKeyboardRemove()
+                url = config.API_URL + "/games?name=" + context.user_data[GAME]
+                game_data = utils.make_request("GET", url).json()[0]
+                logger.info("GAME ID: " + str(game_data["id"]))
+                url = (
+                    config.API_URL
+                    + "/users/"
+                    + username
+                    + "/rate-game?game_id="
+                    + game_data["id"]
+                    + "&score="
+                    + context.user_data[RATE]
                 )
-                return
-                # await update.message.reply_text(
-                #     "Juego puntuado correctamente", reply_markup=ReplyKeyboardRemove()
-                # )
+                logger.info(url)
+                response = utils.make_request("PATCH", url)
+                if response.status_code == 200:
+                    # completed_games = response.json()["completed_games"]
+                    # completed_time = response.json()["completion_time"]
+                    # avg_time = response.json()["avg_time"]
+
+                    await update.message.reply_text(
+                        "Juego"
+                        # + str(completed_games)
+                        + " puntuado correctamente.",
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                else:
+                    await update.message.reply_text(
+                        "Algo ha salido mal completando el juego: " + response.text,
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
             else:
                 await update.message.reply_text(
                     "Cancelada acción de puntuar juego",

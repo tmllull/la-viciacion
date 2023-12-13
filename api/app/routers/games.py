@@ -45,7 +45,7 @@ def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)
 
 @router.get("/{game_id}", response_model=schemas.Game)
 @version(1)
-async def get_game_by_id(game_id: int, db: Session = Depends(get_db)):
+async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
     """
     Get game from DB by id
     """
@@ -95,7 +95,7 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 @router.put("/{game_id}", response_model=schemas.Game, status_code=200)
 @version(1)
 async def update_game(
-    game_id: int, game: schemas.UpdateGame, db: Session = Depends(get_db)
+    game_id: str, game: schemas.UpdateGame, db: Session = Depends(get_db)
 ):
     """
     Create new game

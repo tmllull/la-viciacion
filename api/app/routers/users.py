@@ -109,6 +109,8 @@ async def add_game_to_user(
     Add new game to user list
     """
     user = users.get_user_by_username(db, username)
+    if user is None:
+        raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     already_playing = users.get_game_by_id(db, user.id, game.game_id)
     if already_playing:
         raise HTTPException(status_code=409, detail=msg.USER_ALREADY_PLAYING)
@@ -117,7 +119,7 @@ async def add_game_to_user(
         game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             raise HTTPException(status_code=404, detail=msg.GAME_NOT_FOUND)
-        new_game = await users.add_new_game(db=db, game=game, user=user)
+        return await users.add_new_game(db=db, game=game, user=user)
 
         # game_name = game_db.name
         # total_games = played_games.count() + 1
@@ -158,26 +160,49 @@ def get_games(
     return played_games
 
 
-@router.patch("/{username}/complete-game")
+@router.patch("/{username}/complete-game", response_model=schemas.UserGame)
 @version(1)
-async def complete_game(username: str, game_id: int, db: Session = Depends(get_db)):
+async def complete_game(username: str, game_id: str, db: Session = Depends(get_db)):
     """
     Complete game by username
     """
+    user = users.get_user_by_username(db, username)
+    logger.info("USER:")
+    logger.info(user)
+    if user is None:
+        logger.info("IS NONE")
+        raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
+    user_game = users.get_game_by_id(db, user.id, game_id)
+    if user_game is None:
+        raise HTTPException(status_code=404, detail=msg.USER_NOT_PLAYING)
+    if user_game.completed == 1:
+        raise HTTPException(status_code=409, detail=msg.GAME_ALREADY_COMPLETED)
     try:
-        user = users.get_user_by_username(db, username)
-        user_game = users.get_game_by_id(db, user.id, game_id)
-        if user_game is None:
-            raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-        if user_game.completed == 1:
-            raise HTTPException(status_code=409, detail=msg.GAME_ALREADY_COMPLETED)
-        await users.complete_game(db, user.id, game_id)
-        return {"Game completed"}
+        return await users.complete_game(db, user.id, game_id)
     except Exception as e:
         logger.info(e)
         raise HTTPException(
             status_code=500, detail="Error completing game_user: " + str(e)
         )
+
+
+@router.patch("/{username}/rate-game")
+@version(1)
+async def rate_game(
+    username: str, game_id: str, score: float, db: Session = Depends(get_db)
+):
+    """
+    Rate game
+    """
+    user = users.get_user_by_username(db, username)
+    user_game = users.get_game_by_id(db, user.id, game_id)
+    if user_game is None:
+        raise HTTPException(status_code=404, detail=msg.USER_NOT_PLAYING)
+    try:
+        return await users.rate_game(db, user.id, game_id, score)
+    except Exception as e:
+        logger.info(e)
+        raise HTTPException(status_code=500, detail="Error rating game_user: " + str(e))
 
 
 @router.patch("/{username}/avatar")

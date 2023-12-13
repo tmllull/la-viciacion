@@ -615,6 +615,7 @@ async def complete_game(
         logger.info(message)
         if not silent:
             await utils.send_message(message)
+        return get_game_by_id(db, user_id, game_id)
         # num_completed_games = (
         #     db.query(models.UserGame.game_id)
         #     .filter_by(user_id=user_id, completed=1)
@@ -627,6 +628,34 @@ async def complete_game(
     except Exception as e:
         db.rollback()
         logger.error("Error completing game: " + str(e))
+        raise e
+
+
+async def rate_game(
+    db: Session,
+    user_id,
+    game_id,
+    score,
+) -> models.UserGame:
+    try:
+        stmt = (
+            update(models.UserGame)
+            .where(
+                models.UserGame.game_id == game_id,
+                models.UserGame.user_id == user_id,
+            )
+            .values(
+                score=score,
+            )
+        )
+        db.execute(stmt)
+        db.commit()
+        return get_game_by_id(db, user_id, game_id)
+        logger.info("Game completed")
+
+    except Exception as e:
+        db.rollback()
+        logger.error("Error rating game: " + str(e))
         raise e
 
 

@@ -109,17 +109,16 @@ async def add_game_to_user(
     Add new game to user list
     """
     user = users.get_user_by_username(db, username)
-    already_playing = users.get_game_by_clockify_id(
-        db, user.id, game.project_clockify_id
-    )
+    already_playing = users.get_game_by_id(db, user.id, game.game_id)
     if already_playing:
         raise HTTPException(status_code=409, detail=msg.USER_ALREADY_PLAYING)
     try:
         # played_games = users.get_games(db, user.id)
-        new_game = await users.add_new_game(db=db, game=game, user=user)
-        game_db = games.get_game_by_clockify_id(db, game.project_clockify_id)
+        game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             raise HTTPException(status_code=404, detail=msg.GAME_NOT_FOUND)
+        new_game = await users.add_new_game(db=db, game=game, user=user)
+
         # game_name = game_db.name
         # total_games = played_games.count() + 1
         # clockify_api.create_empty_time_entry(

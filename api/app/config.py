@@ -49,5 +49,5 @@ class Config:
             self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
             self.CORS_ORIGINS = json.loads(os.environ["CORS_ORIGINS"])
 
-        self.silent = False
-        self.sync_all = False
+        # self.silent = False
+        # self.sync_all = False

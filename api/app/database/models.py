@@ -115,7 +115,8 @@ class UserHistorical(Base):
 class Game(Base):
     __tablename__ = "games"
 
-    id = Column(Integer, primary_key=True)
+    # id = Column(Integer, primary_key=True)
+    id = Column(String(255), primary_key=True)
     name = Column(String(255))
     dev = Column(String(255))
     release_date = Column(Date)
@@ -124,8 +125,9 @@ class Game(Base):
     genres = Column(String(255))
     # played_time = Column(Integer)
     avg_time = Column(Integer)
+    slug = Column(String(255))
     # current_ranking = Column(Integer)
-    clockify_id = Column(String(255))
+    # clockify_id = Column(String(255))
 
     # users = relationship("UsersGames", back_populates="game")
     # time_entries = relationship("TimeEntries", back_populates="game")
@@ -136,7 +138,7 @@ class Game(Base):
 class GameStatistics(Base):
     __tablename__ = "games_statistics"
 
-    game_id = Column(Integer, primary_key=True, autoincrement=True)
+    game_id = Column(String(255), primary_key=True)
     played_time = Column(Integer)
     avg_time = Column(Integer)
     current_ranking = Column(Integer)
@@ -150,7 +152,7 @@ class GameStatistics(Base):
 class GameHistorical(Base):
     __tablename__ = "games_historical"
 
-    game_id = Column(Integer, primary_key=True, autoincrement=True)
+    game_id = Column(String(255), primary_key=True)
     played_time = Column(Integer)
     avg_time = Column(Integer)
 
@@ -165,8 +167,8 @@ class UserGame(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer)
-    game_id = Column(Integer)
-    project_clockify_id = Column(String(255))
+    game_id = Column(String(255))
+    # project_clockify_id = Column(String(255))
     started_date = Column(Date)
     platform = Column(String(255))
     completed = Column(Integer)
@@ -186,8 +188,8 @@ class UserGameHistorical(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer)
-    game_id = Column(Integer)
-    project_clockify_id = Column(String(255))
+    game_id = Column(String(255))
+    # project_clockify_id = Column(String(255))
     started_date = Column(Date)
     platform = Column(String(255))
     completed = Column(Integer)

@@ -171,6 +171,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
     genres = genres[:-1]
     image_url = rawg_info["background_image"]
     new_game = schemas.NewGame(
+        # id=project_id,
         name=game_name,
         dev=dev,
         release_date=release_date,
@@ -179,11 +180,14 @@ async def get_new_game_info(game) -> schemas.NewGame:
         genres=genres,
         avg_time=avg_time,
         clockify_id=project_id,
+        slug=rawg_info["slug"],
     )
     return new_game
 
 
-async def sync_clockify_entries(db: Session, user: models.User, date: str = None):
+async def sync_clockify_entries(
+    db: Session, user: models.User, date: str = None, silent: bool = False
+):
     try:
         total_entries = 0
         entries = clockify_api.get_time_entries(user.clockify_id, date)
@@ -193,7 +197,7 @@ async def sync_clockify_entries(db: Session, user: models.User, date: str = None
         )
         if total_entries == 0:
             return 0, []
-        await time_entries.sync_clockify_entries_db(db, user, entries)
+        await time_entries.sync_clockify_entries_db(db, user, entries, silent)
         return total_entries, entries
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))

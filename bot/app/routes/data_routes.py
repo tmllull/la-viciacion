@@ -33,7 +33,7 @@ clockify = ClockifyApi()
 
 
 class DataRoutes:
-    async def update_info(
+    async def update_data(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         if update.callback_query.message.chat_id < 0:

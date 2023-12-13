@@ -19,11 +19,11 @@ MAIN_MENU = [
     ],
     [
         # InlineKeyboardButton("🕹 ¿A qué puedo jugar?", callback_data="recommender"),
-        InlineKeyboardButton("📎 Actualizar info", callback_data="update_info"),
-        InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
+        InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
+        # InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
     ],
     # [
-    # InlineKeyboardButton("📎 Actualizar info", callback_data="update_info"),
+    # InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
     # InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
     # ],
     [
@@ -38,11 +38,11 @@ ADMIN_MENU = [
     ],
     [
         # InlineKeyboardButton("🕹 ¿A qué puedo jugar?", callback_data="recommender"),
-        InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
+        # InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
     ],
     [
-        InlineKeyboardButton("📎 Actualizar info", callback_data="update_info"),
-        InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
+        InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
+        # InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
     ],
     [
         InlineKeyboardButton(EXIT, callback_data="cancel"),

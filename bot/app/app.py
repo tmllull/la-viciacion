@@ -74,9 +74,9 @@ def main() -> None:
                 # CallbackQueryHandler(
                 #     other_routes.recommender, pattern="^" + "recommender" + "$"
                 # ),
-                CallbackQueryHandler(
-                    other_routes.info_game, pattern="^" + "info_game" + "$"
-                ),
+                # CallbackQueryHandler(
+                #     other_routes.info_game, pattern="^" + "info_game" + "$"
+                # ),
                 CallbackQueryHandler(
                     admin_routes.send_message, pattern="^" + "send_message" + "$"
                 ),
@@ -84,14 +84,14 @@ def main() -> None:
                     admin_routes.get_users, pattern="^" + "get_users" + "$"
                 ),
                 CallbackQueryHandler(
-                    data_routes.update_info, pattern="^" + "update_info" + "$"
+                    data_routes.update_data, pattern="^" + "update_data" + "$"
                 ),
                 # CallbackQueryHandler(basic_routes.status, pattern="^" + "status" + "$"),
                 CallbackQueryHandler(basic_routes.end, pattern="^" + "cancel" + "$"),
             ],
-            utils.INFO_GAME: [
-                MessageHandler(None, other_routes.info_game_response),
-            ],
+            # utils.INFO_GAME: [
+            #     MessageHandler(None, other_routes.info_game_response),
+            # ],
             utils.MY_ROUTES: [
                 CallbackQueryHandler(
                     my_routes.my_games, pattern="^" + "my_games" + "$"

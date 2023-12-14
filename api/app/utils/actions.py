@@ -89,6 +89,7 @@ async def sync_data(
         # TODO: Check total played time achievements
         achievements.user_played_total_time(db, user, played_time[1])
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
+
         # use 'entries'
 
     # Update some game statistics

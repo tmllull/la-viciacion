@@ -166,11 +166,12 @@ class UserGame(UsersGamesBase):
     id: Union[int, None] = None
     # user: Union[str, None] = None
     user_id: Union[int, None] = None
-    # game_name: Union[str, None] = None
     game_id: Union[str, None] = None
+    game_name: Union[str, None] = None
     # project_clockify_id: Union[str, None] = None
     started_date: Union[datetime.date, None] = None
     platform: Union[str, None] = None
+    platform_name: Union[str, None] = None
     completed: Union[int, None] = None
     completed_date: Union[datetime.date, None] = None
     score: Union[float, None] = None

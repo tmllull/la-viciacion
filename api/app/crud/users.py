@@ -430,18 +430,24 @@ def update_played_time_game(db: Session, user_id: str, game_id: str, time: int):
 
 def get_games(
     db: Session, user_id, limit=None, completed=None
-) -> list[models.UserGame]:
-    if completed != None:
-        completed = 1 if completed == True else 0
-        games_list = (
-            db.query(models.UserGame)
-            .filter_by(user_id=user_id, completed=completed)
-            .limit(limit)
+) -> list[schemas.UserGame]:
+    stmt = (
+        select(
+            models.UserGame.__table__,
+            models.Game.name.label("game_name"),
+            models.PlatformTag.name.label("platform_name"),
         )
-        return games_list
-    else:
-        games_list = db.query(models.UserGame).filter_by(user_id=user_id).limit(limit)
-        return games_list
+        .join(models.Game, models.UserGame.game_id == models.Game.id)
+        .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+        .where(
+            models.UserGame.user_id == user_id,
+            models.UserGame.completed
+            == ((1 if completed else 0) if completed is not None else True),
+        )
+        .limit(limit)
+    )
+
+    return db.execute(stmt).fetchall()
 
 
 def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:

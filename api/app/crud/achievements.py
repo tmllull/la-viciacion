@@ -6,7 +6,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from ..crud import time_entries as time_entries
+from ..crud import time_entries, users
 from ..database import models, schemas
 from ..utils import actions as actions
 from ..utils import logger
@@ -107,10 +107,7 @@ class Achievements:
     def user_played_total_time(
         self, db: Session, user: models.User, played_time: int, date: str = None
     ):
-        logger.info(played_time)
         played_time = played_time / 60 / 60
-        logger.info(played_time)
-        logger.info("Check played time achievement for " + str(played_time) + " h")
         # 100 h
         if played_time >= 100 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_100_HOURS.name
@@ -146,7 +143,6 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_1000_HOURS.name, date
             )
-        return
 
     def user_played_day_time(
         self, db: Session, user: models.User, played_time: int, date: str = None
@@ -233,34 +229,93 @@ class Achievements:
                     str(time_entry.start),
                 )
 
-    def user_played_total_days(
-        self, db: Session, user: models.User, total_days: int, date: str = None
-    ):
+    def user_played_total_days(self, db: Session, user: models.User, total_days: int):
         # 7 days
-
+        if total_days >= 7 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_7_DAYS.name
+        ):
+            self.set_user_achievement(db, user.id, AchievementsElems.PLAYED_7_DAYS.name)
         # 15 days
-
+        if total_days >= 15 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_15_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_15_DAYS.name
+            )
         # 30 days
-
+        if total_days >= 30 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_30_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_30_DAYS.name
+            )
         # 60 days
-
+        if total_days >= 60 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_60_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_60_DAYS.name
+            )
         # 100 days
-
+        if total_days >= 100 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_100_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_100_DAYS.name
+            )
         # 200 days
-
+        if total_days >= 200 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_200_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_200_DAYS.name
+            )
         # 300 days
-
+        if total_days >= 300 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_300_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_300_DAYS.name
+            )
         # 365 days
-        return
+        if total_days >= 365 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_365_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_365_DAYS.name
+            )
 
-    def user_played_total_games(
-        self, db: Session, user: models.User, played_games: int, date: str = None
-    ):
+    def user_played_total_games(self, db: Session, user: models.User, date: str = None):
+        played_games = users.get_games(db, user.id)
+        # 10
+        logger.info("Played games for " + user.name + ": " + str(len(played_games)))
+        if len(played_games) >= 10 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_10_GAMES.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_10_GAMES.name
+            )
         # 42
-
+        if len(played_games) >= 42 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_42_GAMES.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_42_GAMES.name
+            )
+        # 50
+        if len(played_games) >= 50 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_50_GAMES.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_50_GAMES.name
+            )
         # 100
-
-        return
+        if len(played_games) >= 100 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_100_GAMES.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_100_GAMES.name
+            )
 
     def user_played_hours_game(
         self,

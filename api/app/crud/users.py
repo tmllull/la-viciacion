@@ -431,23 +431,52 @@ def update_played_time_game(db: Session, user_id: str, game_id: str, time: int):
 def get_games(
     db: Session, user_id, limit=None, completed=None
 ) -> list[schemas.UserGame]:
-    stmt = (
-        select(
-            models.UserGame.__table__,
-            models.Game.name.label("game_name"),
-            models.PlatformTag.name.label("platform_name"),
+    if completed != None:
+        completed = 1 if completed == True else 0
+        stmt = (
+            select(
+                models.UserGame.__table__,
+                # models.Game.name.label("game_name"),
+                # models.PlatformTag.name.label("platform_name"),
+            )
+            # .join(models.Game, models.UserGame.game_id == models.Game.id)
+            # .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .where(
+                models.UserGame.user_id == user_id,
+                models.UserGame.completed == completed,
+            ).limit(limit)
         )
-        .join(models.Game, models.UserGame.game_id == models.Game.id)
-        .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
-        .where(
-            models.UserGame.user_id == user_id,
-            models.UserGame.completed
-            == ((1 if completed else 0) if completed is not None else True),
-        )
-        .limit(limit)
-    )
+        return db.execute(stmt).fetchall()
 
-    return db.execute(stmt).fetchall()
+    else:
+        stmt = (
+            select(
+                models.UserGame.__table__,
+                # models.Game.name.label("game_name"),
+                # models.PlatformTag.name.label("platform_name"),
+            )
+            # .join(models.Game, models.UserGame.game_id == models.Game.id)
+            # .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .where(models.UserGame.user_id == user_id).limit(limit)
+        )
+        return db.execute(stmt).fetchall()
+    # stmt = (
+    #     select(
+    #         models.UserGame.__table__,
+    #         models.Game.name.label("game_name"),
+    #         models.PlatformTag.name.label("platform_name"),
+    #     )
+    #     .join(models.Game, models.UserGame.game_id == models.Game.id)
+    #     .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+    #     .where(
+    #         models.UserGame.user_id == user_id,
+    #         models.UserGame.completed
+    #         == ((1 if completed else 0) if completed is not None else True),
+    #     )
+    #     .limit(limit)
+    # )
+
+    # return db.execute(stmt).fetchall()
 
 
 def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
@@ -666,7 +695,6 @@ async def rate_game(
 
 def update_streaks(db: Session, user_id, current_streak, best_streak, best_streak_date):
     try:
-        logger.info("Updating streaks...")
         stmt = (
             update(models.UserStatistics)
             .where(models.UserStatistics.user_id == user_id)

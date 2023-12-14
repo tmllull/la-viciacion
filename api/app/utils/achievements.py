@@ -64,12 +64,20 @@ class AchievementsElems(Enum):
     PLAYED_8_HOURS_SESSION = {"title": "PLAYED_8HOURS_SESSION", "message": ""}
 
     # Games
+    PLAYED_10_GAMES = {
+        "title": "PLAYED_10_GAMES",
+        "message": "",
+    }
     PLAYED_42_GAMES = {
         "title": "La respuesta",
         "message": "USER ha jugado a la mágica cifra de 42 juegos."
         + " No sabemos si tendrá la respuesta al sentido de la vida, "
         + "al universo y todo lo demás, pero lo que seguro que tiene "
         + "es mucho tiempo libre.",
+    }
+    PLAYED_50_GAMES = {
+        "title": "PLAYED_50_GAMES",
+        "message": "",
     }
     PLAYED_100_GAMES = {
         "title": "100 juegos (jugados)",

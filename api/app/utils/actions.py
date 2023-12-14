@@ -73,8 +73,9 @@ async def sync_data(
         logger.info("Updating played days...")
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
-        # TODO: Check played days achievement
-        logger.info("Updating streaks...")
+        # Check played days achievement
+        achievements.user_played_total_days(db, user, len(played_days))
+        logger.info("Checking streaks for " + user.name)
         best_streak_date, best_streak, current_streak = streak_days(db, user)
         users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
         # TODO: Check streaks achievement
@@ -84,12 +85,16 @@ async def sync_data(
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
-        # logger.info("Played time obtained...")
         users.update_played_time(db, user.id, played_time[1])
-        # TODO: Check total played time achievements
+        # Check total played time achievements
+        logger.info("Check total played time achievements...")
         achievements.user_played_total_time(db, user, played_time[1])
-        achievements.user_session_time(db, user)
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
+        logger.info("Check session time achievements...")
+        achievements.user_session_time(db, user)
+        # Other achievements
+        logger.info("Check total played games achievements...")
+        achievements.user_played_total_games(db, user)
 
         # use 'entries'
 
@@ -98,12 +103,6 @@ async def sync_data(
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
         games.update_total_played_time(db, game[0], game[1])
-
-    # # TODO: Check if this can be done in the previous users loop
-    # logger.info("Updating played time for users...")
-    # played_time_users = time_entries.get_users_played_time(db)
-    # for user in played_time_users:
-    #     users.update_played_time(db, user[0], user[1])
 
     # Check rankings
     await ranking_games_hours(db, silent)
@@ -125,7 +124,6 @@ def streak_days(db: Session, user: models.User):
     """
     TODO:
     """
-    logger.info("Checking streaks for " + user.name)
     played_dates = time_entries.get_played_days(db, user.id)
     # return
 

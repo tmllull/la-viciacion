@@ -3,7 +3,8 @@ import json
 from typing import Tuple, Union
 
 import bcrypt
-from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
+from sqlalchemy import (asc, create_engine, desc, func, or_, select, text,
+                        update)
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -494,6 +495,7 @@ def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
 
 
 def update_played_days(db: Session, user_id: int, played_days):
+    current_year = datetime.datetime.now().year
     try:
         stmt = (
             update(models.UserStatistics)

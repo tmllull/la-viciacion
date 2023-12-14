@@ -120,21 +120,6 @@ async def add_game_to_user(
         if game_db is None:
             raise HTTPException(status_code=404, detail=msg.GAME_NOT_FOUND)
         return await users.add_new_game(db=db, game=game, user=user)
-
-        # game_name = game_db.name
-        # total_games = played_games.count() + 1
-        # clockify_api.create_empty_time_entry(
-        #     db, user.clockify_key, game.project_clockify_id, game.platform
-        # )
-        # await utils.send_message(
-        #     user.name
-        #     + " acaba de empezar su juego número "
-        #     + str(total_games)
-        #     + ": *"
-        #     + game_name
-        #     + "*"
-        # )
-        return new_game
     except Exception as e:
         logger.info(e)
         raise HTTPException(

@@ -221,6 +221,7 @@ class UserAchievement(Base):
     user_id = Column(Integer)
     achievement_id = Column(Integer)
     date = Column(Date)
+    game_id = Column(String(255))
     __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
 
 

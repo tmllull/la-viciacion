@@ -243,9 +243,8 @@ async def ranking_games_hours(db: Session, silent: bool):
                     if i == 10:
                         break
                 i += 1
-            if not silent:
-                await utils.send_message(msg)
-                logger.info(msg)
+            await utils.send_message(msg, silent)
+            logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
     logger.info("Updating games ranking...")
@@ -311,9 +310,7 @@ async def ranking_players_hours(db: Session, silent: bool):
                 + "\n"
             )
             users.update_current_ranking_hours(db, i + 1, player.user_id)
-        if not silent:
-            # logger.info(msg)
-            await utils.send_message(msg)
+        await utils.send_message(msg, silent)
         logger.info(msg)
     logger.info("Updating players ranking...")
     current_ranking = users.current_ranking_hours(db)

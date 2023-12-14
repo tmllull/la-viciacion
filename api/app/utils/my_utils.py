@@ -204,15 +204,16 @@ async def sync_clockify_entries(
         raise e
 
 
-async def send_message(msg):
-    bot = telegram.Bot(config.TELEGRAM_TOKEN)
-    async with bot:
-        await bot.send_message(
-            text=msg,
-            chat_id=config.TELEGRAM_GROUP_ID,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN,
-        )
-    logger.info("Message sent successfully!")
+async def send_message(msg, silent):
+    if not silent:
+        bot = telegram.Bot(config.TELEGRAM_TOKEN)
+        async with bot:
+            await bot.send_message(
+                text=msg,
+                chat_id=config.TELEGRAM_GROUP_ID,
+                parse_mode=telegram.constants.ParseMode.MARKDOWN,
+            )
+        logger.info("Message sent successfully!")
 
 
 def get_platforms(db: Session):

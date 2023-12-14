@@ -372,14 +372,14 @@ async def add_new_game(
         started_game = (
             "[" + game_db.name + "](https://rawg.io/games/" + game_db.slug + ")\n"
         )
-        if not silent:
-            await utils.send_message(
-                user.name
-                + " acaba de empezar su juego número "
-                + str(played_games)
-                + ": "
-                + started_game
-            )
+        await utils.send_message(
+            user.name
+            + " acaba de empezar su juego número "
+            + str(played_games)
+            + ": "
+            + started_game,
+            silent,
+        )
         logger.info("Game added!")
         return user_game
     except SQLAlchemyError as e:
@@ -613,8 +613,7 @@ async def complete_game(
             + "."
         )
         logger.info(message)
-        if not silent:
-            await utils.send_message(message)
+        await utils.send_message(message, silent)
         return get_game_by_id(db, user_id, game_id)
         # num_completed_games = (
         #     db.query(models.UserGame.game_id)

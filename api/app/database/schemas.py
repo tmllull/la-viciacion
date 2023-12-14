@@ -194,10 +194,10 @@ class Achievement(BaseModel):
 
 class UserAchievement(BaseModel):
     id: Union[int, None] = None
-    user: Union[str, None] = None
     user_id: Union[int, None] = None
     achievement_id: Union[int, None] = None
     date: Union[datetime.date, None] = None
+    game_id: Union[str, None] = None
 
     class Config:
         from_attributes = True

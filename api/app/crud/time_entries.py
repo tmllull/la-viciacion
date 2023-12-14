@@ -234,7 +234,9 @@ async def sync_clockify_entries_db(
     # return
 
 
-def get_time_entry_by_time(db: Session, user_id: int, duration: int, mode: int):
+def get_time_entry_by_time(
+    db: Session, user_id: int, duration: int, mode: int
+) -> models.TimeEntry:
     """_summary_
 
     Args:

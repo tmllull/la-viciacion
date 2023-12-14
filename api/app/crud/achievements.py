@@ -6,6 +6,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from ..crud import time_entries as time_entries
 from ..database import models, schemas
 from ..utils import actions as actions
 from ..utils import logger
@@ -150,15 +151,15 @@ class Achievements:
     def user_played_day_time(
         self, db: Session, user: models.User, played_time: int, date: str = None
     ):
-        # 5 min
-        if (
-            played_time > 0
-            and played_time <= 5
-            and not self.check_already_achieved(
-                db, user.id, AchievementsElems.PLAYED_LESS_5_MIN
-            )
-        ):
-            pass
+        # # 5 min
+        # if (
+        #     played_time > 0
+        #     and played_time <= 5
+        #     and not self.check_already_achieved(
+        #         db, user.id, AchievementsElems.PLAYED_LESS_5_MIN
+        #     )
+        # ):
+        #     pass
 
         played_time = played_time / 60
 
@@ -188,16 +189,49 @@ class Achievements:
 
         return
 
-    def user_session_time(
-        self, db: Session, user: models.User, played_time: int, date: str = None
-    ):
-        # 5 min
+    def user_session_time(self, db: Session, user: models.User):
+        # -5 min
+        if not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_LESS_5_MIN_SESSION.name
+        ):
+            time_entry = time_entries.get_time_entry_by_time(db, user.id, 5 * 60, 2)
+            if time_entry is not None:
+                self.set_user_achievement(
+                    db,
+                    user.id,
+                    AchievementsElems.PLAYED_LESS_5_MIN_SESSION.name,
+                    str(time_entry.start),
+                )
 
-        # 4 hours
+        # +4 hours
+        if not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_4_HOURS_SESSION.name
+        ):
+            time_entry = time_entries.get_time_entry_by_time(
+                db, user.id, 4 * 60 * 60, 3
+            )
+            if time_entry is not None:
+                self.set_user_achievement(
+                    db,
+                    user.id,
+                    AchievementsElems.PLAYED_4_HOURS_SESSION.name,
+                    str(time_entry.start),
+                )
 
-        # 8 hours
-
-        return
+        # +8 hours
+        if not self.check_already_achieved(
+            db, user.id, AchievementsElems.PLAYED_8_HOURS_SESSION.name
+        ):
+            time_entry = time_entries.get_time_entry_by_time(
+                db, user.id, 8 * 60 * 60, 3
+            )
+            if time_entry is not None:
+                self.set_user_achievement(
+                    db,
+                    user.id,
+                    AchievementsElems.PLAYED_8_HOURS_SESSION.name,
+                    str(time_entry.start),
+                )
 
     def user_played_total_days(
         self, db: Session, user: models.User, total_days: int, date: str = None

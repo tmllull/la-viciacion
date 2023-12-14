@@ -11,7 +11,6 @@ from . import my_utils as utils
 class AchievementsElems(Enum):
     # Format -> KEY = {"title":"", "message":""}
     # Time day
-    PLAYED_LESS_5_MIN = {"title": "Lo he abierto sin querer", "message": "###"}
     PLAYED_4_HOURS_DAY = {
         "title": "Una jornada laboral",
         "message": "El otro mensaje",
@@ -58,6 +57,11 @@ class AchievementsElems(Enum):
     PLAYED_200_HOURS = {"title": "PLAYED_200_HOURS", "message": ""}
     PLAYED_500_HOURS = {"title": "PLAYED_500_HOURS", "message": ""}
     PLAYED_1000_HOURS = {"title": "PLAYED_1000_HOURS", "message": ""}
+
+    # Session time
+    PLAYED_LESS_5_MIN_SESSION = {"title": "Lo he abierto sin querer", "message": "###"}
+    PLAYED_4_HOURS_SESSION = {"title": "PLAYED_4HOURS_SESSION", "message": ""}
+    PLAYED_8_HOURS_SESSION = {"title": "PLAYED_8HOURS_SESSION", "message": ""}
 
     # Games
     PLAYED_42_GAMES = {

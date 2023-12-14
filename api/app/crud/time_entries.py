@@ -234,6 +234,52 @@ async def sync_clockify_entries_db(
     # return
 
 
+def get_time_entry_by_time(db: Session, user_id: int, duration: int, mode: int):
+    """_summary_
+
+    Args:
+        db (Session): _description_
+        user_id (int): _description_
+        duration (int): _description_
+        mode (int): 1=, 2<=, 3>=
+
+    Returns:
+        _type_: _description_
+    """
+    if mode == 1:
+        time_entry = (
+            db.query(models.TimeEntry)
+            .filter(
+                models.TimeEntry.user_id == user_id,
+                models.TimeEntry.duration <= duration,
+            )
+            .first()
+        )
+    elif mode == 2:
+        time_entry = (
+            db.query(models.TimeEntry)
+            .filter(
+                models.TimeEntry.user_id == user_id,
+                models.TimeEntry.duration == duration,
+            )
+            .first()
+        )
+    elif mode == 3:
+        time_entry = (
+            db.query(models.TimeEntry)
+            .filter(
+                models.TimeEntry.user_id == user_id,
+                models.TimeEntry.duration >= duration,
+            )
+            .first()
+        )
+    return time_entry
+
+
+def get_played_time_by_day():
+    return
+
+
 # def get_all_played_games(db: Session):
 #     stmt = select(models.TimeEntry.project, models.TimeEntry.project_id)
 #     return db.execute(stmt)

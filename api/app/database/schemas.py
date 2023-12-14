@@ -177,7 +177,7 @@ class UserGame(UsersGamesBase):
     score: Union[float, None] = None
     played_time: Union[int, None] = None
     completion_time: Union[int, None] = None
-    last_update: Union[str, None] = None
+    # last_update: Union[str, None] = None
 
     # class Config:
     #     from_attributes = True

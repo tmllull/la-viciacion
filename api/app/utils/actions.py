@@ -9,7 +9,8 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import achievements, clockify, games, rankings, time_entries, users
+from ..crud import clockify, games, rankings, time_entries, users
+from ..crud.achievements import Achievements
 from ..database import models, schemas
 from . import logger
 from . import my_utils as utils
@@ -32,13 +33,14 @@ async def sync_data(
 ):
     logger.info("Sync data...")
     if silent:
-        config.silent = True
+        silent = True
     start_time = time.time()
     silent = False
     if sync_all:
         start_date = config.START_DATE
         silent = True
         # config.sync_all = True
+    achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
     achievements.populate_achievements(db)
     users_db = users.get_users(db)
@@ -85,7 +87,7 @@ async def sync_data(
         # logger.info("Played time obtained...")
         users.update_played_time(db, user.id, played_time[1])
         # TODO: Check total played time achievements
-        # logger.info("Played time updated...")
+        achievements.user_played_total_time(db, user, played_time[1])
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
         # use 'entries'
 

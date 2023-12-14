@@ -16,8 +16,6 @@ class Config:
             self.TELEGRAM_ADMIN_CHAT_ID = config["TELEGRAM_ADMIN_CHAT_ID"]
             self.CLOCKIFY_BASEURL = config["CLOCKIFY_BASEURL"]
             self.CLOCKIFY_WORKSPACE = config["CLOCKIFY_WORKSPACE"]
-            self.N8N_BASE_URL = config["N8N_BASE_URL"]
-            self.N8N_WH_ADD_GAME = config["N8N_WH_ADD_GAME"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
             self.API_URL = config["API_URL"] + "/bot"
             self.API_KEY = config["API_KEY"]

@@ -54,6 +54,7 @@ async def sync_data(
 
         # Create user statistics entry (if needed)
         users.create_user_statistics(db, user.id)
+        users.create_user_statistics_historical(db, user.id)
 
         # Update clockify_id for user if has not been set and email matches with a valid user on Clockify
         if user.clockify_id is None or not utils.check_hex(user.clockify_id):

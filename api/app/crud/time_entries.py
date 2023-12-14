@@ -249,6 +249,7 @@ async def sync_clockify_entries_db(
 
             # Add game to GameStatistics (if needed)
             games.create_game_statistics(db, game_id)
+            games.create_game_statistics_historical(db, game_id)
 
             # Check if player already plays the game
             already_playing = users.get_game_by_id(db, user.id, game_id)

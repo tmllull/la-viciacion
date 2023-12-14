@@ -3,8 +3,7 @@ import json
 from typing import Tuple, Union
 
 import bcrypt
-from sqlalchemy import (asc, create_engine, desc, func, or_, select, text,
-                        update)
+from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -156,6 +155,22 @@ def create_user(
 def create_user_statistics(db: Session, user_id: id):
     try:
         user_statistics = models.UserStatistics(
+            user_id=user_id, current_ranking_hours=1000
+        )
+        db.add(user_statistics)
+        db.commit()
+        db.refresh(user_statistics)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        if "Duplicate" not in str(e):
+            logger.error("Error creating user statistics: " + str(e))
+            raise e
+
+
+def create_user_statistics_historical(db: Session, user_id: id):
+    try:
+        user_statistics = models.UserStatisticsHistorical(
             user_id=user_id, current_ranking_hours=1000
         )
         db.add(user_statistics)
@@ -345,6 +360,7 @@ async def add_new_game(
     from_sync=False,
 ) -> models.UserGame:
     logger.info("Adding new user game...")
+    current_year = datetime.datetime.now().year
     try:
         if start_date is None:
             started_date = datetime.datetime.now()
@@ -353,8 +369,20 @@ async def add_new_game(
         game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             return None
-        # info_game = await utils.get_game_info(game_db.name)
-        user_game = models.UserGame(
+        if current_year == config.CURRENT_SEASON:
+            # info_game = await utils.get_game_info(game_db.name)
+            user_game = models.UserGame(
+                game_id=game_db.id,
+                user_id=user.id,
+                completed=0,
+                # project_clockify_id=game_db.clockify_id,
+                platform=game.platform,
+                started_date=started_date,
+            )
+            db.add(user_game)
+            db.commit()
+            db.refresh(user_game)
+        user_game_historical = models.UserGameHistorical(
             game_id=game_db.id,
             user_id=user.id,
             completed=0,
@@ -362,10 +390,10 @@ async def add_new_game(
             platform=game.platform,
             started_date=started_date,
         )
-        db.add(user_game)
+        db.add(user_game_historical)
         db.commit()
-        db.refresh(user_game)
-        played_games = get_games(db, user.id).count()
+        db.refresh(user_game_historical)
+        played_games = get_games(db, user.id)
         if not from_sync:
             clockify_api.create_empty_time_entry(
                 db, user.clockify_key, game_db.id, game.platform
@@ -376,7 +404,7 @@ async def add_new_game(
         await utils.send_message(
             user.name
             + " acaba de empezar su juego número "
-            + str(played_games)
+            + str(len(played_games))
             + ": "
             + started_game,
             silent,
@@ -411,12 +439,24 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
 
 
 def update_played_time_game(db: Session, user_id: str, game_id: str, time: int):
+    current_year = datetime.datetime.now().year
     try:
+        if current_year == config.CURRENT_SEASON:
+            stmt = (
+                update(models.UserGame)
+                .where(
+                    models.UserGame.game_id == game_id,
+                    models.UserGame.user_id == user_id,
+                )
+                .values(played_time=time)
+            )
+            db.execute(stmt)
+            db.commit()
         stmt = (
-            update(models.UserGame)
+            update(models.UserGameHistorical)
             .where(
-                models.UserGame.game_id == game_id,
-                models.UserGame.user_id == user_id,
+                models.UserGameHistorical.game_id == game_id,
+                models.UserGameHistorical.user_id == user_id,
             )
             .values(played_time=time)
         )
@@ -497,9 +537,17 @@ def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
 def update_played_days(db: Session, user_id: int, played_days):
     current_year = datetime.datetime.now().year
     try:
+        if current_year == config.CURRENT_SEASON:
+            stmt = (
+                update(models.UserStatistics)
+                .where(models.UserStatistics.user_id == user_id)
+                .values(played_days=played_days)
+            )
+            db.execute(stmt)
+            db.commit()
         stmt = (
-            update(models.UserStatistics)
-            .where(models.UserStatistics.user_id == user_id)
+            update(models.UserStatisticsHistorical)
+            .where(models.UserStatisticsHistorical.user_id == user_id)
             .values(played_days=played_days)
         )
         db.execute(stmt)
@@ -511,10 +559,19 @@ def update_played_days(db: Session, user_id: int, played_days):
 
 
 def update_played_time(db: Session, user_id, played_time):
+    current_year = datetime.datetime.now().year
     try:
+        if current_year == config.CURRENT_SEASON:
+            stmt = (
+                update(models.UserStatistics)
+                .where(models.UserStatistics.user_id == user_id)
+                .values(played_time=played_time)
+            )
+            db.execute(stmt)
+            db.commit()
         stmt = (
-            update(models.UserStatistics)
-            .where(models.UserStatistics.user_id == user_id)
+            update(models.UserStatisticsHistorical)
+            .where(models.UserStatisticsHistorical.user_id == user_id)
             .values(played_time=played_time)
         )
         db.execute(stmt)

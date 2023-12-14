@@ -114,7 +114,23 @@ def create_game_statistics(db: Session, game_id: int):
     except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            logger.info("Error creating user statistics: " + str(e))
+            logger.info("Error creating games statistics: " + str(e))
+            raise e
+
+
+def create_game_statistics_historical(db: Session, game_id: int):
+    try:
+        game_statistics = models.GameStatisticsHistorical(
+            game_id=game_id, current_ranking=1000000
+        )
+        db.add(game_statistics)
+        db.commit()
+        db.refresh(game_statistics)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        if "Duplicate" not in str(e):
+            logger.info("Error creating games statistics historical: " + str(e))
             raise e
 
 

@@ -1,7 +1,7 @@
 import datetime
 from typing import Union
 
-from sqlalchemy import asc, create_engine, desc, func, select, text, update
+from sqlalchemy import asc, create_engine, delete, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -166,9 +166,6 @@ def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
         release_date = (
             game.release_date if game.release_date is not None else db_game.release_date
         )
-        # clockify_id = (
-        #     game.clockify_id if game.clockify_id is not None else db_game.clockify_id
-        # )
         genres = game.genres if game.genres is not None else db_game.genres
         avg_time = game.avg_time if game.avg_time is not None else db_game.avg_time
         stmt = (
@@ -180,14 +177,12 @@ def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
                 steam_id=steam_id,
                 image_url=image_url,
                 release_date=release_date,
-                # clockify_id=clockify_id,
                 genres=genres,
                 avg_time=avg_time,
             )
         )
         db.execute(stmt)
         db.commit()
-        # if clockify_id is not None:
         clockify_api.update_project_name(game_id, name)
         return db.query(models.Game).filter(models.Game.id == game_id).first()
     except Exception as e:

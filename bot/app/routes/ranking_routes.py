@@ -116,12 +116,22 @@ class RankingRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking achievements")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        ach = db.ranking_achievements()
-        msg = "El ranking de logros está de la siguiente manera:\n"
-        for player, count in ach:
-            msg = msg + player + ": " + str(count) + "\n"
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=achievements"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Ranking de logros:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["achievements"])
+                + "\n"
+            )
+
         await utils.response_conversation(update, context, msg)
 
     async def user_best_streak(

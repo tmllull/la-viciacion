@@ -9,8 +9,9 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
+from ..crud import clockify, games, rankings, time_entries, users
+from ..crud.achievements import Achievements
 from ..database import models, schemas
-from ..database.crud import clockify, games, rankings, time_entries, users
 from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
@@ -32,44 +33,82 @@ async def sync_data(
 ):
     logger.info("Sync data...")
     if silent:
-        config.silent = True
+        silent = True
     start_time = time.time()
+    silent = False
     if sync_all:
         start_date = config.START_DATE
-        config.silent = True
+        silent = True
+        # config.sync_all = True
+    achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
+    achievements.populate_achievements(db)
     users_db = users.get_users(db)
     logger.info("Sync clockify entries...")
     for user in users_db:
-        total_entries, entries = await utils.sync_clockify_entries(db, user, start_date)
+        if user.name is not None and user.name != "":
+            user_name = str(user.name)
+        else:
+            user_name = str(user.username)
+        logger.info("#### " + str(user_name) + " ####")
+
+        # Create user statistics entry (if needed)
+        users.create_user_statistics(db, user.id)
+        users.create_user_statistics_historical(db, user.id)
+
+        # Update clockify_id for user if has not been set and email matches with a valid user on Clockify
+        if user.clockify_id is None or not utils.check_hex(user.clockify_id):
+            users.update_clockify_id(
+                db, user.username, clockify_api.get_user_by_email(user.email)
+            )
+
+        # Sync time_entries from Clockify with local DB
+        total_entries, entries = await utils.sync_clockify_entries(
+            db, user, start_date, silent
+        )
         if total_entries < 1:
-            logger.info(user.name + " not played in the last 24h")
+            logger.info(str(user_name) + " not played in the last 24h")
             continue
+
+        # Update some user statistics
         logger.info("Updating played days...")
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
-        logger.info("Updating streaks...")
+        # Check played days achievement
+        achievements.user_played_total_days(db, user, len(played_days))
+        logger.info("Checking streaks for " + user.name)
         best_streak_date, best_streak, current_streak = streak_days(db, user)
+        await check_streaks(db, user, current_streak, best_streak, silent)
+        # TODO: Check streaks achievement
         users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
-        played_time_games = time_entries.get_user_games_played_time(db, user.id)
+
         logger.info("Updating played time games...")
+        played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
         users.update_played_time(db, user.id, played_time[1])
+        # Check total played time achievements
+        logger.info("Check total played time achievements...")
+        achievements.user_played_total_time(db, user, played_time[1])
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
+        achievements.user_session_time(db, user)
+        # Other achievements
+        achievements.user_played_total_games(db, user)
+        achievements.user_streak(db, user, best_streak, best_streak_date)
+
         # use 'entries'
-    logger.info("Updating played time games...")
+
+    # Update some game statistics
+    logger.info("Updating played time for games...")
     played_time_games = time_entries.get_games_played_time(db)
     for game in played_time_games:
         games.update_total_played_time(db, game[0], game[1])
-    logger.info("Updating played time users...")
-    played_time_users = time_entries.get_users_played_time(db)
-    for user in played_time_users:
-        users.update_played_time(db, user[0], user[1])
-    await ranking_games_hours(db)
-    await ranking_players_hours(db)
+
+    # Check rankings
+    await ranking_games_hours(db, silent)
+    await ranking_players_hours(db, silent)
     end_time = time.time()
     logger.info("Elapsed time: " + str(end_time - start_time))
 
@@ -87,13 +126,12 @@ def streak_days(db: Session, user: models.User):
     """
     TODO:
     """
-    logger.info("Checking streaks for " + user.name)
     played_dates = time_entries.get_played_days(db, user.id)
     # return
 
     max_streak = 0
     start_streak_date = None
-    end_streak_date = None
+    end_max_streak_date = None
     current_streak = 0
 
     for i in range(1, len(played_dates)):
@@ -106,7 +144,7 @@ def streak_days(db: Session, user: models.User):
         else:
             if current_streak > max_streak:
                 max_streak = current_streak
-                end_streak_date = played_dates[i - 1]
+                end_max_streak_date = played_dates[i - 1]
             current_streak = 0
 
     # Check today to add this day to the streak
@@ -117,13 +155,46 @@ def streak_days(db: Session, user: models.User):
     # Check if current streak (with today) is longer than best (without today)
     if current_streak > max_streak:
         max_streak = current_streak
-        end_streak_date = played_dates[-1]
+        end_max_streak_date = played_dates[-1]
 
     # Check is there is more than 1 day without play
     if (today - played_dates[-1]).days > 1:
         current_streak = 0
 
-    return end_streak_date, max_streak, current_streak
+    return end_max_streak_date, max_streak, current_streak
+
+
+async def check_streaks(
+    db: Session,
+    user: models.User,
+    current_streak: int,
+    best_streak: int,
+    silent: bool = False,
+):
+    # Check if user lose streak
+    current_db_streaks_data = users.get_streaks(db, user.id)[0]
+    # logger.info(current_streaks_data[0])
+    current_db_streak = current_db_streaks_data[0]
+    best_db_streak = current_db_streaks_data[1]
+    best_db_streak_date = current_db_streaks_data[2]
+    if current_db_streak is not None and current_streak == 0 and current_db_streak > 10:
+        msg = (
+            user.name
+            + " acaba de perder la racha de "
+            + str(current_db_streak)
+            + " días."
+        )
+        logger.info(msg)
+        await utils.send_message(msg, silent)
+    if best_db_streak is not None and best_streak > best_db_streak:
+        msg = (
+            user.name
+            + " acaba de superar su mejor racha de "
+            + str(best_db_streak)
+            + " días."
+        )
+        logger.info(msg)
+        await utils.send_message(msg, silent)
 
 
 ####################
@@ -131,22 +202,24 @@ def streak_days(db: Session, user: models.User):
 ####################
 
 
-async def ranking_games_hours(db: Session):
+async def ranking_games_hours(db: Session, silent: bool):
     logger.info("Checking games ranking hours...")
     try:
+        msg = ""
         most_played_games = games.get_most_played_time(db, 11)
-        most_played: list[models.GamesInfo] = []
+        most_played: list[models.GameStatistics] = []
         most_played_to_check = []  # Only for easy check with current ranking
         for game in most_played_games:
             most_played.append(game)
-            most_played_to_check.append(game.name)
-        result = rankings.get_current_ranking_games(db)
-        current: list[models.GamesInfo] = []
+            most_played_to_check.append(game.game_id)
+        result = games.current_ranking_hours(db)
+        current: list[models.Game] = []
         current_to_check = []  # Only for easy check with most played
         for game in result:
             current.append(game)
-            current_to_check.append(game.name)
+            current_to_check.append(game.game_id)
         if current_to_check[:10] == most_played_to_check[:10]:
+            msg = "No changes in TOP 10 games ranking"
             logger.info("No changes in TOP 10 games ranking")
         else:
             logger.info("Changes in TOP 10 games ranking")
@@ -154,7 +227,7 @@ async def ranking_games_hours(db: Session):
             i = 0
             for game in most_played:
                 if i <= 10:
-                    game_name = game.name
+                    game_name = games.get_game_by_id(db, game.game_id).name
                     time = game.played_time
                     current = game.current_ranking
                     diff_raw = current - (i + 1)
@@ -207,9 +280,7 @@ async def ranking_games_hours(db: Session):
                     if i == 10:
                         break
                 i += 1
-
-        if not config.silent:
-            await utils.send_message(msg)
+            await utils.send_message(msg, silent)
             logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
@@ -217,31 +288,31 @@ async def ranking_games_hours(db: Session):
     most_played = games.get_most_played_time(db)
     i = 1
     for game in most_played:
-        rankings.update_current_ranking_hours_game(db, i, game.name)
+        games.update_current_ranking_hours(db, i, game.game_id)
         i += 1
 
 
-async def ranking_players_hours(db: Session):
+async def ranking_players_hours(db: Session, silent: bool):
     logger.info("Ranking player hours...")
-    most_played_users = users.get_most_played_time(db)
+    played_time_db = users.played_time(db)
     most_played: list[models.User] = []
     most_played_to_check = []  # Only for easy check with current ranking
-    for player in most_played_users:
+    for player in played_time_db:
         most_played.append(player)
-        most_played_to_check.append(player.name)
-    result = rankings.get_current_ranking_hours_players(db)
+        most_played_to_check.append(player.user_id)
+    current_ranking_db = users.current_ranking_hours(db)
     current: list[models.User] = []
     current_to_check = []  # Only for easy check with most played
-    for player in result:
+    for player in current_ranking_db:
         current.append(player)
-        current_to_check.append(player.name)
+        current_to_check.append(player.user_id)
     if current_to_check == most_played_to_check:
         logger.info("No changes in player ranking")
     else:
         logger.info("Changes in player ranking")
         msg = "📣📣 Actualización del ránking de horas 📣📣\n"
-        for i, player in enumerate(most_played_users):
-            name = player.name
+        for i, player in enumerate(played_time_db):
+            name = str(users.get_user_by_id(db, player.user_id).name)
             hours = player.played_time
             if hours is None:
                 hours = 0
@@ -254,7 +325,7 @@ async def ranking_players_hours(db: Session):
             diff = diff.replace("+", "↑")
             diff = diff.replace("-", "↓")
             if diff != "0":
-                name = "*" + name + "*"
+                name = "*" + str(name) + "*"
             else:
                 diff = diff.replace("0", "=")
             if diff_raw > 1:
@@ -275,14 +346,12 @@ async def ranking_players_hours(db: Session):
                 + ")"
                 + "\n"
             )
-            rankings.update_current_ranking_hours_user(db, i + 1, player.id)
-        # if not self.silent:
-        #     logger.info(msg)
-        #     await utils.send_message(msg)
+            users.update_current_ranking_hours(db, i + 1, player.user_id)
+        await utils.send_message(msg, silent)
         logger.info(msg)
     logger.info("Updating players ranking...")
-    most_played = users.get_most_played_time(db)
+    current_ranking = users.current_ranking_hours(db)
     i = 1
-    for user in most_played:
-        rankings.update_current_ranking_hours_user(db, i, user.id)
+    for user in current_ranking:
+        users.update_current_ranking_hours(db, i, user.user_id)
         i += 1

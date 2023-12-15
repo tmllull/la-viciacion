@@ -2,8 +2,21 @@ version: '3.1'
 
 services:
 
+  laviciacion-front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    image: laviciacion-front
+    container_name: laviciacion-front
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - la-viciacion
+    ports:
+      - 3000:3000
+
   laviciacion-bot:
-    build: 
+    build:
       context: ./bot
       dockerfile: Dockerfile
     container_name: laviciacion-bot
@@ -12,9 +25,11 @@ services:
     restart: unless-stopped
     volumes:
      - ./bot:/app
-  
+    networks:
+      - la-viciacion
+
   laviciacion-api:
-    build: 
+    build:
       context: ./api
       dockerfile: Dockerfile
     container_name: laviciacion-api
@@ -25,46 +40,21 @@ services:
     volumes:
       - ./api:/app
     restart: unless-stopped
-    depends_on:
-      laviciacion-db:
-        condition: service_healthy
+    networks:
+      - la-viciacion
 
   laviciacion-db:
-    image: mysql
+    image: mariadb
     container_name: laviciacion-db
     volumes:
       - ./db/data:/var/lib/mysql
-      - ./db/certs:/etc/mysql/certs
     env_file: .env
-    command:
-      - --ssl-ca=/etc/mysql/certs/ca.crt
-      - --ssl-cert=/etc/mysql/certs/mysql.crt
-      - --ssl-key=/etc/mysql/certs/mysql.key
-      - --ssl=1
-      - --bind-address=0.0.0.0
-    healthcheck:
-      test: "/usr/bin/mysql --user=laviciacion --password=$$MYSQL_PASSWORD --execute \"SHOW DATABASES;\""
-      # test: "/usr/local/mysql/bin/mysql --user=foo --password=foo --execute \"SHOW DATABASES;\""
-      interval: 5s
-      timeout: 3s
-      retries: 15
     restart: unless-stopped
-    ports:
-      - 3307:3306
+    networks:
+      - la-viciacion
+    # Uncomment ports config to expose DB outside docker network
+    # ports:
+    #   - 3307:3306
 
-  laviciacion-cert-gen:
-    image: alpine
-    volumes:
-      - ./db/certs:/certs
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        apk add --no-cache openssl &&
-        openssl genpkey -algorithm RSA -out /certs/mysql.key -pkeyopt rsa_keygen_bits:2048 &&
-        openssl req -new -key /certs/mysql.key -out /certs/mysql.csr -subj "/CN=mysql/O=myorg/C=US" &&
-        openssl x509 -req -in /certs/mysql.csr -signkey /certs/mysql.key -out /certs/mysql.crt -days 365 &&
-        openssl genpkey -algorithm RSA -out /certs/ca.key -pkeyopt rsa_keygen_bits:2048 &&
-        openssl req -new -x509 -key /certs/ca.key -out /certs/ca.crt -days 1095 -subj "/CN=Certificate Authority/O=myorg/C=US" &&
-        chmod 600 /certs/* && chown 999:999 /certs/*
-    restart: "no"
+networks:
+  la-viciacion:

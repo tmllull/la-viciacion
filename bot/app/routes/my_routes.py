@@ -34,33 +34,16 @@ class MyRoutes:
         logger.info("My games")
         query = update.callback_query
         username = query.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        played_games = db.get_played_games(config.ALLOWED_USERS[username])
-        num_games = played_games.count()
-        games = ""
-        i = 0
-        for game in played_games:
-            time = utils.convert_time_to_hours(game[3])
-            if i < 10:
-                games = (
-                    games
-                    + "- *"
-                    + game[0]
-                    + "* para _"
-                    + game[1]
-                    + "_ ("
-                    + str(time)
-                    + ")\n"
-                )
-                i += 1
-        msg = (
-            "Hasta ahora has jugado a *"
-            + str(num_games)
-            + " juegos*. Estos son los 10 últimos:\n"
-            + games
-        )
-        return await utils.response_conversation(update, context, msg)
+        ranking = utils.make_request(
+            "GET",
+            config.API_URL + "/statistics/users/" + username + "?ranking=played_games",
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Estos son tus últimos juegos:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = msg + str(i + 1) + ". " + str(elem["name"]) + "\n"
+
+        await utils.response_conversation(update, context, msg)
 
     async def my_top_games(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -68,15 +51,25 @@ class MyRoutes:
         logger.info("My top games")
         query = update.callback_query
         username = query.from_user.username
-        msg = "Este es tu *top 10*\n"
-        await utils.response_conversation(update, context, "TBI")
-        return
-        top_games = db.my_top_games(config.ALLOWED_USERS[username])
-        for game in top_games:
-            name = game[0]
-            time = str(utils.convert_time_to_hours(game[1]))
-            msg = msg + name + " - " + str(time) + "\n"
-        return await utils.response_conversation(update, context, msg)
+        ranking = utils.make_request(
+            "GET",
+            config.API_URL + "/statistics/users/" + username + "?ranking=top_games",
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Estos son tus últimos juegos:\n"
+        for i, elem in enumerate(ranking["data"]):
+            played_time = utils.convert_time_to_hours(elem["total_played_time"])
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + " - "
+                + str(played_time)
+                + "\n"
+            )
+
+        await utils.response_conversation(update, context, msg)
 
     async def my_completed_games(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -84,21 +77,19 @@ class MyRoutes:
         logger.info("My completed games")
         query = update.callback_query
         username = query.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        completed_games = db.my_completed_games(config.ALLOWED_USERS[username]).count()
-        # last_completed = db.my_last_completed_games(config.ALLOWED_USERS[username])
-        msg = (
-            "Hasta ahora has completado *"
-            + str(completed_games)
-            + " juegos*."
-            # + " Estos son los últimos 10:\n"
-        )
-        # for i, game in enumerate(last_completed):
-        #     if i == 10:
-        #         break
-        #     msg = msg + game[0] + "\n"
-        return await utils.response_conversation(update, context, msg)
+        ranking = utils.make_request(
+            "GET",
+            config.API_URL
+            + "/statistics/users/"
+            + username
+            + "?ranking=completed_games",
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Estos son tus últimos juegos completados:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = msg + str(i + 1) + ". " + str(elem["name"]) + "\n"
+
+        await utils.response_conversation(update, context, msg)
 
     async def my_achievements(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -106,45 +97,32 @@ class MyRoutes:
         logger.info("My achievements")
         query = update.callback_query
         username = query.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        achievements = db.my_achievements(config.ALLOWED_USERS[username])
-        print(achievements)
-        achvmts = ""
-        achvmts_list = db.get_achievements_list()
-        for ach in achievements:
-            achvmts = achvmts + "- " + ach[0] + "\n"
-        msg = (
-            "De momento llevas desbloqueados "
-            + str(len(achievements))
-            + " de "
-            + str(achvmts_list.count())  # + len(ach_sp))
-            + " logros:\n"
-            + achvmts
-        )
-        return await utils.response_conversation(update, context, msg)
+        ranking = utils.make_request(
+            "GET",
+            config.API_URL + "/statistics/users/" + username + "?ranking=achievements",
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Estos son tus logros:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = msg + str(i + 1) + ". " + str(elem["title"]) + "\n"
+
+        await utils.response_conversation(update, context, msg)
 
     async def my_streak(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("My streak")
-        # db.log(context.user_data["user"], ActionLogs.MY_STREAK)
         query = update.callback_query
         username = query.from_user.username
-        await utils.response_conversation(update, context, "TBI")
-        return
-        streak_data = db.my_streak(config.ALLOWED_USERS[username])
-        msg = "Tu racha actual es de *"
-        for row in streak_data:
-            msg = (
-                msg
-                + str(row[0])
-                + "* días.\n"
-                + "Tu mejor racha fue de *"
-                + str(row[1])
-                + "* días,"
-                + " el "
-                + str(row[2])
-                + "."
-            )
-        return await utils.response_conversation(update, context, msg)
+        ranking = utils.make_request(
+            "GET",
+            config.API_URL + "/statistics/users/" + username + "?ranking=streak",
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Estos son tus rachas:\n"
+        data = ranking["data"]
+        msg = msg + "Racha actual: " + str(data["current_streak"]) + "\n"
+        msg = msg + "Mejor racha: " + str(data["best_streak"]) + "\n"
+        msg = msg + "Fin mejor racha: " + str(data["best_streak_date"])
+
+        await utils.response_conversation(update, context, msg)

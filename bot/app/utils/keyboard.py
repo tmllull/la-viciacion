@@ -1,6 +1,16 @@
 from telegram import InlineKeyboardButton
 
 EXIT = "❌ Salir"
+# EXIT = "❌ Cancelar"
+
+ACTIVATE_ACCOUNT = [
+    [
+        InlineKeyboardButton("🔓 Activa tu cuenta", callback_data="activate_account"),
+    ],
+    [
+        InlineKeyboardButton(EXIT, callback_data="cancel"),
+    ],
+]
 
 MAIN_MENU = [
     [
@@ -9,11 +19,11 @@ MAIN_MENU = [
     ],
     [
         # InlineKeyboardButton("🕹 ¿A qué puedo jugar?", callback_data="recommender"),
-        InlineKeyboardButton("📎 Actualizar info", callback_data="update_info"),
-        InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
+        InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
+        # InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
     ],
     # [
-    # InlineKeyboardButton("📎 Actualizar info", callback_data="update_info"),
+    # InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
     # InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
     # ],
     [
@@ -28,11 +38,11 @@ ADMIN_MENU = [
     ],
     [
         # InlineKeyboardButton("🕹 ¿A qué puedo jugar?", callback_data="recommender"),
-        InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
+        # InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
     ],
     [
-        InlineKeyboardButton("📎 Actualizar info", callback_data="update_info"),
-        InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
+        InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
+        # InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
     ],
     [
         InlineKeyboardButton(EXIT, callback_data="cancel"),
@@ -64,29 +74,27 @@ MY_DATA = [
 
 RANKING_MENU = [
     [
-        InlineKeyboardButton("📅 Días", callback_data="ranking_days"),
-        InlineKeyboardButton("⌚ Horas", callback_data="ranking_hours"),
+        InlineKeyboardButton("📅 Días", callback_data="user_days"),
+        InlineKeyboardButton("⌚ Horas", callback_data="user_hours"),
     ],
     [
-        InlineKeyboardButton("🎮 Jugados", callback_data="ranking_played"),
-        InlineKeyboardButton("✅ Completados", callback_data="ranking_completed"),
+        InlineKeyboardButton("🎮 Jugados", callback_data="user_played_games"),
+        InlineKeyboardButton("✅ Completados", callback_data="user_completed_games"),
     ],
     [
-        InlineKeyboardButton("🥇 Logros", callback_data="ranking_achievements"),
-        InlineKeyboardButton("🆚 Ratio", callback_data="ranking_ratio"),
+        InlineKeyboardButton("🥇 Logros", callback_data="user_achievements"),
+        InlineKeyboardButton("🆚 Ratio", callback_data="user_ratio"),
     ],
     [
-        InlineKeyboardButton("✨ R. actual", callback_data="ranking_current_streak"),
-        InlineKeyboardButton("⭐ R. máx.", callback_data="ranking_streak"),
+        InlineKeyboardButton("✨ R. actual", callback_data="user_current_streak"),
+        InlineKeyboardButton("⭐ R. máx.", callback_data="user_best_streak"),
     ],
     [
-        InlineKeyboardButton("💸 Deuda técnica", callback_data="ranking_debt"),
-        InlineKeyboardButton(
-            "🆕 Últimos jugados", callback_data="ranking_last_played_games"
-        ),
+        InlineKeyboardButton("💸 Deuda técnica", callback_data="debt"),
+        InlineKeyboardButton("🆕 Últimos jugados", callback_data="games_last_played"),
     ],
     [
-        InlineKeyboardButton("🏟️ Más jugados", callback_data="ranking_most_played"),
+        InlineKeyboardButton("🏟️ Más jugados", callback_data="games_most_played"),
         # InlineKeyboardButton("🖥 Plataforma", callback_data="ranking_platform"),
     ],
     [
@@ -97,11 +105,17 @@ RANKING_MENU = [
 
 YES_NO = [["✅ Sí", "❌ No"]]
 
-EXCEL_ACTIONS = [
-    ["🆕 Añadir juego", "⏲ Añadir tiempo"],
-    ["✅ Completar juego", "📝 Puntuar juego"],
-    ["▶️ Activar timer", "⏹ Parar timer"],
+DATA_ACTIONS = [
+    ["🆕 Añadir juego", "✅ Completar juego"],
+    ["📝 Puntuar juego"],
     [EXIT],
 ]
+
+# EXCEL_ACTIONS = [
+#     ["🆕 Añadir juego", "⏲ Añadir tiempo"],
+#     ["✅ Completar juego", "📝 Puntuar juego"],
+#     ["▶️ Activar timer", "⏹ Parar timer"],
+#     [EXIT],
+# ]
 
 CANCEL = [EXIT]

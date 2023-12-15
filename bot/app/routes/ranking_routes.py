@@ -1,3 +1,5 @@
+import json
+
 import requests
 import utils.keyboard as kb
 import utils.logger as logger
@@ -28,38 +30,68 @@ class RankingRoutes:
         )
         return utils.RANKING_ROUTES
 
-    async def ranking_hours(
+    async def user_hours(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking hours")
-        ranking_players = requests.get(config.API_URL + "/rankings?type=hours").json()
-
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_hours"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
         msg = "Así está el ranking de horas de vicio:\n"
-        for i, elem in enumerate(ranking_players):
+        for i, elem in enumerate(ranking["data"]):
             msg = (
                 msg
                 + str(i + 1)
                 + ". "
-                + elem
+                + str(elem["name"])
                 + ": "
-                + str(utils.convert_time_to_hours(ranking_players[elem]))
+                + str(utils.convert_time_to_hours(elem["played_time"]))
                 + "\n"
             )
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_days(
+    async def user_days(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking days")
-        # db.log(context.user_data["user"], ActionLogs.RANKING_DAYS)
-        ranking_players = requests.get(config.API_URL + "/rankings?type=days").json()
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_days"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
         msg = "Así está el ranking de días de vicio:\n"
-        for i, elem in enumerate(ranking_players):
-            if ranking_players[elem] is None:
-                days = 0
-            else:
-                days = ranking_players[elem]
-            msg = msg + str(i + 1) + ". " + elem + ": " + str(days) + "\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["played_days"])
+                + "\n"
+            )
+        await utils.response_conversation(update, context, msg)
+
+    async def user_played_games(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        logger.info("Ranking played")
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_played_games"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Ranking de juegos jugados:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["played_games"])
+                + "\n"
+            )
+
         await utils.response_conversation(update, context, msg)
 
     # async def ranking_platform(
@@ -80,94 +112,114 @@ class RankingRoutes:
     #         i += 1
     #     await utils.response_conversation(update, context, msg)
 
-    async def ranking_achievements(
+    async def user_achievements(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking achievements")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        ach = db.ranking_achievements()
-        msg = "El ranking de logros está de la siguiente manera:\n"
-        for player, count in ach:
-            msg = msg + player + ": " + str(count) + "\n"
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=achievements"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Ranking de logros:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["achievements"])
+                + "\n"
+            )
+
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_streak(
+    async def user_best_streak(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking streak")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        streaks = db.ranking_streak()
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_best_streak"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
         msg = "Así va el ranking de racha de días:\n"
-        for row in streaks:
-            msg = msg + row[0] + ": " + str(row[1]) + "\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["best_streak"])
+                + "\n"
+            )
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_current_streak(
+    async def user_current_streak(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking current streak")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        # db.log(context.user_data["user"], ActionLogs.RANKING_CURRENT_STREAK)
-        streaks = db.ranking_current_streak()
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_current_streak"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
         msg = "Estas són las rachas de días actuales:\n"
-        for row in streaks:
-            msg = msg + row[0] + ": " + str(row[1]) + "\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["current_streak"])
+                + "\n"
+            )
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_ratio(
+    async def user_ratio(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking ratio")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        # db.log(context.user_data["user"], ActionLogs.RANKING_RATIO)
-        ratio = {}
-        played = db.ranking_num_games()
-        completed = db.ranking_completed_games()
-        msg = "Así está el ratio de juegos completados vs jugados:\n"
-        for row in completed:
-            ratio[row[0]] = row[1]
-        for row in played:
-            ratio[row[0]] = ratio[row[0]] / row[1]
-        ratio = dict(sorted(ratio.items(), key=lambda x: x[1], reverse=True))
-        for player in ratio:
-            msg = msg + str(player) + ": " + str(round(ratio[player], 2)) + "\n"
-
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_ratio"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Estas són las rachas de días actuales:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["ratio"])
+                + "\n"
+            )
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_played(
+    async def user_completed_games(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        logger.info("Ranking played")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        played_games = requests.get(config.API_URL + "/???").json()
-        msg = "Ranking de juegos jugados:\n"
-        for player in played_games:
-            msg = msg + str(player[0]) + ": " + str(player[1]) + "\n"
-
-        await utils.response_conversation(update, context, msg)
-
-    async def ranking_completed(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
-        logger.info("Ranking completed")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        # db.log(context.user_data["user"], ActionLogs.RANKING_COMPLETED)
-        completed_games = db.ranking_completed_games()
+        logger.info("Ranking completed games")
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=user_completed_games"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
         msg = "Ranking de juegos completados:\n"
-        for player in completed_games:
-            msg = msg + str(player[0]) + ": " + str(player[1]) + "\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(elem["completed_games"])
+                + "\n"
+            )
 
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_debt(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    async def debt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.info("Ranking debt")
         await utils.response_conversation(update, context, "Deuda técnica: TBI")
         return
@@ -199,37 +251,48 @@ class RankingRoutes:
 
         # await utils.response_conversation(update, context, msg)
 
-    async def ranking_last_played_games(
+    async def games_last_played(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking last played")
-        # db.log(context.user_data["user"], ActionLogs.RANKING_LAST_PLAYED_GAMES)
-        await utils.response_conversation(update, context, "TBI")
-        return
-        last_games = db.ranking_last_played_games()
-        msg = "Últimos juegos jugados:\n"
-        i = 0
-        for game in last_games:
-            if game[1] != 0 and i < 10 and game[0] not in msg:
-                # time = utils.convert_time_to_hours(games[game])
-                msg = (
-                    msg + str(i + 1) + ". " + str(game[0]) + "\n"
-                )  # + " - " + str(time) + "\n"
-                i += 1
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=games_last_played"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Ranking últimos juegos jugados:\n"
+        for i, elem in enumerate(ranking["data"]):
+            msg = msg + str(i + 1) + ". " + str(elem["name"]) + "\n"
         await utils.response_conversation(update, context, msg)
 
-    async def ranking_most_played(
+    async def games_most_played(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         logger.info("Ranking most played")
-        await utils.response_conversation(update, context, "TBI")
-        return
-        # db.log(context.user_data["user"], ActionLogs.RANKING_MOST_PLAYED)
-        most_played = db.ranking_most_played_games()
-        msg = "Juegos más jugados:\n"
-        for i, game in enumerate(most_played):
-            time = utils.convert_time_to_hours(game[1])
+        ranking = utils.make_request(
+            "GET", config.API_URL + "/statistics/rankings?ranking=games_most_played"
+        ).json()
+        ranking = utils.load_json_response(ranking[0])
+        msg = "Ranking de juegos más jugados:\n"
+        for i, elem in enumerate(ranking["data"]):
             msg = (
-                msg + str(i + 1) + ". *" + str(game[0]) + "*" + " - " + str(time) + "\n"
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + ": "
+                + str(utils.convert_time_to_hours(elem["played_time"]))
+                + "\n"
             )
         await utils.response_conversation(update, context, msg)
+
+        # await utils.response_conversation(update, context, "TBI")
+        # return
+        # db.log(context.user_data["user"], ActionLogs.RANKING_MOST_PLAYED)
+        # most_played = db.ranking_most_played_games()
+        # msg = "Juegos más jugados:\n"
+        # for i, game in enumerate(most_played):
+        #     time = utils.convert_time_to_hours(game[1])
+        #     msg = (
+        #         msg + str(i + 1) + ". *" + str(game[0]) + "*" + " - " + str(time) + "\n"
+        #     )
+        # await utils.response_conversation(update, context, msg)

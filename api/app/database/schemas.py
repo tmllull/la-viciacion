@@ -106,6 +106,7 @@ class Game(BaseModel):
     genres: Union[str, None] = None
     # played_time: Union[int, None] = 0
     avg_time: Union[int, None] = 0
+    slug: Union[str, None] = None
     # current_ranking: Optional[Union[int, None]] = 10000000
     # clockify_id: Union[str, None] = None
 

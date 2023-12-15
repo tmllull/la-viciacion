@@ -3,8 +3,7 @@ import json
 from typing import Tuple, Union
 
 import bcrypt
-from sqlalchemy import (asc, create_engine, desc, func, or_, select, text,
-                        update)
+from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -419,14 +418,29 @@ async def add_new_game(
 
 
 def update_game(db: Session, game: schemas.UserGame, entry_id):
+    current_year = datetime.datetime.now().year
     try:
+        if current_year == config.CURRENT_SEASON:
+            stmt = (
+                update(models.UserGame)
+                .where(
+                    models.UserGame.id == entry_id,
+                    or_(
+                        models.UserGame.platform == "TBD",
+                        models.UserGame.platform == None,
+                    ),
+                )
+                .values(platform=game.platform)
+            )
+            db.execute(stmt)
+            db.commit()
         stmt = (
-            update(models.UserGame)
+            update(models.UserGameHistorical)
             .where(
-                models.UserGame.id == entry_id,
+                models.UserGameHistorical.id == entry_id,
                 or_(
-                    models.UserGame.platform == "TBD",
-                    models.UserGame.platform == None,
+                    models.UserGameHistorical.platform == "TBD",
+                    models.UserGameHistorical.platform == None,
                 ),
             )
             .values(platform=game.platform)
@@ -640,16 +654,31 @@ async def complete_game(
     silent: bool = False,
     from_sync=False,
 ):
+    current_year = datetime.datetime.now().year
     try:
         if completed_date is None:
             completed_date = datetime.datetime.now()
         else:
             completed_date = utils.convert_date_from_text(completed_date)
+        if current_year == config.CURRENT_SEASON:
+            stmt = (
+                update(models.UserGame)
+                .where(
+                    models.UserGame.game_id == game_id,
+                    models.UserGame.user_id == user_id,
+                )
+                .values(
+                    completed=1,
+                    completed_date=completed_date,
+                )
+            )
+            db.execute(stmt)
+            db.commit()
         stmt = (
-            update(models.UserGame)
+            update(models.UserGameHistorical)
             .where(
-                models.UserGame.game_id == game_id,
-                models.UserGame.user_id == user_id,
+                models.UserGameHistorical.game_id == game_id,
+                models.UserGameHistorical.user_id == user_id,
             )
             .values(
                 completed=1,

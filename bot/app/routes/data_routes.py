@@ -29,7 +29,8 @@ clockify = ClockifyApi()
     IMAGE_URL,
     TOTAL_PLAYED_GAMES,
     CLOCKIFY_PROJECT_ID,
-) = range(20, 33)
+    SLUG,
+) = range(20, 34)
 
 
 class DataRoutes:
@@ -80,27 +81,27 @@ class DataRoutes:
             return ConversationHandler.END
         context.user_data[GAME] = update.message.text
         logger.info("Received game: " + context.user_data[GAME])
-        url = (
-            config.API_URL
-            + "/users/"
-            + str(update.message.from_user.username)
-            + "/games"
-        )
-        response = utils.make_request("GET", url=url)
-        played_games = response.json()
-        context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
-        for played_game in played_games:
-            url = config.API_URL + "/games/" + str(played_game["game_id"])
-            game_info = utils.make_request("GET", url).json()
-            game_name = game_info["name"]
-            if game_name == context.user_data[GAME]:
-                await update.message.reply_text(
-                    "Ya tienes añadido "
-                    + str(context.user_data[GAME])
-                    + " a tu lista de juegos.",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-                return ConversationHandler.END
+        # url = (
+        #     config.API_URL
+        #     + "/users/"
+        #     + str(update.message.from_user.username)
+        #     + "/games"
+        # )
+        # response = utils.make_request("GET", url=url)
+        # played_games = response.json()
+        # context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
+        # for played_game in played_games:
+        #     url = config.API_URL + "/games/" + str(played_game["game_id"])
+        #     game_info = utils.make_request("GET", url).json()
+        #     game_name = game_info["name"]
+        #     if game_name == context.user_data[GAME]:
+        #         await update.message.reply_text(
+        #             "Ya tienes añadido "
+        #             + str(context.user_data[GAME])
+        #             + " a tu lista de juegos.",
+        #             reply_markup=ReplyKeyboardRemove(),
+        #         )
+        #         return ConversationHandler.END
         url = config.API_URL + "/utils/platforms"
         platforms = utils.make_request("GET", url).json()
         logger.info(platforms)
@@ -173,33 +174,34 @@ class DataRoutes:
             context.user_data[GENRES] = genres[:-1]
             context.user_data[MEAN_TIME] = hltb_info["comp_main"]
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
-            # url = (
-            #     config.API_URL
-            #     + "/users/"
-            #     + str(update.message.from_user.username)
-            #     + "/games"
-            # )
-            # response = utils.make_request("GET", url=url)
-            # played_games = response.json()
-            # context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
-            # for played_game in played_games:
-            #     url = config.API_URL + "/games/" + str(played_game["game_id"])
-            #     game_info = utils.make_request("GET", url).json()
-            #     game_name = game_info["name"]
-            #     # logger.info(game_info)
-            #     # await update.message.reply_text(
-            #     #     "Checkoint",
-            #     #     reply_markup=ReplyKeyboardRemove(),
-            #     # )
-            #     # return ConversationHandler.END
-            #     if game_name == context.user_data[GAME]:
-            #         await update.message.reply_text(
-            #             "Ya tienes añadido "
-            #             + str(context.user_data[GAME])
-            #             + " a tu lista de juegos.",
-            #             reply_markup=ReplyKeyboardRemove(),
-            #         )
-            #         return ConversationHandler.END
+            context.user_data[SLUG] = rawg_info["slug"]
+            url = (
+                config.API_URL
+                + "/users/"
+                + str(update.message.from_user.username)
+                + "/games"
+            )
+            response = utils.make_request("GET", url=url)
+            played_games = response.json()
+            context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
+            for played_game in played_games:
+                url = config.API_URL + "/games/" + str(played_game["game_id"])
+                game_info = utils.make_request("GET", url).json()
+                game_name = game_info["name"]
+                # logger.info(game_info)
+                # await update.message.reply_text(
+                #     "Checkoint",
+                #     reply_markup=ReplyKeyboardRemove(),
+                # )
+                # return ConversationHandler.END
+                if game_name == context.user_data[GAME]:
+                    await update.message.reply_text(
+                        "Ya tienes añadido "
+                        + str(context.user_data[GAME])
+                        + " a tu lista de juegos.",
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                    return ConversationHandler.END
             msg = "¿Quieres añadir un nuevo juego con los siguiente datos?:\n"
             msg += (
                 "Juego: "
@@ -284,6 +286,7 @@ class DataRoutes:
                         context.user_data[MEAN_TIME]
                     ),
                     "clockify_id": clockify_id,
+                    "slug": context.user_data[SLUG],
                 }
                 logger.info("Adding game to DB...")
                 response = utils.make_request(
@@ -291,14 +294,14 @@ class DataRoutes:
                 )
                 if response.status_code == 400:
                     logger.info("Game already exists on DB")
-                elif response.status_code == 200:
+                elif response.status_code == 200 or response.status_code == 201:
                     logger.info("New game added")
                 else:
                     logger.info("Error adding new game:" + str(response.json()))
                 username = update.message.from_user.username
                 logger.info("Adding new game for " + username)
                 start_game = {
-                    "project_clockify_id": context.user_data[CLOCKIFY_PROJECT_ID],
+                    "game_id": context.user_data[CLOCKIFY_PROJECT_ID],
                     "platform": context.user_data[PLATFORM],
                 }
                 response = utils.make_request(

@@ -343,9 +343,15 @@ class Achievements:
         return
 
     def user_streak(
-        self, db: Session, user: models.User, streak: int, date: str = None
+        self,
+        db: Session,
+        user: models.User,
+        streak: int,
+        date: datetime.datetime = None,
     ):
         logger.info("Checking streaks achievements")
+        if date is not None:
+            date = date.strftime("%Y-%m-%d %H:%M:%S")
         # 7 days
         if streak >= 7 and not self.check_already_achieved(
             db, user.id, AchievementsElems.STREAK_7_DAYS.name

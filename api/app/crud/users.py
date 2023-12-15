@@ -134,18 +134,12 @@ def create_user(
         except Exception as e:
             db.rollback()
             if "Duplicate" not in str(e):
-                #     db.rollback()
-                # else:
                 logger.error("Error adding new game statistics: " + str(e))
                 raise e
             else:
                 logger.warning("User already exists in DB")
-        # db.refresh(user_statistics)
         return True, db_user
 
-        # return (
-        #     db.query(models.User).filter(models.User.username == user.username).first()
-        # )
     except SQLAlchemyError as e:
         db.rollback()
         logger.error("Error creating user: " + str(e))
@@ -516,37 +510,10 @@ def get_games(
             .where(models.UserGame.user_id == user_id).limit(limit)
         )
         return db.execute(stmt).fetchall()
-    # stmt = (
-    #     select(
-    #         models.UserGame.__table__,
-    #         models.Game.name.label("game_name"),
-    #         models.PlatformTag.name.label("platform_name"),
-    #     )
-    #     .join(models.Game, models.UserGame.game_id == models.Game.id)
-    #     .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
-    #     .where(
-    #         models.UserGame.user_id == user_id,
-    #         models.UserGame.completed
-    #         == ((1 if completed else 0) if completed is not None else True),
-    #     )
-    #     .limit(limit)
-    # )
-
-    # return db.execute(stmt).fetchall()
 
 
 def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
     return db.query(models.UserGame).filter_by(user_id=user_id, game_id=game_id).first()
-
-
-# def get_game_by_clockify_id(
-#     db: Session, user_id, project_clockify_id
-# ) -> models.UserGame:
-#     return (
-#         db.query(models.UserGame)
-#         .filter_by(user_id=user_id, project_clockify_id=project_clockify_id)
-#         .first()
-#     )
 
 
 def update_played_days(db: Session, user_id: int, played_days):
@@ -591,44 +558,6 @@ def update_played_time(db: Session, user_id, played_time):
         )
         db.execute(stmt)
         db.commit()
-    except Exception as e:
-        logger.error(e)
-        raise e
-
-
-def top_games(db: Session, username: str, limit: int = 10):
-    try:
-        user = get_user_by_username(db, username)
-        stmt = (
-            select(
-                models.UserGame.user_id,
-                models.UserGame.game_id,
-                models.Game.name,
-                models.User.name,
-                models.UserGame.played_time.label("total_played_time"),
-            )
-            .join(models.User, models.User.id == models.UserGame.user_id)
-            .join(models.Game, models.Game.id == models.UserGame.game_id)
-            .where(models.UserGame.user_id == user.id)
-            .group_by(
-                models.UserGame.user_id,
-                models.UserGame.game_id,
-                models.Game.name,
-                models.User.name,
-                models.UserGame.played_time,
-            )
-            .order_by(desc(models.UserGame.played_time))
-            .limit(limit)
-        )
-        return db.execute(stmt).fetchall()
-
-        # stmt = (
-        #     select(models.UserGame.game_id, models.UserGame.played_time)
-        #     .where(models.UserGame. == player)
-        #     .order_by(desc(models.UserGame.played_time))
-        #     .limit(limit)
-        # )
-        # return db.execute(stmt)
     except Exception as e:
         logger.error(e)
         raise e
@@ -863,4 +792,130 @@ def activate_account(db: Session, username: str):
     except Exception as e:
         db.rollback()
         logger.error("Error activating account: " + str(e))
+        raise e
+
+
+######################
+##### STATISTICS #####
+######################
+
+
+def top_games(db: Session, username: str, limit: int = 10):
+    try:
+        user = get_user_by_username(db, username)
+        stmt = (
+            select(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time.label("total_played_time"),
+            )
+            .join(models.User, models.User.id == models.UserGame.user_id)
+            .join(models.Game, models.Game.id == models.UserGame.game_id)
+            .where(models.UserGame.user_id == user.id)
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+            )
+            .order_by(desc(models.UserGame.played_time))
+            .limit(limit)
+        )
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+def last_played_games(db: Session, username: str, limit: int = 10):
+    try:
+        user = get_user_by_username(db, username)
+        stmt = (
+            select(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.TimeEntry.start.label("last_played_time"),
+            )
+            .join(models.User, models.User.id == models.UserGame.user_id)
+            .join(models.Game, models.Game.id == models.UserGame.game_id)
+            .join(
+                models.TimeEntry,
+                models.TimeEntry.project_clockify_id == models.UserGame.game_id,
+            )
+            .where(
+                models.UserGame.user_id == user.id, models.TimeEntry.user_id == user.id
+            )
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+                models.TimeEntry.start,
+            )
+            .order_by(desc(models.TimeEntry.start))
+        )
+        result = db.execute(stmt).fetchall()
+        unique_names = set()
+        unique_data = []
+        for item in result:
+            if item["name"] not in unique_names:
+                unique_names.add(item["name"])
+                unique_data.append(item)
+            if len(unique_data) == limit:
+                break
+        return unique_data
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+def last_completed_games(db: Session, username: str, limit: int = 10):
+    try:
+        user = get_user_by_username(db, username)
+        stmt = (
+            select(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.completed_date.label("completed_date"),
+            )
+            .join(models.User, models.User.id == models.UserGame.user_id)
+            .join(models.Game, models.Game.id == models.UserGame.game_id)
+            .where(models.UserGame.user_id == user.id, models.UserGame.completed == 1)
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+            )
+            .order_by(desc(models.UserGame.completed_date))
+            .distinct()
+            .limit(limit)
+        )
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+def get_achievements(db: Session, user_id: int):
+    try:
+        stmt = (
+            select(
+                models.UserAchievement.user_id,
+                models.UserAchievement.achievement_id,
+                models.Achievement.id,
+                models.Achievement.title,
+            )
+            .join(models.User, models.User.id == models.UserAchievement.user_id)
+            .join(
+                models.Achievement, models.UserAchievement.id == models.Achievement.id
+            )
+            .group_by(models.UserAchievement.user_id)
+        )
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.info(e)
         raise e

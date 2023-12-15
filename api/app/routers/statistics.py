@@ -116,6 +116,7 @@ def get_user_statistics(
     ranking: str = None,
     db: Session = Depends(get_db),
 ):
+    user = users.get_user_by_username(db, username)
     if ranking is not None:
         rankings_list = ranking.split(",")
     else:
@@ -124,15 +125,15 @@ def get_user_statistics(
     for ranking_type in rankings_list:
         content = {}
         if ranking_type == UserStatisticsTypes.played_games:
-            data = {"message": "TBI"}
+            data = users.last_played_games(db, username)
         elif ranking_type == UserStatisticsTypes.completed_games:
-            data = {"message": "TBI"}
+            data = users.last_completed_games(db, username)
         elif ranking_type == UserStatisticsTypes.top_games:
             data = users.top_games(db, username)
         elif ranking_type == UserStatisticsTypes.achievements:
-            data = {"message": "TBI"}
+            data = users.get_achievements(db, user.id)
         elif ranking_type == UserStatisticsTypes.streak:
-            data = {"message": "TBI"}
+            data = users.get_streaks(db, user.id)[0]
         else:
             data = {"message": ranking_type + " is not a valid ranking"}
         content["type"] = ranking_type

@@ -187,13 +187,14 @@ def get_ranking_statistics(
     return statistics.get_ranking_statistics(ranking, db)
 
 
-@router.get("/statistics/users")
+@router.get("/statistics/users/{username}")
 @version(1)
 def get_user_statistics(
     ranking: UserStatisticsTypes,
+    username: str,
     db: Session = Depends(get_db),
 ):
-    return statistics.get_user_statistics(ranking, db)
+    return statistics.get_user_statistics(username, ranking, db)
 
 
 #################

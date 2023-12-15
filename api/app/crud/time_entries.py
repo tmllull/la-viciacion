@@ -183,6 +183,8 @@ async def sync_clockify_entries_db(
                     db.commit()
 
             # Check if time entry already exists (to update it if needed) for historical
+            if duration == 0:
+                continue
             stmt = select(models.TimeEntryHistorical).where(
                 models.TimeEntryHistorical.id == entry["id"]
             )

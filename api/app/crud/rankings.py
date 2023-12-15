@@ -102,14 +102,22 @@ def user_current_streak(db: Session, limit: int = None):
 
 
 def user_ranking_achievements(db: Session, limit: int = None):
-    return (
-        db.query(
-            models.UserAchievement.user_id, func.count(models.UserAchievement.user_id)
+    try:
+        stmt = (
+            select(
+                models.UserAchievement.user_id,
+                func.count(models.UserAchievement.achievement_id).label("achievements"),
+                models.User.name,
+            )
+            .join(models.User, models.User.id == models.UserAchievement.user_id)
+            .group_by(models.UserAchievement.user_id, models.User.name)
+            .order_by(func.count(models.UserAchievement.achievement_id).desc())
+            .limit(limit)
         )
-        .group_by(models.UserAchievement.user_id)
-        .order_by(func.count(models.UserAchievement.user_id).desc())
-        .limit(limit)
-    )
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.info(e)
+        raise e
 
 
 def user_played_games(db: Session, limit: int = None):

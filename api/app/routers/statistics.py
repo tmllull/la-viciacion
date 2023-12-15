@@ -78,7 +78,7 @@ def get_ranking_statistics(
         elif ranking_type == RankingStatisticsTypes.user_completed_games:
             data = rankings.user_completed_games(db)
         elif ranking_type == RankingStatisticsTypes.achievements:
-            data = [{"message": "Achievements is not implemented yet"}]
+            data = rankings.user_ranking_achievements(db)
         elif ranking_type == RankingStatisticsTypes.user_ratio:
             data = rankings.user_ratio(db)
         elif ranking_type == RankingStatisticsTypes.user_current_streak:

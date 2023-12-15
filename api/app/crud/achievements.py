@@ -71,7 +71,11 @@ class Achievements:
             .first()
         )
 
-    def check_already_achieved(self, db: Session, user_id: int, key: str):
+    def check_already_achieved(
+        self, db: Session, user_id: int, key: str, date: str = None
+    ):
+        if date is not None:
+            year = datetime.datetime.strptime(date, "%Y-%m-%d").year
         ach_id = self.get_ach_by_key(db, str(key))
         already_achieved = (
             db.query(models.UserAchievement)
@@ -108,7 +112,11 @@ class Achievements:
         self, db: Session, user: models.User, played_time: int, date: str = None
     ):
         played_time = played_time / 60 / 60
+        # To create messages, use the follow example, and adapt to every message
+        # user = user.name
+        # msg = AchievementsElems.PLAYED_100_HOURS.value["message"].format(name)
         # 100 h
+        logger.info("Check total played time achievements")
         if played_time >= 100 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_100_HOURS.name
         ):
@@ -186,6 +194,7 @@ class Achievements:
         return
 
     def user_session_time(self, db: Session, user: models.User):
+        logger.info("Check session time achievements...")
         # -5 min
         if not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_LESS_5_MIN_SESSION.name
@@ -286,9 +295,10 @@ class Achievements:
             )
 
     def user_played_total_games(self, db: Session, user: models.User, date: str = None):
+        logger.info("Check total played games achievements...")
         played_games = users.get_games(db, user.id)
         # 10
-        logger.info("Played games for " + user.name + ": " + str(len(played_games)))
+        # logger.info("Played games for " + user.name + ": " + str(len(played_games)))
         if len(played_games) >= 10 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_10_GAMES.name
         ):
@@ -335,21 +345,63 @@ class Achievements:
     def user_streak(
         self, db: Session, user: models.User, streak: int, date: str = None
     ):
+        logger.info("Checking streaks achievements")
         # 7 days
-
+        if streak >= 7 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_7_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_7_DAYS.name, date
+            )
         # 15 days
-
+        if streak >= 15 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_15_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_15_DAYS.name, date
+            )
         # 30 days
-
+        if streak >= 30 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_30_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_30_DAYS.name, date
+            )
         # 60 days
-
+        if streak >= 60 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_60_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_60_DAYS.name, date
+            )
         # 100 days
-
+        if streak >= 100 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_100_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_100_DAYS.name, date
+            )
         # 200 days
-
+        if streak >= 200 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_200_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_200_DAYS.name, date
+            )
         # 300 days
-
+        if streak >= 300 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_300_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_300_DAYS.name, date
+            )
         # 365 days
+        if streak >= 365 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.STREAK_365_DAYS.name
+        ):
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.STREAK_365_DAYS.name, date
+            )
         return
 
     def just_in_time(
@@ -362,26 +414,3 @@ class Achievements:
         date: str = None,
     ):
         return
-
-    def lose_streak(db: Session, player, streak, date=None):
-        logger.info("TBI")
-        # if streak == 0:
-        #     stmt = select(models.User.current_streak).where(models.User.name == player)
-        #     last = db.execute(stmt).first()
-        #     if last[0] != None and last[0] != 0:
-        #         stmt = (
-        #             update(models.User)
-        #             .where(models.User.name == player)
-        #             .values(current_streak=streak)
-        #         )
-        #         db.execute(stmt)
-        #         db.commit()
-        #         return last
-        # stmt = (
-        #     update(models.User)
-        #     .where(models.User.name == player)
-        #     .values(last_streak=streak)
-        # )
-        # db.execute(stmt)
-        # db.commit()
-        return False

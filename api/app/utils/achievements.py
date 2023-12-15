@@ -42,9 +42,9 @@ class AchievementsElems(Enum):
         "title": "Mi trabajo es jugar (sin parar)",
         "message": "Lo de estar 8 horas trabajando no suele gustar, pero jugando ya es otra cosa. "
         + ""
-        + "USER"
+        + "{user}"
         + " acaba de cascarse 8 horas seguidas (o más) jugando a _"
-        + "GAME"
+        + "{game}"
         + "_; cualquira diría que le está gustando.",
     }
     PLAYED_100_HOURS_GAME = {
@@ -53,7 +53,10 @@ class AchievementsElems(Enum):
     }
 
     # Total time
-    PLAYED_100_HOURS = {"title": "PLAYED_100_HOURS", "message": ""}
+    PLAYED_100_HOURS = {
+        "title": "PLAYED_100_HOURS",
+        "message": "{} has played 100 hours",
+    }
     PLAYED_200_HOURS = {"title": "PLAYED_200_HOURS", "message": ""}
     PLAYED_500_HOURS = {"title": "PLAYED_500_HOURS", "message": ""}
     PLAYED_1000_HOURS = {"title": "PLAYED_1000_HOURS", "message": ""}

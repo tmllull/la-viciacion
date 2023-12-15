@@ -3,7 +3,8 @@ import json
 from typing import Tuple, Union
 
 import bcrypt
-from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
+from sqlalchemy import (asc, create_engine, desc, func, or_, select, text,
+                        update)
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -619,18 +620,6 @@ def top_games(db: Session, username: str, limit: int = 10):
         raise e
 
 
-def get_streaks(db: Session, player):
-    try:
-        return db.query(
-            models.UserStatistics.current_streak,
-            models.UserStatistics.best_streak,
-            models.UserStatistics.best_streak_date,
-        ).filter_by(name=player)
-    except Exception as e:
-        logger.error(e)
-        raise e
-
-
 def game_is_completed(db: Session, player, game) -> bool:
     stmt = select(models.UserGame).where(
         models.UserGame.game == game,
@@ -749,6 +738,18 @@ async def rate_game(
     except Exception as e:
         db.rollback()
         logger.error("Error rating game: " + str(e))
+        raise e
+
+
+def get_streaks(db: Session, user_id: int):
+    try:
+        return db.query(
+            models.UserStatistics.current_streak,
+            models.UserStatistics.best_streak,
+            models.UserStatistics.best_streak_date,
+        ).filter_by(user_id=user_id)
+    except Exception as e:
+        logger.error(e)
         raise e
 
 

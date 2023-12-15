@@ -78,7 +78,7 @@ def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEnt
 
 def get_played_days(
     db: Session, user_id: int, start_date: str = None, end_date: str = None
-) -> list:
+) -> list[models.TimeEntry]:
     played_days = []
     if start_date is None:
         start_date = "2000-01-01"

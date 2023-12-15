@@ -78,8 +78,10 @@ async def sync_data(
         achievements.user_played_total_days(db, user, len(played_days))
         logger.info("Checking streaks for " + user.name)
         best_streak_date, best_streak, current_streak = streak_days(db, user)
-        users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
+        await check_streaks(db, user, current_streak, best_streak, silent)
         # TODO: Check streaks achievement
+        users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
+
         logger.info("Updating played time games...")
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
@@ -91,11 +93,10 @@ async def sync_data(
         logger.info("Check total played time achievements...")
         achievements.user_played_total_time(db, user, played_time[1])
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
-        logger.info("Check session time achievements...")
         achievements.user_session_time(db, user)
         # Other achievements
-        logger.info("Check total played games achievements...")
         achievements.user_played_total_games(db, user)
+        achievements.user_streak(db, user, best_streak, best_streak_date)
 
         # use 'entries'
 
@@ -130,7 +131,7 @@ def streak_days(db: Session, user: models.User):
 
     max_streak = 0
     start_streak_date = None
-    end_streak_date = None
+    end_max_streak_date = None
     current_streak = 0
 
     for i in range(1, len(played_dates)):
@@ -143,7 +144,7 @@ def streak_days(db: Session, user: models.User):
         else:
             if current_streak > max_streak:
                 max_streak = current_streak
-                end_streak_date = played_dates[i - 1]
+                end_max_streak_date = played_dates[i - 1]
             current_streak = 0
 
     # Check today to add this day to the streak
@@ -154,13 +155,46 @@ def streak_days(db: Session, user: models.User):
     # Check if current streak (with today) is longer than best (without today)
     if current_streak > max_streak:
         max_streak = current_streak
-        end_streak_date = played_dates[-1]
+        end_max_streak_date = played_dates[-1]
 
     # Check is there is more than 1 day without play
     if (today - played_dates[-1]).days > 1:
         current_streak = 0
 
-    return end_streak_date, max_streak, current_streak
+    return end_max_streak_date, max_streak, current_streak
+
+
+async def check_streaks(
+    db: Session,
+    user: models.User,
+    current_streak: int,
+    best_streak: int,
+    silent: bool = False,
+):
+    # Check if user lose streak
+    current_db_streaks_data = users.get_streaks(db, user.id)[0]
+    # logger.info(current_streaks_data[0])
+    current_db_streak = current_db_streaks_data[0]
+    best_db_streak = current_db_streaks_data[1]
+    best_db_streak_date = current_db_streaks_data[2]
+    if current_db_streak is not None and current_streak == 0 and current_db_streak > 10:
+        msg = (
+            user.name
+            + " acaba de perder la racha de "
+            + str(current_db_streak)
+            + " días."
+        )
+        logger.info(msg)
+        await utils.send_message(msg, silent)
+    if best_db_streak is not None and best_streak > best_db_streak:
+        msg = (
+            user.name
+            + " acaba de superar su mejor racha de "
+            + str(best_db_streak)
+            + " días."
+        )
+        logger.info(msg)
+        await utils.send_message(msg, silent)
 
 
 ####################

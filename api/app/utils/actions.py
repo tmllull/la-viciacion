@@ -77,7 +77,9 @@ async def sync_data(
         # Check played days achievement
         achievements.user_played_total_days(db, user, len(played_days))
         logger.info("Checking streaks for " + user.name)
-        best_streak_date, best_streak, current_streak = streak_days(db, user)
+        best_streak_date, best_streak, current_streak = streak_days(
+            db, user, played_days
+        )
         await check_streaks(db, user, current_streak, best_streak, silent)
         # TODO: Check streaks achievement
         users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
@@ -122,11 +124,11 @@ async def sync_data(
 #             await games.new_game(db, game)
 
 
-def streak_days(db: Session, user: models.User):
+def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEntry]):
     """
     TODO:
     """
-    played_dates = time_entries.get_played_days(db, user.id)
+    #    played_dates = time_entries.get_played_days(db, user.id)
     # return
 
     max_streak = 0
@@ -177,7 +179,7 @@ async def check_streaks(
     current_db_streak = current_db_streaks_data[0]
     best_db_streak = current_db_streaks_data[1]
     best_db_streak_date = current_db_streaks_data[2]
-    if current_db_streak is not None and current_streak == 0 and current_db_streak > 10:
+    if current_db_streak is not None and current_streak == 0 and current_db_streak > 2:
         msg = (
             user.name
             + " acaba de perder la racha de "
@@ -186,15 +188,16 @@ async def check_streaks(
         )
         logger.info(msg)
         await utils.send_message(msg, silent)
-    if best_db_streak is not None and best_streak > best_db_streak:
-        msg = (
-            user.name
-            + " acaba de superar su mejor racha de "
-            + str(best_db_streak)
-            + " días."
-        )
-        logger.info(msg)
-        await utils.send_message(msg, silent)
+    # TODO: Check this to avoid daily notifications when the streak is not lost
+    # if best_db_streak is not None and best_streak > best_db_streak:
+    #     msg = (
+    #         user.name
+    #         + " acaba de superar su mejor racha de "
+    #         + str(best_db_streak)
+    #         + " días."
+    #     )
+    #     logger.info(msg)
+    #     await utils.send_message(msg, silent)
 
 
 ####################

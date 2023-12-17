@@ -84,13 +84,14 @@ def get_played_days(
         start_date = "2000-01-01"
     if end_date is None:
         end_date = "3000-12-31"
+    # TODO: Check if end date is necessary or can create future problems with streaks
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start))
         .filter(models.TimeEntry.user_id == user_id)
         .filter(func.DATE(models.TimeEntry.start) >= start_date)
-        .filter(func.DATE(models.TimeEntry.end) >= start_date)
+        # .filter(func.DATE(models.TimeEntry.end) >= start_date)
         .filter(func.DATE(models.TimeEntry.start) <= end_date)
-        .filter(func.DATE(models.TimeEntry.end) <= end_date)
+        # .filter(func.DATE(models.TimeEntry.end) <= end_date)
         .distinct()
         .all()
     )

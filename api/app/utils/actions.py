@@ -173,13 +173,21 @@ async def check_streaks(
     best_streak: int,
     silent: bool = False,
 ):
+    hour = datetime.datetime.now().hour
+    minutes = datetime.datetime.now().minute
     # Check if user lose streak
     current_db_streaks_data = users.get_streaks(db, user.id)[0]
     # logger.info(current_streaks_data[0])
     current_db_streak = current_db_streaks_data[0]
     best_db_streak = current_db_streaks_data[1]
     best_db_streak_date = current_db_streaks_data[2]
-    if current_db_streak is not None and current_streak == 0 and current_db_streak > 2:
+    if (
+        current_db_streak is not None
+        and current_streak == 0
+        and current_db_streak > 10
+        and hour == 5
+        and minutes == 0
+    ):
         msg = (
             user.name
             + " acaba de perder la racha de "

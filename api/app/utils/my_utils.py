@@ -14,6 +14,7 @@ from ..config import Config
 from ..crud import time_entries
 from ..database import models, schemas
 from ..utils import logger
+from .achievements import AchievementsElems
 from .clockify_api import ClockifyApi
 
 clockify_api = ClockifyApi()
@@ -214,6 +215,15 @@ async def send_message(msg, silent):
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
         logger.info("Message sent successfully!")
+
+
+def set_ach_message(ach: AchievementsElems, user: str = None, game: str = None):
+    msg = "🏆"  +ach.value["title"]  +"🏆\n"
+    if game is not None:
+        msg = msg + ach.value["message"].format(user, game)
+    else:
+        msg = msg + ach.value["message"].format(user)
+    return msg
 
 
 def get_platforms(db: Session):

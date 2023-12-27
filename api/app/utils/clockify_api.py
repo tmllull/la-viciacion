@@ -143,6 +143,7 @@ class ClockifyApi:
         )
 
     def get_time_entries(self, clockify_user_id, start_date=None):
+        logger.info("Getting time entries...")
         if clockify_user_id is None or not utils.check_hex(clockify_user_id):
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ
@@ -167,7 +168,7 @@ class ClockifyApi:
                 response = self.send_clockify_request(
                     self.GET, endpoint, None, config.CLOCKIFY_ADMIN_API_KEY
                 )
-                if len(response.json()) > 0:
+                if len(response.json()) > 0 and response.status_code == 200:
                     for entry in response.json():
                         entries.append(entry)
                 else:

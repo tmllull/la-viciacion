@@ -12,20 +12,33 @@ class AchievementsElems(Enum):
     # Format -> KEY = {"title":"", "message":""}
     # Time day
     PLAYED_4_HOURS_DAY = {
-        "title": "Una jornada laboral",
-        "message": "El otro mensaje",
+        "title": "Media Jornada laboral",
+        "message": "*"
+        + "{}"
+        + "*"
+        + " está tanteando el terreno para ver cómo va eso de jugar durante un rato largo (4 horitas).",
     }
     PLAYED_8_HOURS_DAY = {
         "title": "Una jornada laboral",
-        "message": "El otro mensaje",
+        "message": "Las jornadas laborales de 8 horas deberían desaparecer, pero no las de jugar. "
+        + "*"
+        + "{}"
+        + "*"
+        + " acaba de invertir el tiempo máximo legal para una jornada de trabajo.",
     }
     PLAYED_12_HOURS_DAY = {
         "title": "Media jornada, 12 horas",
-        "message": "El otro mensaje",
+        "message": "Como decía 'El Rancio', media jornada son 12 horas, y ese es el tiempo que ha invertido "
+        + "*"
+        + "{}"
+        + "* en un solo día. Mariscos Recio estaría orgulloso.",
     }
     PLAYED_16_HOURS_DAY = {
         "title": "No paro ni a cagar",
-        "message": "El otro mensaje",
+        "message": "De las 24h del día, 8 se deberían dedicar a dormir, y las otras 16 a hacer cosas. "
+        + "*"
+        + "{}"
+        + "* ha deicidido invertirlas a jugar. Lo de comer y hacer otras necesidades como asearse ya para otro día.",
     }
 
     # Time on game
@@ -33,91 +46,202 @@ class AchievementsElems(Enum):
         "title": "Mi trabajo es jugar",
         "message": "Lo de estar 8 horas trabajando no suele gustar, pero jugando ya es otra cosa. "
         + ""
-        + "USER"
+        + "{}"
         + " acaba de jugar 8 horas (o más) a _"
-        + "GAME"
-        + "_ en un mismo día; cualquira diría que le está gustando.",
+        + "{}"
+        + "_ en un mismo día.",
     }
-    PLAYED_8_HOURS_GAME_DAY_ONE_SESSION = {
-        "title": "Mi trabajo es jugar (sin parar)",
-        "message": "Lo de estar 8 horas trabajando no suele gustar, pero jugando ya es otra cosa. "
-        + ""
-        + "{user}"
-        + " acaba de cascarse 8 horas seguidas (o más) jugando a _"
-        + "{game}"
-        + "_; cualquira diría que le está gustando.",
-    }
+    # PLAYED_8_HOURS_GAME_DAY_ONE_SESSION = {
+    #     "title": "Mi trabajo es jugar (sin parar)",
+    #     "message": "8 horas haciendo lo mismo suele llegar a aburrir, siempre que no sea jugar. "
+    #     + ""
+    #     + "{}"
+    #     + " acaba de cascarse 8 horas seguidas (o más) jugando a _"
+    #     + "{}"
+    #     + "_; cualquiera diría que le está gustando.",
+    # }
     PLAYED_100_HOURS_GAME = {
-        "title": "Una jornada laboral",
-        "message": "El otro mensaje",
+        "title": "Cualquiera diría que le gusta ese juego",
+        "message": "Todo apunta a que _"
+        + "{}"
+        + "_ ha enganchado a *"
+        + "{}"
+        + "*, porque acaba de rebasar la barrera de las 100 horas invertidas en él.",
     }
 
     # Total time
     PLAYED_100_HOURS = {
-        "title": "PLAYED_100_HOURS",
-        "message": "{} has played 100 hours",
+        "title": "100 horas",
+        "message": "{} ha acumulado un total de 100 horas de juego en lo que va de año.",
     }
-    PLAYED_200_HOURS = {"title": "PLAYED_200_HOURS", "message": ""}
-    PLAYED_500_HOURS = {"title": "PLAYED_500_HOURS", "message": ""}
-    PLAYED_1000_HOURS = {"title": "PLAYED_1000_HOURS", "message": ""}
+    PLAYED_200_HOURS = {
+        "title": "200 horas",
+        "message": "{} ha acumulado un total de 200 horas de juego en lo que va de año.",
+    }
+    PLAYED_500_HOURS = {
+        "title": "500 horas",
+        "message": "{} ha acumulado un total de 500 horas de juego en lo que va de año.",
+    }
+    PLAYED_1000_HOURS = {
+        "title": "1000 horas",
+        "message": "{} ha acumulado un total de 1000 horas de juego en lo que va de año.",
+    }
 
     # Session time
-    PLAYED_LESS_5_MIN_SESSION = {"title": "Lo he abierto sin querer", "message": "###"}
-    PLAYED_4_HOURS_SESSION = {"title": "PLAYED_4HOURS_SESSION", "message": ""}
-    PLAYED_8_HOURS_SESSION = {"title": "PLAYED_8HOURS_SESSION", "message": ""}
+    PLAYED_LESS_5_MIN_SESSION = {
+        "title": "Lo he abierto sin querer",
+        "message": "Al parecer _"
+        + "{}"
+        + "_ no ha tenido mucho éxito para *"
+        + "{}"
+        + "*, ya que ha hecho una ridícula sesión de juego de 5 minutos (o menos).",
+    }
+    PLAYED_4_HOURS_SESSION = {
+        "title": "Sesión de 4 horas",
+        "message": "* {}"
+        + "* acaba de jugar 4 horas seguidas (o más)"
+        + " en un mismo día.",
+    }
+    PLAYED_8_HOURS_SESSION = {
+        "title": "Mi trabajo es jugar (sin parar)",
+        "message": "8 horas haciendo lo mismo suele llegar a aburrir, siempre que no sea jugar. "
+        + ""
+        + "{}"
+        + " acaba de cascarse 8 horas seguidas (o más) jugando a _"
+        + "{}"
+        + "_; cualquiera diría que le está gustando.",
+    }
 
     # Games
     PLAYED_10_GAMES = {
-        "title": "PLAYED_10_GAMES",
-        "message": "",
+        "title": "10 juegos jugados",
+        "message": "{} acaba de empezar su juego número 10.",
     }
     PLAYED_42_GAMES = {
         "title": "La respuesta",
-        "message": "USER ha jugado a la mágica cifra de 42 juegos."
+        "message": "{} ha jugado a la mágica cifra de 42 juegos."
         + " No sabemos si tendrá la respuesta al sentido de la vida, "
         + "al universo y todo lo demás, pero lo que seguro que tiene "
         + "es mucho tiempo libre.",
     }
     PLAYED_50_GAMES = {
-        "title": "PLAYED_50_GAMES",
-        "message": "",
+        "title": "50 juegos jugados",
+        "message": "{} acaba de empezar su juego número 50.",
     }
     PLAYED_100_GAMES = {
         "title": "100 juegos (jugados)",
         "message": "A 100 juegos acaba de jugar "
-        + "USER. Estamos hablando de arrancar un nuevo"
-        + " juego cada 3,65 días (si dejara de empezar juegos). Pensemos en ello.",
+        + "{}. Estamos hablando de arrancar un nuevo"
+        + " juego cada 3,65 días de media (si dejara de empezar juegos nuevos). Pensemos en ello.",
     }
     COMPLETED_42_GAMES = {
         "title": "La respuesta (de verdad)",
         "message": "Si empezar 42 juegos ya es todo un logro, no hablemos de acabar 42. "
         + "Ha quedado patente que a "
-        + "USER"
+        + "{}"
         + " la vida más allá de la puerta de casa no le importa lo más mínimo.",
     }
-    COMPLETED_100_GAMES = {"title": "COMPLETED_100_GAMES", "message": ""}
-    PLAYED_5_GAMES_DAY = {"title": "PLAYED_5_GAMES_DAY", "message": ""}
-    PLAYED_10_GAMES_DAY = {"title": "PLAYED_10_GAMES_DAY", "message": ""}
+    COMPLETED_100_GAMES = {
+        "title": "100 juegos completados",
+        "message": "{}" + " acaba de completar 100 juegos. No se me ocurre qué decir.",
+    }
+    PLAYED_5_GAMES_DAY = {
+        "title": "Indecisión",
+        "message": "Este. No, este. No, mejor este otro. AAAHHHRRRGGG, tengo demasiados juegos. *"
+        + "{}"
+        + "* no tiene ni idea de a qué jugar, y ya ha probado con 5 o más juegos en un solo día.",
+    }
+    PLAYED_10_GAMES_DAY = {
+        "title": "Indecisión x2",
+        "message": "AAAHHHRRRGGG, sigo sin saber a qué jugar. *"
+        + "{}"
+        + "* ha acumulado tantos juegos en su biblioteca que salta de uno "
+        + "a otro como pollo sin cabeza, y ya ha probado con 10 o más juegos en un solo día.",
+    }
 
     # Total days
-    PLAYED_7_DAYS = {"title": "PLAYED_7_DAYS", "message": ""}
-    PLAYED_15_DAYS = {"title": "PLAYED_15_DAYS", "message": ""}
-    PLAYED_30_DAYS = {"title": "PLAYED_30_DAYS", "message": ""}
-    PLAYED_60_DAYS = {"title": "PLAYED_60_DAYS", "message": ""}
-    PLAYED_100_DAYS = {"title": "PLAYED_100_DAYS", "message": ""}
-    PLAYED_200_DAYS = {"title": "PLAYED_200_DAYS", "message": ""}
-    PLAYED_300_DAYS = {"title": "PLAYED_300_DAYS", "message": ""}
-    PLAYED_365_DAYS = {"title": "PLAYED_365_DAYS", "message": ""}
+    PLAYED_7_DAYS = {
+        "title": "7 días jugados",
+        "message": "{} ha acumulado un total de 7 días jugados en lo que va de año.",
+    }
+    PLAYED_15_DAYS = {
+        "title": "15 días jugados",
+        "message": "{} ha acumulado un total de 15 días jugados en lo que va de año.",
+    }
+    PLAYED_30_DAYS = {
+        "title": "30 días jugados",
+        "message": "{} ha acumulado un total de 30 días jugados en lo que va de año.",
+    }
+    PLAYED_60_DAYS = {
+        "title": "60 días jugados",
+        "message": "{} ha acumulado un total de 60 días jugados en lo que va de año.",
+    }
+    PLAYED_100_DAYS = {
+        "title": "100 días jugados",
+        "message": "{} ha acumulado un total de 100 días jugados en lo que va de año.",
+    }
+    PLAYED_200_DAYS = {
+        "title": "200 días jugados",
+        "message": "{} ha acumulado un total de 200 días jugados en lo que va de año.",
+    }
+    PLAYED_300_DAYS = {
+        "title": "300 días jugados",
+        "message": "{} ha acumulado un total de 300 días jugados en lo que va de año.",
+    }
+    PLAYED_365_DAYS = {
+        "title": "365 días jugados",
+        "message": "{} ha acumulado un total de 365 días jugados en lo que va de año.",
+    }
 
     # Streaks
-    STREAK_7_DAYS = {"title": "STREAK_7_DAYS", "message": ""}
-    STREAK_15_DAYS = {"title": "STREAK_15_DAYS", "message": ""}
-    STREAK_30_DAYS = {"title": "STREAK_30_DAYS", "message": ""}
-    STREAK_60_DAYS = {"title": "STREAK_60_DAYS", "message": ""}
-    STREAK_100_DAYS = {"title": "STREAK_100_DAYS", "message": ""}
-    STREAK_200_DAYS = {"title": "STREAK_200_DAYS", "message": ""}
-    STREAK_300_DAYS = {"title": "STREAK_300_DAYS", "message": ""}
-    STREAK_365_DAYS = {"title": "STREAK_365_DAYS", "message": ""}
+    STREAK_7_DAYS = {
+        "title": "Racha de 7 días",
+        "message": "Pues resulta que *"
+        + "{}"
+        + "* lleva 1 semana jugando todos los días. "
+        + "Podríamos decir que tiene pocas cosas mejores que hacer.",
+    }
+    STREAK_15_DAYS = {
+        "title": "Racha de 15 días",
+        "message": "Ya son 15 los días que lleva *"
+        + "{}"
+        + "* sin faltar ni uno a la sesión de juego de rigor. "
+        + "A este paso habrá que ir pensando en empezar a regarlo.",
+    }
+    STREAK_30_DAYS = {
+        "title": "Racha de 30 días",
+        "message": "Poco más que añadir. *"
+        + "{}"
+        + "* acumula una racha de 30 días con una sesión de juego como mínimo. "
+        + "Lo mejor será ir llamando al psiquiátrico.",
+    }
+    STREAK_60_DAYS = {
+        "title": "Racha de 60 días",
+        "message": "*{}" + "* acumula una racha de 60 días.",
+    }
+    STREAK_100_DAYS = {
+        "title": "Racha de 100 días",
+        "message": "*{}" + "* acumula una racha de 100 días.",
+    }
+    STREAK_200_DAYS = {
+        "title": "Racha de 200 días",
+        "message": "*{}" + "* acumula una racha de 200 días.",
+    }
+    STREAK_300_DAYS = {
+        "title": "Racha de 300 días",
+        "message": "*{}" + "* acumula una racha de 300 días.",
+    }
+    STREAK_365_DAYS = {
+        "title": "Racha de 365 días",
+        "message": "*{}" + "* acumula una racha de 365 días.",
+    }
 
     # Others
-    JUST_IN_TIME = {"title": "Justo a tiempo", "message": ""}
+    JUST_IN_TIME = {
+        "title": "Justo a tiempo",
+        "message": "*"
+        + "{}"
+        + "* acaba de terminar _"
+        + "{}"
+        + "_ exactamente en el tiempo medio según HLTB.",
+    }

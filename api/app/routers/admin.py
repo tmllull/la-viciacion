@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from .. import auth
 from ..config import Config
-from ..crud import achievements, users
+from ..crud import users
+from ..crud.achievements import Achievements
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -14,6 +15,7 @@ from ..utils import messages as msg
 models.Base.metadata.create_all(bind=engine)
 
 config = Config()
+achievements = Achievements()
 
 router = APIRouter(
     prefix="/admin",

@@ -364,8 +364,27 @@ async def add_new_game(
         if game_db is None:
             return None
         if current_year == config.CURRENT_SEASON:
-            # info_game = await utils.get_game_info(game_db.name)
-            user_game = models.UserGame(
+            try:
+                # info_game = await utils.get_game_info(game_db.name)
+                user_game = models.UserGame(
+                    game_id=game_db.id,
+                    user_id=user.id,
+                    completed=0,
+                    # project_clockify_id=game_db.clockify_id,
+                    platform=game.platform,
+                    started_date=started_date,
+                )
+                db.add(user_game)
+                db.commit()
+                db.refresh(user_game)
+            except SQLAlchemyError as e:
+                db.rollback()
+                if "Duplicate" not in str(e):
+                    # else:
+                    logger.info("Error adding new game statistics: " + str(e))
+                    raise e
+        try:
+            user_game_historical = models.UserGameHistorical(
                 game_id=game_db.id,
                 user_id=user.id,
                 completed=0,
@@ -373,20 +392,15 @@ async def add_new_game(
                 platform=game.platform,
                 started_date=started_date,
             )
-            db.add(user_game)
+            db.add(user_game_historical)
             db.commit()
-            db.refresh(user_game)
-        user_game_historical = models.UserGameHistorical(
-            game_id=game_db.id,
-            user_id=user.id,
-            completed=0,
-            # project_clockify_id=game_db.clockify_id,
-            platform=game.platform,
-            started_date=started_date,
-        )
-        db.add(user_game_historical)
-        db.commit()
-        db.refresh(user_game_historical)
+            db.refresh(user_game_historical)
+        except SQLAlchemyError as e:
+            db.rollback()
+            if "Duplicate" not in str(e):
+                # else:
+                logger.info("Error adding new game statistics: " + str(e))
+                raise e
         played_games = get_games(db, user.id)
         if not from_sync:
             clockify_api.create_empty_time_entry(
@@ -413,28 +427,33 @@ async def add_new_game(
 
 def update_game(db: Session, game: schemas.UserGame, entry_id):
     current_year = datetime.datetime.now().year
-    try:
-        if current_year == config.CURRENT_SEASON:
+    if current_year == config.CURRENT_SEASON:
+        try:
             stmt = (
                 update(models.UserGame)
                 .where(
                     models.UserGame.id == entry_id,
                     or_(
-                        models.UserGame.platform == "TBD",
-                        models.UserGame.platform == None,
+                        models.UserGame.platform == game.platform,
                     ),
                 )
                 .values(platform=game.platform)
             )
             db.execute(stmt)
             db.commit()
+        except SQLAlchemyError as e:
+            db.rollback()
+            if "Duplicate" not in str(e):
+                # else:
+                logger.info("Error adding new game statistics: " + str(e))
+                raise e
+    try:
         stmt = (
             update(models.UserGameHistorical)
             .where(
                 models.UserGameHistorical.id == entry_id,
                 or_(
-                    models.UserGameHistorical.platform == "TBD",
-                    models.UserGameHistorical.platform == None,
+                    models.UserGameHistorical.platform == game.platform,
                 ),
             )
             .values(platform=game.platform)
@@ -443,8 +462,10 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()
-        logger.error("Error updating game: " + str(e))
-        raise
+        if "Duplicate" not in str(e):
+            # else:
+            logger.info("Error adding new game statistics: " + str(e))
+            raise e
 
 
 def update_played_time_game(db: Session, user_id: str, game_id: str, time: int):
@@ -516,21 +537,16 @@ def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
     return db.query(models.UserGame).filter_by(user_id=user_id, game_id=game_id).first()
 
 
-def update_played_days(db: Session, user_id: int, played_days):
-    current_year = datetime.datetime.now().year
+def update_played_days(
+    db: Session, user_id: int, season_played_days: int, total_played_days: int = None
+):
+    # current_year = datetime.datetime.now().year
     try:
-        if current_year == config.CURRENT_SEASON:
-            stmt = (
-                update(models.UserStatistics)
-                .where(models.UserStatistics.user_id == user_id)
-                .values(played_days=played_days)
-            )
-            db.execute(stmt)
-            db.commit()
+        # if current_year == config.CURRENT_SEASON:
         stmt = (
-            update(models.UserStatisticsHistorical)
-            .where(models.UserStatisticsHistorical.user_id == user_id)
-            .values(played_days=played_days)
+            update(models.UserStatistics)
+            .where(models.UserStatistics.user_id == user_id)
+            .values(played_days=season_played_days)
         )
         db.execute(stmt)
         db.commit()
@@ -538,6 +554,19 @@ def update_played_days(db: Session, user_id: int, played_days):
         db.rollback()
         logger.error(e)
         raise e
+    if total_played_days is not None:
+        try:
+            stmt = (
+                update(models.UserStatisticsHistorical)
+                .where(models.UserStatisticsHistorical.user_id == user_id)
+                .values(played_days=total_played_days)
+            )
+            db.execute(stmt)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            logger.error(e)
+            raise e
 
 
 def update_played_time(db: Session, user_id, played_time):

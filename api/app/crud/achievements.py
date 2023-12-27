@@ -121,7 +121,7 @@ class Achievements:
         # user = user.name
         # msg = AchievementsElems.PLAYED_100_HOURS.value["message"].format(name)
         # 100 h
-        logger.info("Check total played time achievements")
+        # logger.info("Check total played time achievements")
         if played_time >= 100 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_100_HOURS.name
         ):

@@ -66,27 +66,27 @@ def init(
 @version(1)
 async def sync_data(
     api_key: None = Security(auth.get_api_key),
-    start_date: str = Query(
-        default=None,
-        title="Start date",
-        description="Start date to sync data from clockify time entries",
+    sync_season: bool = Query(
+        default=False,
+        title="Sync all season data",
+        description="Sync all time entries for the current year",
     ),
     silent: bool = Query(
         default=False,
         title="Run in silent mode",
-        description="If True, notification will be disabled",
+        description="Disable Telegram notifications",
     ),
     sync_all: bool = Query(
         default=False,
         title="Sync all data",
-        description="If True, all data from 'START_DATE' defined on .env will be retrieved",
+        description="Sync all time entries for the whole time",
     ),
     db: Session = Depends(get_db),
 ):
     try:
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
-        await actions.sync_data(db, start_date, silent, sync_all)
+        await actions.sync_data(db, sync_season, silent, sync_all)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"

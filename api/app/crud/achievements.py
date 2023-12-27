@@ -90,7 +90,7 @@ class Achievements:
         return True
 
     def set_user_achievement(
-        self, db: Session, user_id: int, key: str, date: str = None
+        self, db: Session, user_id: int, key: str, game_id: str = None, date: str = None
     ):
         if date is None:
             date = datetime.datetime.now()
@@ -98,7 +98,7 @@ class Achievements:
             date = utils.convert_date_from_text(date)
         ach_id = self.get_ach_by_key(db, key)
         user_achievement = models.UserAchievement(
-            user_id=user_id, achievement_id=ach_id[0], date=date
+            user_id=user_id, achievement_id=ach_id[0], date=date, game_id=game_id
         )
         db.add(user_achievement)
         db.commit()
@@ -181,16 +181,6 @@ class Achievements:
         date: str = None,
         silent: bool = False,
     ):
-        # # 5 min
-        # if (
-        #     played_time > 0
-        #     and played_time <= 5
-        #     and not self.check_already_achieved(
-        #         db, user.id, AchievementsElems.PLAYED_LESS_5_MIN
-        #     )
-        # ):
-        #     pass
-
         played_time = played_time / 60
 
         # 4 hours
@@ -260,10 +250,14 @@ class Achievements:
                     db,
                     user.id,
                     AchievementsElems.PLAYED_LESS_5_MIN_SESSION.name,
-                    str(time_entry.start),
+                    game_id=time_entry.project_clockify_id,
+                    date=str(time_entry.start),
                 )
                 msg = utils.set_ach_message(
-                    AchievementsElems.PLAYED_LESS_5_MIN_SESSION, user=user.name
+                    AchievementsElems.PLAYED_LESS_5_MIN_SESSION,
+                    user=user.name,
+                    db=db,
+                    game_id=time_entry.project_clockify_id,
                 )
                 await utils.send_message(msg, silent)
 
@@ -280,7 +274,7 @@ class Achievements:
                     db,
                     user.id,
                     AchievementsElems.PLAYED_4_HOURS_SESSION.name,
-                    str(time_entry.start),
+                    date=str(time_entry.start),
                 )
                 msg = utils.set_ach_message(
                     AchievementsElems.PLAYED_4_HOURS_SESSION, user=user.name
@@ -300,7 +294,7 @@ class Achievements:
                     db,
                     user.id,
                     AchievementsElems.PLAYED_8_HOURS_SESSION.name,
-                    str(time_entry.start),
+                    date=str(time_entry.start),
                 )
                 msg = utils.set_ach_message(
                     AchievementsElems.PLAYED_8_HOURS_SESSION, user=user.name
@@ -490,7 +484,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 7 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_7_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_7_DAYS.name, date=date
             )
             msg = utils.set_ach_message(AchievementsElems.STREAK_7_DAYS, user=user.name)
             await utils.send_message(msg, silent)
@@ -500,7 +494,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 15 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_15_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_15_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_15_DAYS, user=user.name
@@ -512,7 +506,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 30 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_30_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_30_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_30_DAYS, user=user.name
@@ -524,7 +518,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 60 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_60_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_60_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_60_DAYS, user=user.name
@@ -536,7 +530,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 100 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_100_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_100_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_100_DAYS, user=user.name
@@ -548,7 +542,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 200 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_200_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_200_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_200_DAYS, user=user.name
@@ -560,7 +554,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 300 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_300_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_300_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_300_DAYS, user=user.name
@@ -572,7 +566,7 @@ class Achievements:
         ):
             logger.info("Set achievement streak 365 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.STREAK_365_DAYS.name, date
+                db, user.id, AchievementsElems.STREAK_365_DAYS.name, date=date
             )
             msg = utils.set_ach_message(
                 AchievementsElems.STREAK_365_DAYS, user=user.name

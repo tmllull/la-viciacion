@@ -78,12 +78,14 @@ async def sync_data(
         played_days = time_entries.get_played_days(db, user.id)
         users.update_played_days(db, user.id, len(played_days))
         # Check played days achievement
-        await achievements.user_played_total_days(db, user, len(played_days))
+        await achievements.user_played_total_days(
+            db, user, len(played_days), silent=silent
+        )
         logger.info("Checking streaks for " + user.name)
         best_streak_date, best_streak, current_streak = streak_days(
             db, user, played_days
         )
-        await check_streaks(db, user, current_streak, best_streak, silent)
+        await check_streaks(db, user, current_streak, best_streak, silent=silent)
         # TODO: Check streaks achievement
         users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
 

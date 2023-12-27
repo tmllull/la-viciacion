@@ -11,7 +11,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import time_entries
+from ..crud import games, time_entries
 from ..database import models, schemas
 from ..utils import logger
 from .achievements import AchievementsElems
@@ -217,10 +217,13 @@ async def send_message(msg, silent):
         logger.info("Message sent successfully!")
 
 
-def set_ach_message(ach: AchievementsElems, user: str = None, game: str = None):
+def set_ach_message(
+    ach: AchievementsElems, user: str, db: Session = None, game_id: str = None
+):
     msg = "🏆"  +ach.value["title"]  +"🏆\n"
-    if game is not None:
-        msg = msg + ach.value["message"].format(user, game)
+    if game_id is not None:
+        game_db = games.get_game_by_id(db, game_id)
+        msg = msg + ach.value["message"].format(user, game_db.name)
     else:
         msg = msg + ach.value["message"].format(user)
     return msg

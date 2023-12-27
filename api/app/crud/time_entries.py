@@ -103,7 +103,7 @@ def get_played_days(
 async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
-    current_year = datetime.datetime.now().year
+    # current_year = datetime.datetime.now().year
     for entry in entries:
         if entry["projectId"] is None:
             continue
@@ -133,7 +133,7 @@ async def sync_clockify_entries_db(
             time_entry_year = datetime.datetime.strptime(
                 start, "%Y-%m-%d %H:%M:%S"
             ).year
-            if current_year == time_entry_year:
+            if time_entry_year == config.CURRENT_SEASON:
                 stmt = select(models.TimeEntry).where(
                     models.TimeEntry.id == entry["id"]
                 )

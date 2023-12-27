@@ -27,26 +27,45 @@ config = Config()
 
 async def sync_data(
     db: Session,
-    start_date: str = None,
+    sync_season: bool = False,
     silent: bool = False,
     sync_all: bool = False,
 ):
     # logger.info("Sync data...")
+    current_date = datetime.datetime.now()
     if silent:
         silent = True
     start_time = time.time()
     silent = False
-    if sync_all:
-        start_date = config.START_DATE
+    start_date = None
+    if sync_season:
+        start_date = str(current_date.year) + "-01-01"
         silent = True
-        logger.info("Sync ALL data from " + start_date + "...")
-    else:
-        logger.info("Sync last data...")
-        # config.sync_all = True
+        logger.info("Sync data from " + str(start_date))
+    if sync_all:
+        start_date = config.INITIAL_DATE
+        silent = True
+        logger.info("Sync data from " + str(start_date))
+        # logger.info("Sync ALL data from " + start_date + "...")
     achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
     achievements.populate_achievements(db)
     users_db = users.get_users(db)
+    # Clear tables on new year (season)
+    if (
+        current_date.month == 1
+        and current_date.day == 1
+        and current_date.hour == 0
+        and current_date.minute == 0
+    ):
+        logger.info("Clear current season tables...")
+        silent = True
+        db.query(models.TimeEntry).delete()
+        db.query(models.UserGame).delete()
+        db.query(models.UserAchievement).delete()
+        db.query(models.UserStatistics).delete()
+        db.query(models.GameStatistics).delete()
+        db.commit()
     logger.info("Sync clockify entries...")
     for user in users_db:
         if user.name is not None and user.name != "":
@@ -66,24 +85,26 @@ async def sync_data(
             )
 
         # Sync time_entries from Clockify with local DB
-        total_entries, entries = await utils.sync_clockify_entries(
-            db, user, start_date, silent
-        )
+        total_entries = await utils.sync_clockify_entries(db, user, start_date, silent)
+
         if total_entries < 1:
-            logger.info(str(user_name) + " not played in the last 24h")
+            logger.info("No time entries for " + str(user_name))
             continue
 
         # Update some user statistics
         logger.info("Updating played days...")
-        played_days = time_entries.get_played_days(db, user.id)
-        users.update_played_days(db, user.id, len(played_days))
+        played_days_season = time_entries.get_played_days(db, user.id)
+        # played_days_total = time_entries.get_played_days(
+        #     db, user.id, start_date=config.INITIAL_DATE
+        # )
+        users.update_played_days(db, user.id, len(played_days_season))
         # Check played days achievement
         await achievements.user_played_total_days(
-            db, user, len(played_days), silent=silent
+            db, user, len(played_days_season), silent=silent
         )
         logger.info("Checking streaks for " + user.name)
         best_streak_date, best_streak, current_streak = streak_days(
-            db, user, played_days
+            db, user, played_days_season
         )
         await check_streaks(db, user, current_streak, best_streak, silent=silent)
         # TODO: Check streaks achievement

@@ -107,7 +107,10 @@ def day_of_the_year(date):
 
 
 def date_from_day_of_the_year(day):
-    start_date_base = datetime.datetime.strptime(config.START_DATE, "YYYY-MM-DD")
+    current_date = datetime.datetime.now()
+    start_date_base = datetime.datetime.strptime(
+        str(current_date.year) + "-01-01", "YYYY-MM-DD"
+    )
     start_date = datetime.datetime(
         start_date_base.year, start_date_base.month, start_date_base.day
     )
@@ -197,9 +200,9 @@ async def sync_clockify_entries(
             "Sync " + str(total_entries) + " entries for user " + str(user.name)
         )
         if total_entries == 0:
-            return 0, []
+            return 0
         await time_entries.sync_clockify_entries_db(db, user, entries, silent)
-        return total_entries, entries
+        return total_entries
     except Exception as e:
         logger.info("Error syncing clockify entries: " + str(e))
         raise e

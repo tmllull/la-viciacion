@@ -245,3 +245,9 @@ class AchievementsElems(Enum):
         + "_{}_"
         + " exactamente en el tiempo medio según HLTB.",
     }
+
+    HAPPY_NEW_YEAR = {
+        "title": "Feliz año nuevo",
+        "message": "*{}*"
+        + " empieza el año jugando (lo que no sabemos es si habrá hecho alguna otra cosa)",
+    }

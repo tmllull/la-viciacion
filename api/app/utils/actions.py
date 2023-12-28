@@ -42,10 +42,29 @@ async def sync_data(
         start_date = str(current_date.year) + "-01-01"
         silent = True
         logger.info("Sync data from " + str(start_date))
+        logger.info("Cleaning season tables...")
+        db.query(models.TimeEntry).delete()
+        db.query(models.UserGame).delete()
+        db.query(models.UserAchievement).delete()
+        db.query(models.UserStatistics).delete()
+        db.query(models.GameStatistics).delete()
+        db.commit()
     if sync_all:
         start_date = config.INITIAL_DATE
         silent = True
-        logger.info("Sync data from " + str(start_date))
+        logger.info("Sync ALL data from " + str(start_date))
+        logger.info("Cleaning season and historical tables...")
+        db.query(models.TimeEntry).delete()
+        db.query(models.TimeEntryHistorical).delete()
+        db.query(models.UserGame).delete()
+        db.query(models.UserGameHistorical).delete()
+        db.query(models.UserAchievement).delete()
+        db.query(models.UserAchievementHistorical).delete()
+        db.query(models.UserStatistics).delete()
+        db.query(models.UserStatisticsHistorical).delete()
+        db.query(models.GameStatistics).delete()
+        db.query(models.GameStatisticsHistorical).delete()
+        db.commit()
         # logger.info("Sync ALL data from " + start_date + "...")
     achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
@@ -129,6 +148,7 @@ async def sync_data(
         await achievements.user_streak(
             db, user, best_streak, best_streak_date, silent=silent
         )
+        await achievements.happy_new_year(db, user, silent)
 
         # use 'entries'
 

@@ -44,6 +44,37 @@ def get_games_played_time(db: Session):
     return result
 
 
+def get_time_entry_by_date(
+    db: Session, user_id: int, date: str, mode: int
+) -> list[models.TimeEntry]:
+    """_summary_
+
+    Args:
+        db (Session): _description_
+        user_id (int): _description_
+        date (str): _description_
+        mode (int): 1==, 2<=, 3>=
+
+    Returns:
+        _type_: _description_
+    """
+    if mode == 1:
+        return db.query(models.TimeEntry).filter(
+            models.TimeEntry.user_id == user_id,
+            func.DATE(models.TimeEntry.start) == date,
+        )
+    elif mode == 2:
+        return db.query(models.TimeEntry).filter(
+            models.TimeEntry.user_id == user_id,
+            func.DATE(models.TimeEntry.start) <= date,
+        )
+    elif mode == 3:
+        return db.query(models.TimeEntry).filter(
+            models.TimeEntry.user_id == user_id,
+            func.DATE(models.TimeEntry.start) >= date,
+        )
+
+
 # def get_game_played_time(db: Session, game):
 #     stmt = select(models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)).where(
 #         models.TimeEntry.project == game
@@ -52,15 +83,30 @@ def get_games_played_time(db: Session):
 #     return result
 
 
-def get_user_games_played_time(db: Session, user_id: str) -> list[models.TimeEntry]:
-    stmt = (
-        select(
-            models.TimeEntry.project_clockify_id,
-            func.sum(models.TimeEntry.duration),
+def get_user_games_played_time(
+    db: Session, user_id: str, game_id: str = None
+) -> list[models.TimeEntry]:
+    if game_id is not None:
+        stmt = (
+            select(
+                models.TimeEntry.project_clockify_id,
+                func.sum(models.TimeEntry.duration),
+            )
+            .where(
+                models.TimeEntry.user_id == user_id,
+                models.TimeEntry.project_clockify_id == game_id,
+            )
+            .group_by(models.TimeEntry.project_clockify_id)
         )
-        .where(models.TimeEntry.user_id == user_id)
-        .group_by(models.TimeEntry.project_clockify_id)
-    )
+    else:
+        stmt = (
+            select(
+                models.TimeEntry.project_clockify_id,
+                func.sum(models.TimeEntry.duration),
+            )
+            .where(models.TimeEntry.user_id == user_id)
+            .group_by(models.TimeEntry.project_clockify_id)
+        )
     return db.execute(stmt)
 
 
@@ -258,9 +304,7 @@ async def sync_clockify_entries_db(
             # Check if player already plays the game
             already_playing = users.get_game_by_id(db, user.id, game_id)
             if not already_playing:
-                logger.info(
-                    "USER NOT PLAYING GAME: " + game_name + " - " + str(game_id)
-                )
+                logger.info("User not playing " + game_name)
                 new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
                 await users.add_new_game(
                     db,
@@ -284,6 +328,12 @@ async def sync_clockify_entries_db(
                 db.commit()
             if completed is not None and already_playing.completed != 1:
                 logger.info("Completing game " + str(game.id) + "...")
+                played_time = get_user_games_played_time(db, user.id, game.id)
+                # The follow list only will have 1 item
+                for played_game in played_time:
+                    users.update_played_time_game(
+                        db, user.id, played_game[0], played_game[1]
+                    )
                 await users.complete_game(
                     db,
                     user.id,
@@ -297,7 +347,7 @@ async def sync_clockify_entries_db(
 
             db.commit()
             # TODO: Check time achievements related to session
-            # if end is not None:
+            # if "-01-01" in start:
             #     pass
         except Exception as e:
             db.rollback()
@@ -315,7 +365,7 @@ def get_time_entry_by_time(
         db (Session): _description_
         user_id (int): _description_
         duration (int): _description_
-        mode (int): 1=, 2<=, 3>=
+        mode (int): 1==, 2<=, 3>=
 
     Returns:
         _type_: _description_
@@ -325,7 +375,7 @@ def get_time_entry_by_time(
             db.query(models.TimeEntry)
             .filter(
                 models.TimeEntry.user_id == user_id,
-                models.TimeEntry.duration <= duration,
+                models.TimeEntry.duration == duration,
             )
             .first()
         )
@@ -334,7 +384,7 @@ def get_time_entry_by_time(
             db.query(models.TimeEntry)
             .filter(
                 models.TimeEntry.user_id == user_id,
-                models.TimeEntry.duration == duration,
+                models.TimeEntry.duration <= duration,
             )
             .first()
         )

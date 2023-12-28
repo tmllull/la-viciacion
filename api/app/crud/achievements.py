@@ -6,6 +6,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from ..config import Config
 from ..crud import time_entries, users
 from ..database import models, schemas
 from ..utils import actions as actions
@@ -15,7 +16,7 @@ from ..utils.achievements import AchievementsElems
 from ..utils.clockify_api import ClockifyApi
 
 clockify = ClockifyApi()
-
+config = Config()
 
 ######################
 #### ACHIEVEMENTS ####
@@ -466,6 +467,30 @@ class Achievements:
 
         # 1000 h
         return
+
+    async def happy_new_year(
+        self,
+        db: Session,
+        user: models.User,
+        silent: bool = False,
+    ):
+        current_season = str(config.CURRENT_SEASON)
+        new_year = current_season + "-01-01"
+        time_entry = time_entries.get_time_entry_by_date(db, user.id, new_year, 1)
+        if time_entry.count() > 0 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.HAPPY_NEW_YEAR.name
+        ):
+            logger.info("Set achievement happy new year")
+            self.set_user_achievement(
+                db,
+                user.id,
+                AchievementsElems.HAPPY_NEW_YEAR.name,
+                date=str(time_entry[0].start),
+            )
+            msg = utils.set_ach_message(
+                AchievementsElems.HAPPY_NEW_YEAR, user=user.name
+            )
+            await utils.send_message(msg, silent)
 
     async def user_streak(
         self,

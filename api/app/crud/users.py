@@ -409,12 +409,17 @@ async def add_new_game(
         started_game = (
             "[" + game_db.name + "](https://rawg.io/games/" + game_db.slug + ")\n"
         )
-        await utils.send_message(
-            user.name
-            + " acaba de empezar su juego número "
+        msg = (
+            "*"
+            + user.name
+            + "* está jugando a "
+            + started_game
+            + ", su juego número "
             + str(len(played_games))
-            + ": "
-            + started_game,
+            + " de este año."
+        )
+        await utils.send_message(
+            msg,
             silent,
         )
         logger.info("Game added!")
@@ -669,7 +674,7 @@ async def complete_game(
             .filter_by(user_id=user_id, completed=1)
             .count()
         )
-        completion_time = user_game.completion_time
+        completion_time = user_game.played_time
         message = (
             user.name
             + " acaba de completar su juego número "

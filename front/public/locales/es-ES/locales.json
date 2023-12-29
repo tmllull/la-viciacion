@@ -1,0 +1,27 @@
+
+{
+    "common": {
+        "buttons": {
+            "confirm": "Confirmar",
+            "continue": "Continuar",
+            "cancel": "Cancelar",
+            "login": "Iniciar sesión"
+        },
+        "fields": {
+            "email": "Correo electrónico",
+            "username": "Usuario",
+            "password": "Contraseña"
+        }
+    },
+    "pages": {
+        "auth":{
+            "login": {
+                "title": "Iniciar sesión",
+                "notifications": {
+                    "success": "Se ha iniciado sesión correctamente.",
+                    "error": "Inicio de sesión fallido."
+                }
+            }
+        }
+    }
+}

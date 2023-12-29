@@ -67,17 +67,17 @@ def init(
 async def sync_data(
     api_key: None = Security(auth.get_api_key),
     sync_season: bool = Query(
-        default=False,
+        default=None,
         title="Sync all season data",
         description="Sync all time entries for the current year",
     ),
     silent: bool = Query(
-        default=False,
+        default=None,
         title="Run in silent mode",
         description="Disable Telegram notifications",
     ),
     sync_all: bool = Query(
-        default=False,
+        default=None,
         title="Sync all data",
         description="Sync all time entries for the whole time",
     ),

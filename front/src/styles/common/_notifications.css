@@ -1,17 +1,1 @@
 @import "react-toastify/dist/ReactToastify.css";
-
-.toastify {
-    background: unset;
-    &.toast_error-alert {
-        background-color: #a93336;
-    }
-    &.toast_success-alert {
-        background-color: #128600;
-    }
-    &.toast_info-alert {
-        background-color: #01a1bb;
-    }
-    &.toast_warning-alert {
-        background-color: #d0750b;
-    }
-}

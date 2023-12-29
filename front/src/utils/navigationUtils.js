@@ -1,4 +1,4 @@
-import { APP_ROUTES } from '/src/constants/appRoutes.js';
+import { APP_ROUTES } from '../constants/appRoutes.js';
 import { useNavigate } from 'react-router-dom';
 
 

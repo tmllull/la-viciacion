@@ -1,10 +1,17 @@
-import { Button, Input } from '@nextui-org/react';
-import { useState } from 'react';
-import { Container } from 'react-grid-easy';
-import { useDispatch } from 'react-redux';
+import { Button, Input }   from '@nextui-org/react';
+import React, { useState } from 'react';
+import { Container }       from 'react-grid-easy';
+import { useDispatch }           from 'react-redux';
+import { toast, ToastContainer } from 'react-toastify';
 
-import { login } from '/src/redux/actions/authActions.js';
-import { useNavigation } from '/src/utils/navigationUtils.js';
+import { login } from '../../redux/actions/authActions.js';
+
+
+import {
+    errorAlert,
+    successAlert,
+} from '../../utils/notificationUtils.js';
+import { useNavigation } from '../../utils/navigationUtils.js';
 
 
 export default function Login() {
@@ -29,6 +36,7 @@ export default function Login() {
                 error: onError,
             },
         }));
+
     }
 
     function onChange({ target: { id, value } }) {
@@ -38,11 +46,15 @@ export default function Login() {
     }
 
     function onSuccess() {
+        errorAlert({
+            text: "Login successful."
+        })
         goToHomepage();
     }
 
-    function onError() {
+    function onError(error) {
         setLoading(false);
+        errorAlert("Authentication error.")
     }
 
 

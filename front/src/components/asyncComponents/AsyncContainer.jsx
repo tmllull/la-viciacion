@@ -1,4 +1,4 @@
-import Spinner from 'src/components/common/Spinner';
+import Spinner from '../common/Spinner';
 
 /**
  * Redux commonReducer object structure.

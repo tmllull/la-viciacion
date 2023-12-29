@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { publicApi } from '/src/utils/axiosInstances.js';
+import { publicApi } from '../../utils/axiosInstances.js';
 
 /**
  *

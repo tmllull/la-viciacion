@@ -1,4 +1,4 @@
-import { actions } from '/src/redux/actions/layoutActions';
+import { actions } from '../actions/layoutActions';
 
 export function sidebarStatus(state = false, action) {
     switch (action.type) {

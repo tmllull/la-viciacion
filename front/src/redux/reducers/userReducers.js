@@ -1,5 +1,5 @@
-import { initial, commonReducer } from '/src/redux/reducers/commonReducers.js';
-import { ACTIONS as AUTH_ACTIONS } from '/src/redux/actions/authActions.js';
+import { initial, commonReducer } from './commonReducers.js';
+import { ACTIONS as AUTH_ACTIONS } from '../actions/authActions.js';
 
 
 export function authenticatedUser(state = initial, action) {

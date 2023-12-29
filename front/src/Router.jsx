@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Navigate, RouterProvider, useLocation, useRoutes } from 'react-router-dom';
 
-import { getAuthenticatedStatus, getUserToken, removeUserToken } from '/src/utils/authUtils.js';
-import { getAuthenticatedUser } from '/src/redux/actions/authActions.js';
-import Spinner from '/src/components/common/Spinner.jsx';
-import { APP_ROUTES } from '/src/constants/appRoutes.js';
+import { getAuthenticatedStatus, getUserToken, removeUserToken } from './utils/authUtils.js';
+import { getAuthenticatedUser } from './redux/actions/authActions.js';
+import Spinner from './components/common/Spinner.jsx';
+import { APP_ROUTES } from './constants/appRoutes.js';
 
-import Home from '/src/pages/Home.jsx';
-import Login from '/src/pages/auth/Login.jsx';
+import Home from './pages/Home.jsx';
+import Login from './pages/auth/Login.jsx';
 
 
 function routes(loggedUser) {

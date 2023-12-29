@@ -1,6 +1,6 @@
 import Axios from 'axios';
 
-import { getUserToken } from '/src/utils/authUtils.js';
+import { getUserToken } from './authUtils.js';
 
 const { VITE_API_URL: API_URL } = import.meta.env;
 

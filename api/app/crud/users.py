@@ -381,7 +381,7 @@ async def add_new_game(
                 db.rollback()
                 if "Duplicate" not in str(e):
                     # else:
-                    logger.info("Error adding new game statistics: " + str(e))
+                    logger.info("Error adding new user game: " + str(e))
                     raise e
         try:
             user_game_historical = models.UserGameHistorical(
@@ -399,7 +399,7 @@ async def add_new_game(
             db.rollback()
             if "Duplicate" not in str(e):
                 # else:
-                logger.info("Error adding new game statistics: " + str(e))
+                logger.info("Error adding new user game historical: " + str(e))
                 raise e
         played_games = get_games(db, user.id)
         if not from_sync:
@@ -407,7 +407,7 @@ async def add_new_game(
                 db, user.clockify_key, game_db.id, game.platform
             )
         started_game = (
-            "[" + game_db.name + "](https://rawg.io/games/" + game_db.slug + ")\n"
+            "[" + game_db.name + "](https://rawg.io/games/" + game_db.slug + ")"
         )
         msg = (
             "*"

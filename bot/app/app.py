@@ -176,7 +176,7 @@ def main() -> None:
             ],
             utils.EXCEL_STUFF: [
                 MessageHandler(
-                    filters.Regex("^(🆕 Añadir juego)$"), data_routes.add_game
+                    filters.Regex("^(🆕 Empezar juego)$"), data_routes.add_game
                 ),
                 # MessageHandler(
                 #     filters.Regex("^(⏲ Añadir tiempo)$"), data_routes.add_time

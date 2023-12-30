@@ -163,8 +163,8 @@ def get_played_days(
     for played_day in played_end_days:
         played_days.append(played_day[0])
     unique_dates = list(set(played_days))
-    print(sorted(played_days))
-    print(sorted(unique_dates))
+    # print(sorted(played_days))
+    # print(sorted(unique_dates))
     return sorted(unique_dates)
 
 

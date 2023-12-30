@@ -1,7 +1,7 @@
 import datetime
 from typing import Union
 
-from sqlalchemy import asc, create_engine, desc, func, select, text, update
+from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
@@ -61,17 +61,26 @@ def get_time_entry_by_date(
     if mode == 1:
         return db.query(models.TimeEntry).filter(
             models.TimeEntry.user_id == user_id,
-            func.DATE(models.TimeEntry.start) == date,
+            or_(
+                func.DATE(models.TimeEntry.start) == date,
+                func.DATE(models.TimeEntry.end) == date,
+            ),
         )
     elif mode == 2:
         return db.query(models.TimeEntry).filter(
             models.TimeEntry.user_id == user_id,
-            func.DATE(models.TimeEntry.start) <= date,
+            or_(
+                func.DATE(models.TimeEntry.start) <= date,
+                func.DATE(models.TimeEntry.end) <= date,
+            ),
         )
     elif mode == 3:
         return db.query(models.TimeEntry).filter(
             models.TimeEntry.user_id == user_id,
-            func.DATE(models.TimeEntry.start) >= date,
+            or_(
+                func.DATE(models.TimeEntry.start) >= date,
+                func.DATE(models.TimeEntry.end) >= date,
+            ),
         )
 
 
@@ -131,20 +140,28 @@ def get_played_days(
         start_date = str(current_date.year) + "-01-01"
     if end_date is None:
         end_date = "3000-12-31"
-    # TODO: Check if end date is necessary or can create future problems with streaks
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start))
         .filter(models.TimeEntry.user_id == user_id)
         .filter(func.DATE(models.TimeEntry.start) >= start_date)
-        # .filter(func.DATE(models.TimeEntry.end) >= start_date)
         .filter(func.DATE(models.TimeEntry.start) <= end_date)
-        # .filter(func.DATE(models.TimeEntry.end) <= end_date)
+        .distinct()
+        .all()
+    )
+    played_end_days = (
+        db.query(func.DATE(models.TimeEntry.end))
+        .filter(models.TimeEntry.user_id == user_id)
+        .filter(func.DATE(models.TimeEntry.end) >= start_date)
+        .filter(func.DATE(models.TimeEntry.end) <= end_date)
         .distinct()
         .all()
     )
     for played_day in played_start_days:
         played_days.append(played_day[0])
-    return sorted(played_days)
+    for played_day in played_end_days:
+        played_days.append(played_day[0])
+    unique_dates = list(set(played_days))
+    return sorted(unique_dates)
 
 
 async def sync_clockify_entries_db(

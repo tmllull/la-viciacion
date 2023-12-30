@@ -145,6 +145,7 @@ def get_played_days(
         .filter(models.TimeEntry.user_id == user_id)
         .filter(func.DATE(models.TimeEntry.start) >= start_date)
         .filter(func.DATE(models.TimeEntry.start) <= end_date)
+        .filter(models.TimeEntry.duration != 0)
         .distinct()
         .all()
     )
@@ -153,6 +154,7 @@ def get_played_days(
         .filter(models.TimeEntry.user_id == user_id)
         .filter(func.DATE(models.TimeEntry.end) >= start_date)
         .filter(func.DATE(models.TimeEntry.end) <= end_date)
+        .filter(models.TimeEntry.duration != 0)
         .distinct()
         .all()
     )
@@ -161,6 +163,8 @@ def get_played_days(
     for played_day in played_end_days:
         played_days.append(played_day[0])
     unique_dates = list(set(played_days))
+    print(sorted(played_days))
+    print(sorted(unique_dates))
     return sorted(unique_dates)
 
 

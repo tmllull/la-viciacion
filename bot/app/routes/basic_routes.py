@@ -96,7 +96,7 @@ class BasicRoutes:
                 await utils.reply_message(
                     update,
                     context,
-                    "Para poder usar el bot, primero debes activar tu cuenta primero usando el comando /activate en un chat directo con el bot.",
+                    "Para poder usar el bot, primero debes activar tu cuenta usando el comando /activate en un chat directo con el bot.",
                 )
         else:
             await utils.reply_message(update, context, msgs.forbidden)

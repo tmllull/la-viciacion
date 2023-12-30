@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Col } from 'react-grid-easy';
 
-import AsyncListContainer from '/src/components/asyncComponents/AsyncListContainer.jsx';
-import { getGames } from '/src/redux/actions/gameActions.js';
+import AsyncListContainer from '../components/asyncComponents/AsyncListContainer.jsx';
+import { getGames } from '../redux/actions/gameActions.js';
 
 export default function Home() {
     const dispatch = useDispatch();

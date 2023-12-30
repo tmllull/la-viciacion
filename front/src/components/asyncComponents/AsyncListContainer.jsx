@@ -1,6 +1,7 @@
-import Spinner from '/src/components/common/Spinner';
-import { Container, Grid } from 'react-grid-easy';
-import EmptyContent from '/src/components/common/EmptyContent';
+import { Container } from 'react-grid-easy';
+
+import Spinner from '../common/Spinner';
+import EmptyContent from '../common/EmptyContent';
 
 /**
  * Redux commonReducer object structure.

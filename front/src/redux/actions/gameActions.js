@@ -1,5 +1,5 @@
-import { API_ENDPOINTS } from '/src/constants/apiEndpoints.js';
-import { privateApi } from '/src/utils/axiosInstances.js';
+import { API_ENDPOINTS } from '../../constants/apiEndpoints.js';
+import { privateApi } from '../../utils/axiosInstances.js';
 
 import { deleteAction, getAction, postAction } from './commonActions';
 

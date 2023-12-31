@@ -226,7 +226,7 @@ async def check_streaks(
     hour = datetime.datetime.now().hour
     minutes = datetime.datetime.now().minute
     # Check if user lose streak
-    current_db_streaks_data = users.get_streaks(db, user.id)[0]
+    current_db_streaks_data = users.get_streaks(db, user.username)[0]
     # logger.info(current_streaks_data[0])
     current_db_streak = current_db_streaks_data[0]
     best_db_streak = current_db_streaks_data[1]

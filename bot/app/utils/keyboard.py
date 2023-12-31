@@ -48,7 +48,7 @@ ADMIN_MENU = [
         InlineKeyboardButton(EXIT, callback_data="cancel"),
     ],
     [
-        InlineKeyboardButton("🔎 Usuarios", callback_data="get_users"),
+        # InlineKeyboardButton("🔎 Usuarios", callback_data="get_users"),
         InlineKeyboardButton("📢 Enviar notificación", callback_data="send_message"),
     ],
 ]

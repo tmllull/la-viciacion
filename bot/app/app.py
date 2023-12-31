@@ -80,9 +80,9 @@ def main() -> None:
                 CallbackQueryHandler(
                     admin_routes.send_message, pattern="^" + "send_message" + "$"
                 ),
-                CallbackQueryHandler(
-                    admin_routes.get_users, pattern="^" + "get_users" + "$"
-                ),
+                # CallbackQueryHandler(
+                #     admin_routes.get_users, pattern="^" + "get_users" + "$"
+                # ),
                 CallbackQueryHandler(
                     data_routes.update_data, pattern="^" + "update_data" + "$"
                 ),

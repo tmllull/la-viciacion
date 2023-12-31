@@ -733,13 +733,14 @@ async def rate_game(
         raise e
 
 
-def get_streaks(db: Session, user_id: int):
+def get_streaks(db: Session, username: str):
     try:
+        user = get_user_by_username(db, username)
         return db.query(
             models.UserStatistics.current_streak,
             models.UserStatistics.best_streak,
             models.UserStatistics.best_streak_date,
-        ).filter_by(user_id=user_id)
+        ).filter_by(user_id=user.id)
     except Exception as e:
         logger.error(e)
         raise e
@@ -922,7 +923,7 @@ def last_completed_games(db: Session, username: str, limit: int = 10):
                 models.UserGame.user_id,
                 models.UserGame.game_id,
                 models.Game.name,
-                models.UserGame.played_time,
+                # models.UserGame.played_time,
             )
             .order_by(desc(models.UserGame.completed_date))
             .distinct()
@@ -934,20 +935,43 @@ def last_completed_games(db: Session, username: str, limit: int = 10):
         raise e
 
 
-def get_achievements(db: Session, user_id: int):
+def get_achievements(db: Session, username: str):
     try:
+        user = get_user_by_username(db, username)
+        # stmt = (
+        #     select(
+        #         models.UserAchievement.user_id,
+        #         models.UserAchievement.achievement_id,
+        #         models.Achievement.id,
+        #         models.Achievement.title,
+        #     )
+        #     .join(models.User, models.User.id == models.UserAchievement.user_id)
+        #     .join(
+        #         models.Achievement, models.UserAchievement.id == models.Achievement.id
+        #     )
+        #     .where(models.UserAchievement.user_id == user.id)
+        #     .group_by(models.UserAchievement.user_id)
+        # )
         stmt = (
             select(
                 models.UserAchievement.user_id,
                 models.UserAchievement.achievement_id,
+                models.UserAchievement.date,
                 models.Achievement.id,
                 models.Achievement.title,
             )
             .join(models.User, models.User.id == models.UserAchievement.user_id)
             .join(
-                models.Achievement, models.UserAchievement.id == models.Achievement.id
+                models.Achievement,
+                models.Achievement.id == models.UserAchievement.achievement_id,
             )
-            .group_by(models.UserAchievement.user_id)
+            .where(models.UserAchievement.user_id == user.id)
+            .group_by(
+                models.UserAchievement.user_id,
+                models.UserAchievement.achievement_id,
+                models.Achievement.id,
+            )
+            .order_by(desc(models.UserAchievement.date))
         )
         return db.execute(stmt).fetchall()
     except Exception as e:

@@ -971,7 +971,7 @@ def get_achievements(db: Session, username: str):
                 models.UserAchievement.achievement_id,
                 models.Achievement.id,
             )
-            .order_by(desc(models.UserAchievement.date))
+            .order_by(asc(models.UserAchievement.date))
         )
         return db.execute(stmt).fetchall()
     except Exception as e:

@@ -79,6 +79,7 @@ async def sync_data(
     ):
         logger.info("Clear current season tables...")
         silent = True
+        start_date = str(current_date.year) + "-01-01"
         db.query(models.TimeEntry).delete()
         db.query(models.UserGame).delete()
         db.query(models.UserAchievement).delete()

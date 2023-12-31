@@ -5,7 +5,8 @@
             "confirm": "Confirmar",
             "continue": "Continuar",
             "cancel": "Cancelar",
-            "login": "Iniciar sesión"
+            "login": "Iniciar sesión",
+            "signup": "Registrar usuario"
         },
         "fields": {
             "email": "Correo electrónico",
@@ -15,11 +16,22 @@
     },
     "pages": {
         "auth":{
+            "actions": {
+                "goToLogin": "Ya tengo cuenta",
+                "goToSignup": "No tengo cuenta"
+            },
             "login": {
                 "title": "Iniciar sesión",
                 "notifications": {
                     "success": "Se ha iniciado sesión correctamente.",
                     "error": "Inicio de sesión fallido."
+                }
+            },
+            "signup": {
+                "title": "Registro de usuario",
+                "notifications": {
+                    "success": "Registro de usuario completado.",
+                    "error": "Error en registro del usuario."
                 }
             }
         }

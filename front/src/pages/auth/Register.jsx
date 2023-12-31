@@ -1,12 +1,10 @@
-import { Button, Input, Link } from '@nextui-org/react';
+import { Button, Input } from '@nextui-org/react';
 import React, { useState }     from 'react';
 import { Col, Container }  from 'react-grid-easy';
 import { useDispatch }     from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import { login } from '../../redux/actions/authActions.js';
-
-
 import {
     errorAlert,
     successAlert,
@@ -14,10 +12,10 @@ import {
 import { useNavigation } from '../../utils/navigationUtils.js';
 
 
-export default function Login() {
+export default function Register() {
     const dispatch = useDispatch();
     const { t, i18n } = useTranslation();
-    const { goToHomepage, goToRegister } = useNavigation();
+    const { goToHomepage, goToLogin } = useNavigation();
 
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -37,7 +35,6 @@ export default function Login() {
                 error: onError,
             },
         }));
-
     }
 
     function onChange({ target: { id, value } }) {
@@ -62,7 +59,7 @@ export default function Login() {
             <form className='auth-page__form' onSubmit={handleLogin}>
                 <Container divisions={2}>
                     <h1 className='auth-page__title'>
-                        {t('pages.auth.login.title')}
+                        {t('pages.auth.signup.title')}
                     </h1>
                     <Col xs={2} sm={2}>
                         <Input
@@ -103,15 +100,15 @@ export default function Login() {
                             type='submit'
                             onPress={handleLogin}
                         >
-                            {t('common.buttons.login')}
+                            {t('common.buttons.signup')}
                         </Button>
                         <Button
                             color='secondary'
                             showAnchorIcon
                             variant="solid"
-                            onPress={goToRegister}
+                            onPress={goToLogin}
                         >
-                            {t('pages.auth.actions.goToSignup')}
+                            {t('pages.auth.actions.goToLogin')}
                         </Button>
                     </Col>
                 </Container>

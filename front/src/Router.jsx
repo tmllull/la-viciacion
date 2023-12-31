@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Navigate, RouterProvider, useLocation, useRoutes } from 'react-router-dom';
+import Register from './pages/auth/Register.jsx';
 
 import { getAuthenticatedStatus, getUserToken, removeUserToken } from './utils/authUtils.js';
 import { getAuthenticatedUser } from './redux/actions/authActions.js';
@@ -22,6 +23,11 @@ function routes(loggedUser) {
             path: APP_ROUTES.AUTH.LOGIN,
             element: loggedUser ? <Navigate to={APP_ROUTES.HOME} /> : <Login />,
         },
+        {
+            path: APP_ROUTES.AUTH.REGISTER,
+            element: loggedUser ? <Navigate to={APP_ROUTES.HOME} /> : <Register />,
+        },
+        // MISC ROUTES
         {
             path: '*',
             element: <NotFound />,

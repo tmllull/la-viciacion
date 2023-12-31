@@ -1,5 +1,4 @@
 import { toast } from 'react-toastify';
-import Toastify  from 'toastify-js';
 
 const BASE_CONFIG = {
     position: "bottom-right",

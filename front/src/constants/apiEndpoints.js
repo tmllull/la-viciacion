@@ -1,7 +1,7 @@
 export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: '/login',
-        REGISTER: '/register',
+        SIGNUP: '/signup',
         GET_AUTHENTICATED_USER: '/auth/active_user',
     },
     GAMES: {

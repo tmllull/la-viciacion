@@ -8,6 +8,7 @@ import { deleteAction, getAction, postAction } from './commonActions';
 export const ACTIONS = {
     GET_AUTHENTICATED_USER: 'get_authenticated_user',
     LOGIN: 'login',
+    SIGNUP: 'signup',
 };
 
 // export function fetchUserById(id, options, callbacks) {
@@ -68,12 +69,39 @@ export function login({ data, callbacks = {} }) {
             dispatch(getAuthenticatedUser(callbacks));
         }
         postAction({
-            type: ACTIONS.GET_AUTHENTICATED_USER,
+            type: ACTIONS.LOGIN,
             url: API_ENDPOINTS.AUTH.LOGIN,
             dispatch,
             data,
             callbacks: { ...callbacks, success },
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        });
+    };
+}
+
+export function signup({ data, callbacks = {} }) {
+    return function (dispatch) {
+        const {
+            username,
+            email,
+            password,
+            invitationKey,
+        } = data
+        function success() {
+            dispatch(login({ data: { username, password }, callbacks }));
+        }
+        postAction({
+            type: ACTIONS.SIGNUP,
+            url: API_ENDPOINTS.AUTH.SIGNUP,
+            dispatch,
+            data: {
+                username,
+                email,
+                password,
+                invitation_key: invitationKey,
+            },
+            callbacks: { ...callbacks, success },
+            // headers: { 'content-type': 'application/x-www-form-urlencoded' },
         });
     };
 }

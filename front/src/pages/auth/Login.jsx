@@ -1,8 +1,8 @@
-import { Button, Input }   from '@nextui-org/react';
-import React, { useState } from 'react';
-import { Container }       from 'react-grid-easy';
-import { useDispatch }           from 'react-redux';
-import { toast, ToastContainer } from 'react-toastify';
+import { Button, Input, Link } from '@nextui-org/react';
+import React, { useState }     from 'react';
+import { Col, Container }  from 'react-grid-easy';
+import { useDispatch }     from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 import { login } from '../../redux/actions/authActions.js';
 
@@ -16,7 +16,8 @@ import { useNavigation } from '../../utils/navigationUtils.js';
 
 export default function Login() {
     const dispatch = useDispatch();
-    const { goToHomepage } = useNavigation();
+    const { t, i18n } = useTranslation();
+    const { goToHomepage, goToRegister } = useNavigation();
 
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -46,58 +47,73 @@ export default function Login() {
     }
 
     function onSuccess() {
-        errorAlert({
-            text: "Login successful."
-        })
+        successAlert(t('pages.auth.login.notifications.success'))
         goToHomepage();
     }
 
     function onError(error) {
         setLoading(false);
-        errorAlert("Authentication error.")
+        errorAlert(t('pages.auth.login.notifications.error'))
     }
 
 
     return (
-        <div className='login-page'>
-            <form className='login-page__form' onSubmit={handleLogin}>
-                <Container vertical divisions={3}>
-                    <Input
-                        className='login-page__form-input'
-                        label='Username'
-                        labelPlacement='outside'
-                        onSubmit={handleLogin}
-                        onChange={onChange}
-                        placeholder='Username'
-                        value={formData.username}
-                        id='username'
-                        startContent={
-                            <i className='fa-solid fa-user' />
-                        }
-                    />
-                    <Input
-                        className='login-page__form-input'
-                        label='Passwprd'
-                        type='password'
-                        labelPlacement='outside'
-                        onSubmit={handleLogin}
-                        onChange={onChange}
-                        placeholder='Password'
-                        value={formData.password}
-                        id='password'
-                        startContent={
-                            <i className='fa-solid fa-lock' />
-                        }
-                    />
-                    <Button
-                        color='primary'
-                        variant='shadow'
-                        endContent={<i className='fa-regular fa-check' />}
-                        isLoading={loading}
-                        onPress={handleLogin}
-                    >
-                        Submit
-                    </Button>
+        <div className='auth-page'>
+            <form className='auth-page__form' onSubmit={handleLogin}>
+                <Container divisions={2}>
+                    <h1 className='auth-page__title'>
+                        {t('pages.auth.login.title')}
+                    </h1>
+                    <Col xs={2} sm={2}>
+                        <Input
+                            className='auth-page__form-input'
+                            label={t('common.fields.username')}
+                            labelPlacement='outside'
+                            onSubmit={handleLogin}
+                            onChange={onChange}
+                            placeholder={t('common.fields.username')}
+                            value={formData.username}
+                            id='username'
+                            startContent={
+                                <i className='fa-solid fa-user' />
+                            }
+                        />
+                    </Col>
+                    <Col xs={2} sm={2}>
+                        <Input
+                            className='auth-page__form-input'
+                            label={t('common.fields.password')}
+                            type='password'
+                            labelPlacement='outside'
+                            onSubmit={handleLogin}
+                            onChange={onChange}
+                            placeholder={t('common.fields.password')}
+                            value={formData.password}
+                            id='password'
+                            startContent={
+                                <i className='fa-solid fa-lock' />
+                            }
+                        />
+                    </Col>
+                    <Col xs={2} sm={2} className='auth-page__actions'>
+                        <Button
+                            color='primary'
+                            variant='shadow'
+                            isLoading={loading}
+                            type='submit'
+                            onPress={handleLogin}
+                        >
+                            {t('common.buttons.login')}
+                        </Button>
+                        <Button
+                            color='secondary'
+                            showAnchorIcon
+                            variant="solid"
+                            onPress={goToRegister}
+                        >
+                            {t('pages.auth.actions.goToSignup')}
+                        </Button>
+                    </Col>
                 </Container>
             </form>
         </div>

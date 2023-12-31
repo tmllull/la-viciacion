@@ -56,7 +56,7 @@ class MyRoutes:
             config.API_URL + "/statistics/users/" + username + "?ranking=top_games",
         ).json()
         ranking = utils.load_json_response(ranking[0])
-        msg = "Estos son tus últimos juegos:\n"
+        msg = "Este es tu top de juegos:\n"
         for i, elem in enumerate(ranking["data"]):
             played_time = utils.convert_time_to_hours(elem["total_played_time"])
             msg = (

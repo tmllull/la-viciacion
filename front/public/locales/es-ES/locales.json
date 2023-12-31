@@ -11,7 +11,24 @@
         "fields": {
             "email": "Correo electrónico",
             "username": "Usuario",
-            "password": "Contraseña"
+            "password": "Contraseña",
+            "repeatPassword": "Repetir contraseña",
+            "invitationKey": "Código de invitación"
+        }
+    },
+    "components": {
+        "auth":{
+            "passwordValidation": {
+                "title": "Requisitos para la contraseña.",
+                "fields": {
+                    "length":  "La longitud de la contraseña debe estar entre 12 y 24 caracteres.",
+                    "lowercase": "La contraseña debe tener al menos una letra minúscula.",
+                    "uppercase":  "La contraseña debe tener al menos una letra mayúscula.",
+                    "numbers": "La contraseña debe tener al menos un número.",
+                    "special":  "La contraseña debe tener la menus un do los caracteres especiales !@#$%^&*",
+                    "repeat": "La contraseña y la confirmación de contraseña deben coincidir."
+                }
+            }
         }
     },
     "pages": {

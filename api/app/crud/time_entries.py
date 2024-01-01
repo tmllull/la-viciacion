@@ -197,6 +197,7 @@ async def sync_clockify_entries_db(
     # current_year = datetime.datetime.now().year
     for entry in entries:
         if entry["projectId"] is None:
+            # TODO: Send user notification
             continue
         try:
             # Extract data from time entry
@@ -229,6 +230,7 @@ async def sync_clockify_entries_db(
                     models.TimeEntry.id == entry["id"]
                 )
                 exists = db.execute(stmt).first()
+                # Create new time entry
                 if not exists:
                     if end is not None:
                         new_entry = models.TimeEntry(
@@ -250,6 +252,7 @@ async def sync_clockify_entries_db(
                         )
                     db.add(new_entry)
                     db.commit()
+                # Update existing time entry
                 else:
                     if end is not None:
                         stmt = (
@@ -281,6 +284,7 @@ async def sync_clockify_entries_db(
                 models.TimeEntryHistorical.id == entry["id"]
             )
             exists = db.execute(stmt).first()
+            # Create new time entry
             if not exists:
                 if end is not None:
                     new_entry = models.TimeEntryHistorical(
@@ -302,7 +306,8 @@ async def sync_clockify_entries_db(
                     )
                 db.add(new_entry)
                 db.commit()
-            else:  # time entry exists. Update it
+            # Update existing time entry
+            else:
                 if end is not None:
                     stmt = (
                         update(models.TimeEntryHistorical)

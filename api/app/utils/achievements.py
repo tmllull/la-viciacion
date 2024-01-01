@@ -249,5 +249,5 @@ class AchievementsElems(Enum):
     HAPPY_NEW_YEAR = {
         "title": "Feliz año nuevo",
         "message": "*{}*"
-        + " empieza el año jugando (lo que no sabemos es si habrá hecho alguna otra cosa)",
+        + " empieza el año jugando. Esperemos que haga alguna cosa más.",
     }

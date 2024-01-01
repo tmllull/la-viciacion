@@ -96,27 +96,50 @@ def get_user_games_played_time(
     db: Session, user_id: str, game_id: str = None
 ) -> list[models.TimeEntry]:
     if game_id is not None:
-        stmt = (
-            select(
+        return (
+            db.query(
                 models.TimeEntry.project_clockify_id,
                 func.sum(models.TimeEntry.duration),
             )
-            .where(
+            .filter(
                 models.TimeEntry.user_id == user_id,
-                models.TimeEntry.project_clockify_id == game_id,
             )
+            .filter(models.TimeEntry.project_clockify_id == game_id)
             .group_by(models.TimeEntry.project_clockify_id)
+            .all()
         )
+        # stmt = (
+        #     select(
+        #         models.TimeEntry.project_clockify_id,
+        #         func.sum(models.TimeEntry.duration),
+        #     )
+        #     .where(
+        #         models.TimeEntry.user_id == user_id,
+        #         models.TimeEntry.project_clockify_id == game_id,
+        #     )
+        #     .group_by(models.TimeEntry.project_clockify_id)
+        # )
     else:
-        stmt = (
-            select(
+        return (
+            db.query(
                 models.TimeEntry.project_clockify_id,
                 func.sum(models.TimeEntry.duration),
             )
-            .where(models.TimeEntry.user_id == user_id)
+            .filter(
+                models.TimeEntry.user_id == user_id,
+            )
             .group_by(models.TimeEntry.project_clockify_id)
+            .all()
         )
-    return db.execute(stmt)
+        # stmt = (
+        #     select(
+        #         models.TimeEntry.project_clockify_id,
+        #         func.sum(models.TimeEntry.duration),
+        #     )
+        #     .where(models.TimeEntry.user_id == user_id)
+        #     .group_by(models.TimeEntry.project_clockify_id)
+        # )
+    # return db.execute(stmt)
 
 
 def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntry]:
@@ -322,51 +345,56 @@ async def sync_clockify_entries_db(
             games.create_game_statistics(db, game_id)
             games.create_game_statistics_historical(db, game_id)
 
-            # Check if player already plays the game
-            already_playing = users.get_game_by_id(db, user.id, game_id)
-            if not already_playing:
-                logger.info("User not playing " + game_name)
-                new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
-                await users.add_new_game(
-                    db,
-                    game=new_user_game,
-                    user=user,
-                    start_date=start,
-                    silent=silent,
-                    from_sync=True,
-                )
+            # Check if player already plays the game this season
+            if time_entry_year == config.CURRENT_SEASON:
                 already_playing = users.get_game_by_id(db, user.id, game_id)
-            # TODO: revise if this else is needed and how to implement it properly
-            if platform is not None and already_playing.platform != platform:
-                stmt = (
-                    update(models.UserGame)
-                    .where(models.UserGame.id == already_playing.id)
-                    .values(
-                        platform=platform,
+                if not already_playing:
+                    logger.info("User not playing " + game_name)
+                    new_user_game = schemas.NewGameUser(
+                        game_id=game_id, platform=platform
                     )
-                )
-                db.execute(stmt)
-                db.commit()
-            if completed is not None and already_playing.completed != 1:
-                logger.info("Completing game " + str(game.id) + "...")
-                played_time = get_user_games_played_time(db, user.id, game.id)
-                # The follow list only will have 1 item
-                for played_game in played_time:
-                    users.update_played_time_game(
-                        db, user.id, played_game[0], played_game[1]
+                    await users.add_new_game(
+                        db,
+                        game=new_user_game,
+                        user=user,
+                        start_date=start,
+                        silent=silent,
+                        from_sync=True,
                     )
-                await users.complete_game(
-                    db,
-                    user.id,
-                    game.id,
-                    completed_date=start,
-                    silent=silent,
-                    from_sync=True,
-                )
-            update_game = models.UserGame(platform=platform)
-            users.update_game(db, update_game, already_playing.id)
+                    already_playing = users.get_game_by_id(db, user.id, game_id)
+                # TODO: revise if this else is needed and how to implement it properly
+                if platform is not None and already_playing.platform != platform:
+                    stmt = (
+                        update(models.UserGame)
+                        .where(models.UserGame.id == already_playing.id)
+                        .values(
+                            platform=platform,
+                        )
+                    )
+                    db.execute(stmt)
+                    db.commit()
+                if completed is not None and already_playing.completed != 1:
+                    logger.info("Completing game " + str(game.id) + "...")
+                    played_time = get_user_games_played_time(db, user.id, game.id)
+                    # The follow list only will have 1 item
+                    for played_game in played_time:
+                        users.update_played_time_game(
+                            db, user.id, played_game[0], played_game[1]
+                        )
+                    await users.complete_game(
+                        db,
+                        user.id,
+                        game.id,
+                        completed_date=start,
+                        silent=silent,
+                        from_sync=True,
+                    )
+                update_game = models.UserGame(platform=platform)
+                users.update_game(db, update_game, already_playing.id)
 
-            db.commit()
+                db.commit()
+            # TODO: Add historical info
+
             # TODO: Check time achievements related to session
             # if "-01-01" in start:
             #     pass

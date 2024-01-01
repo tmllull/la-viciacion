@@ -72,7 +72,7 @@ async def sync_data(
     users_db = users.get_users(db)
     # Clear tables on new year (season)
     if current_date.month == 1 and current_date.day == 1:
-        start_date = str(current_date.year) + "-01-01"
+        # start_date = str(current_date.year) + "-01-01"
         if current_date.hour == 0 and current_date.minute == 0:
             logger.info("Clear current season tables...")
             silent = True
@@ -82,7 +82,7 @@ async def sync_data(
             db.query(models.UserStatistics).delete()
             db.query(models.GameStatistics).delete()
             db.commit()
-
+    logger.info("Current season: " + str(config.CURRENT_SEASON))
     logger.info("Sync clockify entries...")
     for user in users_db:
         if user.name is not None and user.name != "":
@@ -130,18 +130,18 @@ async def sync_data(
         logger.info("Updating played time games...")
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
-            logger.info("Check1")
             logger.info(game)
-            logger.info("Check2")
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
-        users.update_played_time(db, user.id, played_time[1])
+        if played_time is not None:
+            played_time = played_time[1]
+        else:
+            played_time = 0
+        users.update_played_time(db, user.id, played_time)
         # Check total played time achievements
         logger.info("Check total played time achievements...")
-        await achievements.user_played_total_time(
-            db, user, played_time[1], silent=silent
-        )
+        await achievements.user_played_total_time(db, user, played_time, silent=silent)
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
         await achievements.user_session_time(db, user, silent=silent)
         # Other achievements
@@ -188,7 +188,13 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     current_streak = 0
 
     if len(played_dates) == 0:
-        return "2024-01-01", 0, 0
+        return (
+            datetime.datetime.strptime(
+                str(config.CURRENT_SEASON) + "-01-01", "%Y-%m-%d"
+            ),
+            0,
+            0,
+        )
 
     for i in range(1, len(played_dates)):
         # Check diff between current and last date

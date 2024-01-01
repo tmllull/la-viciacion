@@ -130,7 +130,6 @@ async def sync_data(
         logger.info("Updating played time games...")
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
-            logger.info(game)
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)

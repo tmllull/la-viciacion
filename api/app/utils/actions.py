@@ -143,9 +143,12 @@ async def sync_data(
         logger.info("Check total played time achievements...")
         await achievements.user_played_total_time(db, user, played_time, silent=silent)
         # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
+        logger.info("Check session played time achievements...")
         await achievements.user_session_time(db, user, silent=silent)
         # Other achievements
+        logger.info("Check total played games achievements...")
         await achievements.user_played_total_games(db, user, silent=silent)
+        logger.info("Check streaks achievements...")
         await achievements.user_streak(
             db, user, best_streak, best_streak_date, silent=silent
         )

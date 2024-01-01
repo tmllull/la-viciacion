@@ -117,6 +117,8 @@ class Achievements:
         date: str = None,
         silent: bool = False,
     ):
+        if played_time is None:
+            return
         played_time = played_time / 60 / 60
         # To create messages, use the follow example, and adapt to every message
         # user = user.name

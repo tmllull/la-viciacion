@@ -130,7 +130,6 @@ async def sync_data(
         logger.info("Updating played time games...")
         played_time_games = time_entries.get_user_games_played_time(db, user.id)
         for game in played_time_games:
-            logger.info(game)
             users.update_played_time_game(db, user.id, game[0], game[1])
         logger.info("Updating played time...")
         played_time = time_entries.get_user_played_time(db, user.id)
@@ -297,7 +296,7 @@ async def ranking_games_hours(db: Session, silent: bool):
             logger.info("No changes in TOP 10 games ranking")
         else:
             logger.info("Changes in TOP 10 games ranking")
-            msg = "📣📣 Actualización del ránking de juegos 📣📣\n"
+            msg = "📣 Actualización del ránking de juegos 📣\n"
             i = 0
             for game in most_played:
                 if i <= 10:
@@ -384,7 +383,7 @@ async def ranking_players_hours(db: Session, silent: bool):
         logger.info("No changes in player ranking")
     else:
         logger.info("Changes in player ranking")
-        msg = "📣📣 Actualización del ránking de horas 📣📣\n"
+        msg = "📣 Actualización del ránking de horas 📣\n"
         for i, player in enumerate(played_time_db):
             name = str(users.get_user_by_id(db, player.user_id).name)
             hours = player.played_time

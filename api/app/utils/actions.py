@@ -72,7 +72,7 @@ async def sync_data(
     users_db = users.get_users(db)
     # Clear tables on new year (season)
     if current_date.month == 1 and current_date.day == 1:
-        # start_date = str(current_date.year) + "-01-01"
+        start_date = str(current_date.year) + "-01-01"
         if current_date.hour == 0 and current_date.minute == 0:
             logger.info("Clear current season tables...")
             silent = True

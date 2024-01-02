@@ -454,8 +454,17 @@ def get_time_entry_by_time(
     return time_entry
 
 
-def get_played_time_by_day():
-    return
+def get_played_time_by_day(db: Session, user_id: int):
+    played_time_days = []
+    played_start_days = (
+        db.query(func.DATE(models.TimeEntry.start), func.sum(models.TimeEntry.duration))
+        .filter(models.TimeEntry.user_id == user_id)
+        .group_by(func.DATE(models.TimeEntry.start))
+        .all()
+    )
+    # print(sorted(played_days))
+    # print(sorted(unique_dates))
+    return sorted(played_start_days)
 
 
 # def get_all_played_games(db: Session):

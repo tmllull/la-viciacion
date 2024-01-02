@@ -16,7 +16,7 @@ class AchievementsElems(Enum):
         "message": "*"
         + "{}"
         + "*"
-        + " está tanteando el terreno para ver cómo va eso de jugar durante un rato largo (4 horitas).",
+        + " está tanteando el terreno para ver cómo va eso de jugar durante un ratito al día (4 horas).",
     }
     PLAYED_8_HOURS_DAY = {
         "title": "Una jornada laboral",

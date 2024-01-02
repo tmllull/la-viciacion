@@ -75,6 +75,8 @@ def convert_date_from_text(date: str):
     logger.debug("Converting date")
     if date is None or date == "":
         return date
+    if ":" not in date:
+        return datetime.datetime.strptime(date, "%Y-%m-%d")
     return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
 
 

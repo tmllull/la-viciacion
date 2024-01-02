@@ -11,11 +11,13 @@ from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import logger as logger
 from ..utils import messages as msg
+from ..utils.email import Email
 
 models.Base.metadata.create_all(bind=engine)
 
 config = Config()
 achievements = Achievements()
+email = Email()
 
 router = APIRouter(
     prefix="/admin",
@@ -121,3 +123,15 @@ def activate_account(
         return msg.ACCOUNT_ALREADY_ACTIVATED
     else:
         raise HTTPException(status_code=409, detail=msg.ACCOUNT_ALREADY_ACTIVATED)
+
+
+@router.post("/send_email")
+@version(1)
+def send_email(
+    info: schemas.Email,
+    api_key: None = Security(auth.get_api_key),
+):
+    """ """
+    return email.send_mail(
+        receivers=info.receiver, subject=info.subject, msg=info.message
+    )

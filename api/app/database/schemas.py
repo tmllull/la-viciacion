@@ -220,6 +220,12 @@ class TimeEntrie(BaseModel):
         from_attributes = True
 
 
+class Email(BaseModel):
+    receiver: list[str]
+    subject: str
+    message: str
+
+
 # class CompletedGame(BaseModel):
 #     completed_games: Union[int, None]
 #     completion_time: Union[int, None]

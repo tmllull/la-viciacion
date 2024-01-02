@@ -33,11 +33,11 @@ async def sync_data(
 ):
     # logger.info("Sync data...")
     current_date = datetime.datetime.now()
-    if silent:
-        silent = True
     start_time = time.time()
     silent = False
     start_date = None
+    if silent:
+        silent = True
     if sync_season:
         start_date = str(current_date.year) + "-01-01"
         silent = True
@@ -138,22 +138,15 @@ async def sync_data(
         else:
             played_time = 0
         users.update_played_time(db, user.id, played_time)
-        # Check total played time achievements
-        logger.info("Check total played time achievements...")
-        await achievements.user_played_total_time(db, user, played_time, silent=silent)
-        # TODO: implement achievements related to entries (like h/day, sessions/day, etc)
-        logger.info("Check session played time achievements...")
-        await achievements.user_session_time(db, user, silent=silent)
         # Other achievements
-        logger.info("Check total played games achievements...")
+        await achievements.user_played_total_time(db, user, played_time, silent=silent)
+        await achievements.user_session_time(db, user, silent=silent)
         await achievements.user_played_total_games(db, user, silent=silent)
-        logger.info("Check streaks achievements...")
         await achievements.user_streak(
             db, user, best_streak, best_streak_date, silent=silent
         )
+        await achievements.user_played_day_time(db, user, silent)
         await achievements.happy_new_year(db, user, silent)
-
-        # use 'entries'
 
     # Update some game statistics
     logger.info("Updating played time for games...")

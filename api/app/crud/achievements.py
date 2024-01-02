@@ -117,6 +117,7 @@ class Achievements:
         date: str = None,
         silent: bool = False,
     ):
+        logger.info("Check total played time achievements...")
         if played_time is None:
             return
         played_time = played_time / 60 / 60
@@ -180,68 +181,70 @@ class Achievements:
         self,
         db: Session,
         user: models.User,
-        played_time: int,
-        date: str = None,
         silent: bool = False,
     ):
-        played_time = played_time / 60
+        logger.info("Check played time in one day achievements...")
+        # played_time = played_time / 60 / 60
+        played_days = time_entries.get_played_time_by_day(db, user.id)
+        for played_day in played_days:
+            date = str(played_day[0])
+            played_time = played_day[1] / 60 / 60
+            # 4 hours
+            if played_time >= 4 and not self.check_already_achieved(
+                db, user.id, AchievementsElems.PLAYED_4_HOURS_DAY.name
+            ):
+                logger.info("Set achievement 4 hours day")
+                self.set_user_achievement(
+                    db, user.id, AchievementsElems.PLAYED_4_HOURS_DAY.name, date=date
+                )
+                msg = utils.set_ach_message(
+                    AchievementsElems.PLAYED_4_HOURS_DAY, user=user.name
+                )
+                await utils.send_message(msg, silent)
 
-        # 4 hours
-        if played_time >= 4 and not self.check_already_achieved(
-            db, user.id, AchievementsElems.PLAYED_4_HOURS_DAY
-        ):
-            logger.info("Set achievement 4 hours day")
-            self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_4_HOURS_DAY.name, date
-            )
-            msg = utils.set_ach_message(
-                AchievementsElems.PLAYED_4_HOURS_DAY, user=user.name
-            )
-            await utils.send_message(msg, silent)
+            # 8 hours
+            if played_time >= 8 and not self.check_already_achieved(
+                db, user.id, AchievementsElems.PLAYED_8_HOURS_DAY.name
+            ):
+                logger.info("Set achievement 8 hours day")
+                self.set_user_achievement(
+                    db, user.id, AchievementsElems.PLAYED_8_HOURS_DAY.name, date=date
+                )
+                msg = utils.set_ach_message(
+                    AchievementsElems.PLAYED_8_HOURS_DAY, user=user.name
+                )
+                await utils.send_message(msg, silent)
 
-        # 8 hours
-        if played_time >= 8 and not self.check_already_achieved(
-            db, user.id, AchievementsElems.PLAYED_8_HOURS_DAY
-        ):
-            logger.info("Set achievement 8 hours day")
-            self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_8_HOURS_DAY.name, date
-            )
-            msg = utils.set_ach_message(
-                AchievementsElems.PLAYED_8_HOURS_DAY, user=user.name
-            )
-            await utils.send_message(msg, silent)
+            # 12 hour
+            if played_time >= 12 and not self.check_already_achieved(
+                db, user.id, AchievementsElems.PLAYED_12_HOURS_DAY.name
+            ):
+                logger.info("Set achievement 12 hours day")
+                self.set_user_achievement(
+                    db, user.id, AchievementsElems.PLAYED_12_HOURS_DAY.name, date=date
+                )
+                msg = utils.set_ach_message(
+                    AchievementsElems.PLAYED_12_HOURS_DAY, user=user.name
+                )
+                await utils.send_message(msg, silent)
 
-        # 12 hour
-        if played_time >= 12 and not self.check_already_achieved(
-            db, user.id, AchievementsElems.PLAYED_12_HOURS_DAY
-        ):
-            logger.info("Set achievement 12 hours day")
-            self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_12_HOURS_DAY.name, date
-            )
-            msg = utils.set_ach_message(
-                AchievementsElems.PLAYED_12_HOURS_DAY, user=user.name
-            )
-            await utils.send_message(msg, silent)
-
-        # 16 hours
-        if played_time >= 16 and not self.check_already_achieved(
-            db, user.id, AchievementsElems.PLAYED_16_HOURS_DAY
-        ):
-            logger.info("Set achievement 16 hours day")
-            self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_16_HOURS_DAY.name, date
-            )
-            msg = utils.set_ach_message(
-                AchievementsElems.PLAYED_16_HOURS_DAY, user=user.name
-            )
-            await utils.send_message(msg, silent)
+            # 16 hours
+            if played_time >= 16 and not self.check_already_achieved(
+                db, user.id, AchievementsElems.PLAYED_16_HOURS_DAY.name
+            ):
+                logger.info("Set achievement 16 hours day")
+                self.set_user_achievement(
+                    db, user.id, AchievementsElems.PLAYED_16_HOURS_DAY.name, date=date
+                )
+                msg = utils.set_ach_message(
+                    AchievementsElems.PLAYED_16_HOURS_DAY, user=user.name
+                )
+                await utils.send_message(msg, silent)
 
     async def user_session_time(
         self, db: Session, user: models.User, silent: bool = False
     ):
-        logger.info("Check session time achievements...")
+        logger.info("Check session played time achievements...")
         # -5 min
         if not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_LESS_5_MIN_SESSION.name
@@ -502,7 +505,7 @@ class Achievements:
         date: datetime.datetime = None,
         silent: bool = False,
     ):
-        logger.info("Checking streaks achievements")
+        logger.info("Check streaks achievements...")
         if date is not None:
             date = date.strftime("%Y-%m-%d %H:%M:%S")
         # 7 days

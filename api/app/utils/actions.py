@@ -34,10 +34,11 @@ async def sync_data(
     # logger.info("Sync data...")
     current_date = datetime.datetime.now()
     start_time = time.time()
-    silent = False
     start_date = None
-    if silent:
+    if silent is True:
         silent = True
+    else:
+        silent = False
     if sync_season:
         start_date = str(current_date.year) + "-01-01"
         silent = True
@@ -83,6 +84,7 @@ async def sync_data(
             db.query(models.GameStatistics).delete()
             db.commit()
     logger.info("Current season: " + str(config.CURRENT_SEASON))
+    logger.info("Silent mode: " + str(silent))
     logger.info("Sync clockify entries...")
     for user in users_db:
         if user.name is not None and user.name != "":

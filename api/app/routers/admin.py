@@ -88,7 +88,9 @@ async def sync_data(
     try:
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
-        await actions.sync_data(db, sync_season, silent, sync_all)
+        await actions.sync_data(
+            db, sync_season=sync_season, silent=silent, sync_all=sync_all
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return "Sync completed!"

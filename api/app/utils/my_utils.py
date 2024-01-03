@@ -222,6 +222,17 @@ async def send_message(msg, silent):
         logger.info("Message sent successfully!")
 
 
+async def send_message_to_user(user, msg):
+    bot = telegram.Bot(config.TELEGRAM_TOKEN)
+    async with bot:
+        await bot.send_message(
+            text=msg,
+            chat_id=user,
+            parse_mode=telegram.constants.ParseMode.MARKDOWN,
+        )
+    logger.info("Message sent successfully!")
+
+
 def set_ach_message(
     ach: AchievementsElems, user: str, db: Session = None, game_id: str = None
 ):

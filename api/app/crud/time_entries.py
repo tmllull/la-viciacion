@@ -198,6 +198,12 @@ async def sync_clockify_entries_db(
     for entry in entries:
         if entry["projectId"] is None:
             # TODO: Send user notification
+            msg = (
+                "Hola, "
+                + user.name
+                + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
+            )
+            await utils.send_message_to_user(user.telegram_id, msg)
             continue
         try:
             # Extract data from time entry

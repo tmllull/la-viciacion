@@ -308,95 +308,110 @@ class Achievements:
                 await utils.send_message(msg, silent)
 
     async def user_played_total_days(
-        self, db: Session, user: models.User, total_days: int, silent: bool = False
+        self, db: Session, user: models.User, total_days: list, silent: bool = False
     ):
+        logger.info(
+            "Check total played days achievements (" + str(len(total_days)) + ")..."
+        )
+        # achieved_date = total_days[1]
         # 7 days
-        if total_days >= 7 and not self.check_already_achieved(
+        if len(total_days) >= 7 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_7_DAYS.name
         ):
             logger.info("Set achievement played 7 days")
-            self.set_user_achievement(db, user.id, AchievementsElems.PLAYED_7_DAYS.name)
+            self.set_user_achievement(
+                db, user.id, AchievementsElems.PLAYED_7_DAYS.name, date=total_days[6]
+            )
             msg = utils.set_ach_message(AchievementsElems.PLAYED_7_DAYS, user=user.name)
             await utils.send_message(msg, silent)
         # 15 days
-        if total_days >= 15 and not self.check_already_achieved(
+        if len(total_days) >= 15 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_15_DAYS.name
         ):
             logger.info("Set achievement played 15 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_15_DAYS.name
+                db, user.id, AchievementsElems.PLAYED_15_DAYS.name, date=total_days[14]
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_15_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
         # 30 days
-        if total_days >= 30 and not self.check_already_achieved(
+        if len(total_days) >= 30 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_30_DAYS.name
         ):
             logger.info("Set achievement played 30 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_30_DAYS.name
+                db, user.id, AchievementsElems.PLAYED_30_DAYS.name, date=total_days[29]
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_30_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
         # 60 days
-        if total_days >= 60 and not self.check_already_achieved(
+        if len(total_days) >= 60 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_60_DAYS.name
         ):
             logger.info("Set achievement played 60 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_60_DAYS.name
+                db, user.id, AchievementsElems.PLAYED_60_DAYS.name, date=total_days[59]
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_60_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
         # 100 days
-        if total_days >= 100 and not self.check_already_achieved(
+        if len(total_days) >= 100 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_100_DAYS.name
         ):
             logger.info("Set achievement played 100 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_100_DAYS.name
+                db, user.id, AchievementsElems.PLAYED_100_DAYS.name, date=total_days[99]
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_100_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
         # 200 days
-        if total_days >= 200 and not self.check_already_achieved(
+        if len(total_days) >= 200 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_200_DAYS.name
         ):
             logger.info("Set achievement played 200 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_200_DAYS.name
+                db,
+                user.id,
+                AchievementsElems.PLAYED_200_DAYS.name,
+                date=total_days[199],
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_200_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
         # 300 days
-        if total_days >= 300 and not self.check_already_achieved(
+        if len(total_days) >= 300 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_300_DAYS.name
         ):
             logger.info("Set achievement played 300 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_300_DAYS.name
+                db,
+                user.id,
+                AchievementsElems.PLAYED_300_DAYS.name,
+                date=total_days[299],
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_300_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
         # 365 days
-        if total_days >= 365 and not self.check_already_achieved(
+        if len(total_days) >= 365 and not self.check_already_achieved(
             db, user.id, AchievementsElems.PLAYED_365_DAYS.name
         ):
             logger.info("Set achievement played 365 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_365_DAYS.name
+                db,
+                user.id,
+                AchievementsElems.PLAYED_365_DAYS.name,
+                date=total_days[364],
             )
             msg = utils.set_ach_message(
                 AchievementsElems.PLAYED_365_DAYS, user=user.name

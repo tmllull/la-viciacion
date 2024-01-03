@@ -41,8 +41,16 @@ class MyRoutes:
         ranking = utils.load_json_response(ranking[0])
         msg = "Estos son tus últimos juegos:\n"
         for i, elem in enumerate(ranking["data"]):
-            msg = msg + str(i + 1) + ". " + str(elem["name"]) + "\n"
-
+            msg = (
+                msg
+                + str(i + 1)
+                + ". "
+                + str(elem["name"])
+                + " ("
+                + str(utils.convert_time_to_hours(elem["played_time"]))
+                + ")"
+                + "\n"
+            )
         await utils.response_conversation(update, context, msg)
 
     async def my_top_games(

@@ -62,7 +62,7 @@ class Achievements:
                 db.commit()
             # print(achievement, "->", achievement.value)
 
-    def get_achievements_list(self, db: Session):
+    def get_achievements_list(self, db: Session) -> list[models.Achievement]:
         return db.query(models.Achievement)
 
     def get_ach_by_key(self, db: Session, key: str):

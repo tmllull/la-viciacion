@@ -233,3 +233,10 @@ class Log(Base):
     player = Column(String(255))
     action = Column(String(255))
     date = Column(DateTime)
+
+
+class CoreNotification(Base):
+    __tablename__ = "core_notifications"
+
+    notification = Column(String(255), primary_key=True)
+    __table_args__ = (UniqueConstraint("notification"),)

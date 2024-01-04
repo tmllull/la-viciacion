@@ -251,3 +251,10 @@ class AchievementsElems(Enum):
         "message": "*{}*"
         + " empieza el año jugando. Esperemos que haga alguna cosa más.",
     }
+
+    TEAMWORK = {
+        "title": "Trabajo en equipo (de 4+)",
+        "message": "*{}*"
+        + " han demostrado que el trabajo en equipo no es un mito."
+        + " Por decisión propia o por casualidad, están jugando al mismo tiempo.",
+    }

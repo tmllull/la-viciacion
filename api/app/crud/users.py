@@ -872,6 +872,7 @@ def last_played_games(db: Session, username: str, limit: int = 10):
                 models.UserGame.game_id,
                 models.Game.name,
                 models.TimeEntry.start.label("last_played_time"),
+                models.UserGame.played_time,
             )
             .join(models.User, models.User.id == models.UserGame.user_id)
             .join(models.Game, models.Game.id == models.UserGame.game_id)

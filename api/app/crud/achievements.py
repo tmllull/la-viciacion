@@ -188,6 +188,8 @@ class Achievements:
         played_days = time_entries.get_played_time_by_day(db, user.id)
         for played_day in played_days:
             date = str(played_day[0])
+            if played_day[1] is None:
+                continue
             played_time = played_day[1] / 60 / 60
             # 4 hours
             if played_time >= 4 and not self.check_already_achieved(

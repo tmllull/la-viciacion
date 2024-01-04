@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import Union
+from typing import List, Union
 
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
@@ -133,7 +133,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_100_HOURS.name, date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_100_HOURS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -146,7 +146,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_200_HOURS.name, date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_200_HOURS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -159,7 +159,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_500_HOURS.name, date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_500_HOURS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -172,7 +172,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_1000_HOURS.name, date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_1000_HOURS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -197,7 +197,7 @@ class Achievements:
                 self.set_user_achievement(
                     db, user.id, AchievementsElems.PLAYED_4_HOURS_DAY.name, date=date
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_4_HOURS_DAY, user=user.name
                 )
                 await utils.send_message(msg, silent)
@@ -210,7 +210,7 @@ class Achievements:
                 self.set_user_achievement(
                     db, user.id, AchievementsElems.PLAYED_8_HOURS_DAY.name, date=date
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_8_HOURS_DAY, user=user.name
                 )
                 await utils.send_message(msg, silent)
@@ -223,7 +223,7 @@ class Achievements:
                 self.set_user_achievement(
                     db, user.id, AchievementsElems.PLAYED_12_HOURS_DAY.name, date=date
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_12_HOURS_DAY, user=user.name
                 )
                 await utils.send_message(msg, silent)
@@ -236,7 +236,7 @@ class Achievements:
                 self.set_user_achievement(
                     db, user.id, AchievementsElems.PLAYED_16_HOURS_DAY.name, date=date
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_16_HOURS_DAY, user=user.name
                 )
                 await utils.send_message(msg, silent)
@@ -259,7 +259,7 @@ class Achievements:
                     game_id=time_entry.project_clockify_id,
                     date=str(time_entry.start),
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_LESS_5_MIN_SESSION,
                     user=user.name,
                     db=db,
@@ -282,7 +282,7 @@ class Achievements:
                     AchievementsElems.PLAYED_4_HOURS_SESSION.name,
                     date=str(time_entry.start),
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_4_HOURS_SESSION, user=user.name
                 )
                 await utils.send_message(msg, silent)
@@ -302,7 +302,7 @@ class Achievements:
                     AchievementsElems.PLAYED_8_HOURS_SESSION.name,
                     date=str(time_entry.start),
                 )
-                msg = utils.set_ach_message(
+                msg = utils.get_ach_message(
                     AchievementsElems.PLAYED_8_HOURS_SESSION, user=user.name
                 )
                 await utils.send_message(msg, silent)
@@ -322,7 +322,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_7_DAYS.name, date=total_days[6]
             )
-            msg = utils.set_ach_message(AchievementsElems.PLAYED_7_DAYS, user=user.name)
+            msg = utils.get_ach_message(AchievementsElems.PLAYED_7_DAYS, user=user.name)
             await utils.send_message(msg, silent)
         # 15 days
         if len(total_days) >= 15 and not self.check_already_achieved(
@@ -332,7 +332,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_15_DAYS.name, date=total_days[14]
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_15_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -344,7 +344,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_30_DAYS.name, date=total_days[29]
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_30_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -356,7 +356,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_60_DAYS.name, date=total_days[59]
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_60_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -368,7 +368,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_100_DAYS.name, date=total_days[99]
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_100_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -383,7 +383,7 @@ class Achievements:
                 AchievementsElems.PLAYED_200_DAYS.name,
                 date=total_days[199],
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_200_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -398,7 +398,7 @@ class Achievements:
                 AchievementsElems.PLAYED_300_DAYS.name,
                 date=total_days[299],
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_300_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -413,7 +413,7 @@ class Achievements:
                 AchievementsElems.PLAYED_365_DAYS.name,
                 date=total_days[364],
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_365_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -432,7 +432,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_10_GAMES.name
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_10_GAMES, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -444,7 +444,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_42_GAMES.name
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_42_GAMES, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -456,7 +456,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_50_GAMES.name
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_50_GAMES, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -468,7 +468,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.PLAYED_100_GAMES.name
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_100_GAMES, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -507,7 +507,7 @@ class Achievements:
                 AchievementsElems.HAPPY_NEW_YEAR.name,
                 date=str(time_entry[0].start),
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.HAPPY_NEW_YEAR, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -531,7 +531,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_7_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(AchievementsElems.STREAK_7_DAYS, user=user.name)
+            msg = utils.get_ach_message(AchievementsElems.STREAK_7_DAYS, user=user.name)
             await utils.send_message(msg, silent)
         # 15 days
         if streak >= 15 and not self.check_already_achieved(
@@ -541,7 +541,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_15_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_15_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -553,7 +553,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_30_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_30_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -565,7 +565,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_60_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_60_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -577,7 +577,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_100_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_100_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -589,7 +589,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_200_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_200_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -601,7 +601,7 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_300_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_300_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
@@ -613,10 +613,47 @@ class Achievements:
             self.set_user_achievement(
                 db, user.id, AchievementsElems.STREAK_365_DAYS.name, date=date
             )
-            msg = utils.set_ach_message(
+            msg = utils.get_ach_message(
                 AchievementsElems.STREAK_365_DAYS, user=user.name
             )
             await utils.send_message(msg, silent)
+
+    async def teamwork(self, db: Session, silent: bool):
+        logger.info("Checking teamwork achievement...")
+        user_list = users.get_users(db)
+        playing: List[models.User] = []
+        for user in user_list:
+            has_active_time_entry = time_entries.get_active_time_entry_by_user(db, user)
+            if has_active_time_entry is not None:
+                playing.append(user)
+        logger.info(
+            "Playing users: " + str(len(playing)) + "/" + str(user_list.count())
+        )
+        if len(playing) >= 4:  # and notification_sent is None:
+            logger.info("4 or more users are playing!")
+            someone_not_achieved = False
+            players = ""
+            for player in playing:
+                players += player.name + ", "
+                if not self.check_already_achieved(
+                    db, player.id, AchievementsElems.TEAMWORK.name
+                ):
+                    someone_not_achieved = True
+                    logger.info("Set 'Teamwork' achievement for " + player.name)
+                    self.set_user_achievement(
+                        db, player.id, AchievementsElems.TEAMWORK.name
+                    )
+            if someone_not_achieved:
+                players = players[:-2]
+                players = players.rsplit(",", 1)
+                players = " y".join(players)
+                # TODO: send notification
+                msg = utils.get_ach_message(AchievementsElems.TEAMWORK, user=players)
+                await utils.send_message(msg, silent)
+                # else:
+                #     db.delete(notification_all_sent)
+            else:
+                logger.info("All users unlocked this achievement")
 
     def just_in_time(
         self,

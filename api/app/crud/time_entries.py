@@ -473,6 +473,18 @@ def get_played_time_by_day(db: Session, user_id: int):
     return sorted(played_start_days)
 
 
+def get_active_time_entry_by_user(db: Session, user: models.User):
+    active_time_entry = (
+        db.query(models.TimeEntry.user_id)
+        .filter(models.TimeEntry.end == None)
+        .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
+        .first()
+    )
+    # print(sorted(played_days))
+    # print(sorted(unique_dates))
+    return active_time_entry
+
+
 # def get_all_played_games(db: Session):
 #     stmt = select(models.TimeEntry.project, models.TimeEntry.project_id)
 #     return db.execute(stmt)

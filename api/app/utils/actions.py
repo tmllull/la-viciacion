@@ -150,6 +150,10 @@ async def sync_data(
         await achievements.user_played_day_time(db, user, silent)
         await achievements.happy_new_year(db, user, silent)
 
+    logger.info("#########################")
+    logger.info("#### GENERAL CHECKS #####")
+    logger.info("#########################")
+
     # Update some game statistics
     logger.info("Updating played time for games...")
     played_time_games = time_entries.get_games_played_time(db)
@@ -159,6 +163,9 @@ async def sync_data(
     # Check rankings
     await ranking_games_hours(db, silent)
     await ranking_players_hours(db, silent)
+
+    # Others
+    await achievements.teamwork(db, silent)
     end_time = time.time()
     logger.info("Elapsed time: " + str(end_time - start_time))
 
@@ -423,3 +430,8 @@ async def ranking_players_hours(db: Session, silent: bool):
     for user in current_ranking:
         users.update_current_ranking_hours(db, i, user.user_id)
         i += 1
+
+
+##################
+##### OTHERS #####
+##################

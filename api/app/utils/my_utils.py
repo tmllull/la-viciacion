@@ -233,7 +233,7 @@ async def send_message_to_user(user, msg):
     logger.info("Message sent successfully!")
 
 
-def set_ach_message(
+def get_ach_message(
     ach: AchievementsElems, user: str, db: Session = None, game_id: str = None
 ):
     msg = "🏆"  +ach.value["title"]  +"🏆\n"

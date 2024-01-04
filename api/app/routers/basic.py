@@ -56,7 +56,14 @@ async def login(
     return await login_for_access_token(form_data, db)
 
 
-@router.post("/signup")
+@router.post(
+    "/signup",
+    responses={
+        200: {"model": schemas.User},
+        400: {"model": schemas.HttpException},
+        "default": {"model": schemas.HttpException},
+    },
+)
 @version(1)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Register new user

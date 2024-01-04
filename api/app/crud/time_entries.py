@@ -1,7 +1,17 @@
 import datetime
 from typing import Union
 
-from sqlalchemy import asc, create_engine, desc, func, or_, select, text, update
+from sqlalchemy import (
+    asc,
+    create_engine,
+    desc,
+    extract,
+    func,
+    or_,
+    select,
+    text,
+    update,
+)
 from sqlalchemy.orm import Session
 
 from ..config import Config
@@ -473,12 +483,84 @@ def get_played_time_by_day(db: Session, user_id: int):
     return sorted(played_start_days)
 
 
+def get_time_entry_by_start_time(
+    db: Session, user_id: int, hour: int, mode: int
+) -> list[models.TimeEntry]:
+    """_summary_
+
+    Args:
+        db (Session): _description_
+        user_id (int): _description_
+        time (int): _description_
+        mode (int): 1==, 2<=, 3>=
+
+    Returns:
+        _type_: _description_
+    """
+    if mode == 1:
+        time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.user_id == user_id)
+            .filter(extract("hour", models.TimeEntry.start) == hour)
+            .all()
+        )
+    elif mode == 2:
+        time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.user_id == user_id)
+            .filter(extract("hour", models.TimeEntry.start) <= hour)
+            .all()
+        )
+    elif mode == 3:
+        time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.user_id == user_id)
+            .filter(extract("hour", models.TimeEntry.start) >= hour)
+            .all()
+        )
+
+    # print(sorted(played_days))
+    # print(sorted(unique_dates))
+    return time_entries
+
+
 def get_active_time_entry_by_user(db: Session, user: models.User):
     active_time_entry = (
         db.query(models.TimeEntry.user_id)
         .filter(models.TimeEntry.end == None)
         .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
         .first()
+    )
+    # print(sorted(played_days))
+    # print(sorted(unique_dates))
+    return active_time_entry
+
+
+def get_forgotten_timer_by_user(db: Session, user: models.User):
+    current_time = datetime.datetime.now()
+    time_threshold = current_time - datetime.timedelta(hours=3)
+    logger.info("Checking active timers since " + str(time_threshold))
+    active_time_entry = (
+        db.query(models.TimeEntry)
+        .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
+        .filter(models.TimeEntry.duration.is_(None))
+        .filter(models.TimeEntry.start < time_threshold)
+        .first()
+    )
+    # print(sorted(played_days))
+    # print(sorted(unique_dates))
+    return active_time_entry
+
+
+def get_older_timers(db: Session) -> list[models.TimeEntry]:
+    current_time = datetime.datetime.now()
+    time_threshold = current_time - datetime.timedelta(hours=3)
+    logger.info("Checking active timers since " + str(time_threshold))
+    active_time_entry = (
+        db.query(models.TimeEntry)
+        .filter(models.TimeEntry.duration.is_(None))
+        .filter(models.TimeEntry.start < time_threshold)
+        .all()
     )
     # print(sorted(played_days))
     # print(sorted(unique_dates))

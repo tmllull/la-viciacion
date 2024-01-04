@@ -222,15 +222,19 @@ async def send_message(msg, silent):
         logger.info("Message sent successfully!")
 
 
-async def send_message_to_user(user, msg):
-    bot = telegram.Bot(config.TELEGRAM_TOKEN)
-    async with bot:
-        await bot.send_message(
-            text=msg,
-            chat_id=user,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN,
-        )
-    logger.info("Message sent successfully!")
+async def send_message_to_user(user_telegram_id, msg):
+    logger.info("Sending message to user...")
+    try:
+        bot = telegram.Bot(config.TELEGRAM_TOKEN)
+        async with bot:
+            await bot.send_message(
+                text=msg,
+                chat_id=user_telegram_id,
+                parse_mode=telegram.constants.ParseMode.MARKDOWN,
+            )
+        logger.info("Message sent successfully!")
+    except Exception as e:
+        logger.info(e)
 
 
 def get_ach_message(

@@ -655,6 +655,24 @@ class Achievements:
             else:
                 logger.info("All users unlocked this achievement")
 
+    async def early_riser(self, db: Session, user: models.User, silent: bool):
+        logger.info("Checking early riser achievement...")
+        entries = time_entries.get_time_entry_by_start_time(db, user.id, hour=5, mode=2)
+        if len(entries) > 0 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.EARLY_RISER.name
+        ):
+            logger.info("Set achievement early riser")
+            self.set_user_achievement(
+                db,
+                user.id,
+                AchievementsElems.EARLY_RISER.name,
+                str(date=entries[0].start),
+            )
+            msg = utils.get_ach_message(AchievementsElems.EARLY_RISER, user=user.name)
+            await utils.send_message(msg, silent)
+        # for entry in entries:
+        #     logger.info(entry.start)
+
     def just_in_time(
         self,
         db: Session,

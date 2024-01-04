@@ -510,9 +510,9 @@ def get_time_entry_between_hours(
     return time_entries
 
 
-def get_active_time_entry_by_user(db: Session, user: models.User):
+def get_active_time_entry_by_user(db: Session, user: models.User) -> models.TimeEntry:
     active_time_entry = (
-        db.query(models.TimeEntry.user_id)
+        db.query(models.TimeEntry)
         .filter(models.TimeEntry.end == None)
         .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
         .first()
@@ -540,7 +540,7 @@ def get_forgotten_timer_by_user(db: Session, user: models.User):
 
 def get_older_timers(db: Session) -> list[models.TimeEntry]:
     current_time = datetime.datetime.now()
-    time_threshold = current_time - datetime.timedelta(hours=3)
+    time_threshold = current_time - datetime.timedelta(minutes=5)
     # logger.info("Checking active timers since " + str(time_threshold))
     active_time_entry = (
         db.query(models.TimeEntry)

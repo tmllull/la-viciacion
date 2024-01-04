@@ -218,3 +218,12 @@ def platforms(
 ):
     """ """
     return utils.platforms(db)
+
+
+@router.get("/utils/achievements")
+@version(1)
+def achievements(
+    db: Session = Depends(get_db),
+):
+    """ """
+    return utils.achievements_list(db)

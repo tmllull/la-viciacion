@@ -13,8 +13,8 @@ from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import logger as logger
-from ..utils import messages as msg
 from ..utils import my_utils as utils
+from ..utils.custom_exceptions import CustomExceptions
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -68,16 +68,36 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     - 1 Special character
     """
     if user.invitation_key != config.INVITATION_KEY:
-        raise HTTPException(status_code=400, detail=msg.INVALID_INVITATION_KEY)
+        raise HTTPException(
+            status_code=400,
+            detail=CustomExceptions(
+                CustomExceptions.SignUp.INVALID_INVITATION_KEY
+            ).to_json(),
+        )
     db_user = users.get_user_by_username(db, username=user.username)
     if db_user:
-        raise HTTPException(status_code=400, detail=msg.USER_ALREADY_EXISTS)
+        raise HTTPException(
+            status_code=400,
+            detail=CustomExceptions(
+                CustomExceptions.SignUp.USER_ALREADY_EXISTS
+            ).to_json(),
+        )
     validation, new_user = users.create_user(db=db, user=user)
     if not validation:
         if new_user == 0:
-            raise HTTPException(status_code=400, detail=msg.PASSWORD_REQUIREMENTS)
+            raise HTTPException(
+                status_code=400,
+                detail=CustomExceptions(
+                    CustomExceptions.SignUp.PASSWORD_REQUIREMENTS
+                ).to_json(),
+            )
         if new_user == 1:
-            raise HTTPException(status_code=400, detail=msg.EMAIL_VALIDATION)
+            raise HTTPException(
+                status_code=400,
+                detail=CustomExceptions(
+                    CustomExceptions.SignUp.EMAIL_VALIDATION
+                ).to_json(),
+            )
     return new_user
 
 

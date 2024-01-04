@@ -659,7 +659,9 @@ class Achievements:
 
     async def early_riser(self, db: Session, user: models.User, silent: bool):
         logger.info("Checking early riser achievement...")
-        entries = time_entries.get_time_entry_by_start_time(db, user.id, hour=5, mode=2)
+        entries = time_entries.get_time_entry_between_hours(
+            db, user.id, start_hour=4, end_hour=6
+        )
         if len(entries) > 0 and not self.check_already_achieved(
             db, user.id, AchievementsElems.EARLY_RISER.name
         ):

@@ -258,3 +258,10 @@ class AchievementsElems(Enum):
         + " han demostrado que el trabajo en equipo no es un mito."
         + " Por decisión propia o por casualidad, están jugando al mismo tiempo.",
     }
+
+    EARLY_RISER = {
+        "title": "Madrugador",
+        "message": "*{}*"
+        + " cree que a quien madruga, Dios le ayuda."
+        + " O eso, o tiene muchas cosas por hacer y ha decidido que jugar antes de las 6 de la mañana era una buena opción.",
+    }

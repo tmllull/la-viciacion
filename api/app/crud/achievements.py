@@ -188,6 +188,8 @@ class Achievements:
         played_days = time_entries.get_played_time_by_day(db, user.id)
         for played_day in played_days:
             date = str(played_day[0])
+            if played_day[1] is None:
+                continue
             played_time = played_day[1] / 60 / 60
             # 4 hours
             if played_time >= 4 and not self.check_already_achieved(
@@ -654,6 +656,24 @@ class Achievements:
                 #     db.delete(notification_all_sent)
             else:
                 logger.info("All users unlocked this achievement")
+
+    async def early_riser(self, db: Session, user: models.User, silent: bool):
+        logger.info("Checking early riser achievement...")
+        entries = time_entries.get_time_entry_by_start_time(db, user.id, hour=5, mode=2)
+        if len(entries) > 0 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.EARLY_RISER.name
+        ):
+            logger.info("Set achievement early riser")
+            self.set_user_achievement(
+                db,
+                user.id,
+                AchievementsElems.EARLY_RISER.name,
+                str(date=entries[0].start),
+            )
+            msg = utils.get_ach_message(AchievementsElems.EARLY_RISER, user=user.name)
+            await utils.send_message(msg, silent)
+        # for entry in entries:
+        #     logger.info(entry.start)
 
     def just_in_time(
         self,

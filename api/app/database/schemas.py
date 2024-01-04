@@ -226,6 +226,15 @@ class Email(BaseModel):
     message: str
 
 
+class HttpExceptionDetailModel(BaseModel):
+    message: str
+    code: str
+
+
+class HttpException(BaseModel):
+    detail: HttpExceptionDetailModel
+
+
 # class CompletedGame(BaseModel):
 #     completed_games: Union[int, None]
 #     completion_time: Union[int, None]

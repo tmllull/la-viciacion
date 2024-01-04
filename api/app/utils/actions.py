@@ -86,6 +86,7 @@ async def sync_data(
     logger.info("Current season: " + str(config.CURRENT_SEASON))
     logger.info("Silent mode: " + str(silent))
     logger.info("Sync clockify entries...")
+    delete_older_timers(db)
     for user in users_db:
         if user.name is not None and user.name != "":
             user_name = str(user.name)
@@ -149,6 +150,8 @@ async def sync_data(
         )
         await achievements.user_played_day_time(db, user, silent)
         await achievements.happy_new_year(db, user, silent)
+        await achievements.early_riser(db, user, silent)
+        await check_forgotten_timer(db, user)
 
     logger.info("#########################")
     logger.info("#### GENERAL CHECKS #####")
@@ -435,3 +438,35 @@ async def ranking_players_hours(db: Session, silent: bool):
 ##################
 ##### OTHERS #####
 ##################
+
+
+async def check_forgotten_timer(db: Session, user: models.User):
+    logger.info("Check forgotten timers...")
+    current_time = datetime.datetime.now().time()
+    # hour = current_time.hour
+    minutes = current_time.minute
+    active_timer = time_entries.get_forgotten_timer_by_user(db, user)
+    if active_timer is not None and (minutes == 0 or minutes == 30):
+        logger.info(user.name + " has an active timer for more than 3 hours")
+        msg = (
+            "Hola, "
+            + user.name
+            + ". Tienes un timer activo desde hace más de 3 horas."
+            + " Si es correcto, sigue disfrutando. Si te has olvidado de pararlo,"
+            + " por favor, descartalo (no lo pares, tienes una"
+            + " opción para descartar sin guardar) y añade una entrada a mano con el tiempo correcto."
+        )
+        logger.info
+        await utils.send_message_to_user(user.telegram_id, msg)
+
+
+def delete_older_timers(db: Session):
+    logger.info("Delete older timers...")
+    current_time = datetime.datetime.now().time()
+    # hour = current_time.hour
+    minutes = current_time.minute
+    active_timers = time_entries.get_older_timers(db)
+    for timer in active_timers:
+        logger.info("Deleting timer " + str(timer.id))
+        db.delete(timer)
+        db.commit()

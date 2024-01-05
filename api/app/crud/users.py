@@ -120,7 +120,10 @@ def create_user(
 
     try:
         db_user = models.User(
-            username=user.username, password=hashed_password, email=user.email
+            username=user.username,
+            name=user.name,
+            password=hashed_password,
+            email=user.email,
         )
         db.add(db_user)
         db.commit()

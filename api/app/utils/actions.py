@@ -333,11 +333,14 @@ async def ranking_games_hours(db: Session, silent: bool):
                     else:
                         diff = diff.replace("0", "=")
                     if diff_raw > 1:
-                        game_name = "⏫ " + game_name
+                        game_name = "🔥 " + game_name
                     if diff_raw == 1:
                         game_name = "⬆️ " + game_name
                     if diff_raw < 0:
-                        game_name = "⬇️ " + game_name
+                        if diff_raw < -1:
+                            game_name = "🔻 " + game_name
+                        else:
+                            game_name = "⬇️ " + game_name
                     # Only to check if game has fall of the top10
                     # Then, always break
                     if i == 10 and "↓" in diff:
@@ -420,11 +423,14 @@ async def ranking_players_hours(db: Session, silent: bool):
             else:
                 diff = diff.replace("0", "=")
             if diff_raw > 1:
-                name = "⏫ " + name
+                name = "🔥 " + name
             if diff_raw == 1:
                 name = "⬆️ " + name
             if diff_raw < 0:
-                name = "⬇️ " + name
+                if diff_raw < -1:
+                    name = "🔻 " + name
+                else:
+                    name = "⬇️ " + name
             msg = (
                 msg
                 + str(i + 1)

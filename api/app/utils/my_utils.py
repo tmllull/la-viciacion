@@ -42,6 +42,10 @@ def validate_password_requirements(password):
     if not re.search(r"[a-z]", password):
         return False
 
+    # Number
+    if not re.search(r"\d", password):
+        return False
+
     # Special character
     if not re.search(r"[!@#$%^&*()_+{}\[\]:;<>,.?/~\\-]", password):
         return False

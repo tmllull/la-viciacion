@@ -72,6 +72,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     - Length must be between 12 and 24 characters
     - 1 Uppercase letter
     - 1 Lowercase letter
+    - 1 Number
     - 1 Special character
     """
     if user.invitation_key != config.INVITATION_KEY:

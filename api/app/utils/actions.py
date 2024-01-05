@@ -179,7 +179,11 @@ async def sync_data(
         for user in users_db:
             await weekly_resume(db, user)
     end_time = time.time()
-    logger.info("Elapsed time: " + str(end_time - start_time))
+    elapsed_time = end_time - start_time
+    if elapsed_time > 30 and (not sync_all and not sync_season):
+        msg = "❗Ejecución lenta❗\n" + "La última ejecución ha durado más de 40 segundos"
+        await utils.send_message_to_admins(db, msg)
+    logger.info("Elapsed time: " + str(elapsed_time))
 
 
 # async def sync_games_from_clockify(db: Session):

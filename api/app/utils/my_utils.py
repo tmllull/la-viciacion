@@ -11,7 +11,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import games, time_entries
+from ..crud import games, time_entries, users
 from ..database import models, schemas
 from ..utils import logger
 from .achievements import AchievementsElems
@@ -261,6 +261,24 @@ async def send_message_to_user(user_telegram_id, msg):
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
         logger.info("Message sent successfully!")
+    except Exception as e:
+        logger.info(e)
+
+
+async def send_message_to_admins(db: Session, msg):
+    logger.info("Sending message to admins...")
+    users_db = users.get_users(db)
+    try:
+        for user in users_db:
+            if user.is_admin:
+                bot = telegram.Bot(config.TELEGRAM_TOKEN)
+                async with bot:
+                    await bot.send_message(
+                        text=msg,
+                        chat_id=user.telegram_id,
+                        parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                    )
+                logger.info("Message sent successfully!")
     except Exception as e:
         logger.info(e)
 

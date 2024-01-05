@@ -37,6 +37,16 @@ def user_hours_players(db: Session, limit: int = None) -> list[models.User]:
         logger.info(e)
 
 
+def user_current_ranking(db: Session, user: models.User):
+    try:
+        stmt = select(
+            models.UserStatistics.current_ranking_hours,
+        ).filter(models.UserStatistics.user_id == user.id)
+        return db.execute(stmt).fetchall()
+    except Exception as e:
+        logger.info(e)
+
+
 def user_days_played(db: Session, limit: int = None) -> list[models.User]:
     try:
         stmt = (

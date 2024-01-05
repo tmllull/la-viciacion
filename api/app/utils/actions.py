@@ -18,6 +18,7 @@ from .clockify_api import ClockifyApi
 
 clockify_api = ClockifyApi()
 config = Config()
+achievements = Achievements()
 
 
 ########################
@@ -34,6 +35,9 @@ async def sync_data(
     # logger.info("Sync data...")
     current_date = datetime.datetime.now()
     start_time = time.time()
+    week_day = current_date.weekday()
+    hour = current_date.hour
+    minute = current_date.minute
     start_date = None
     if silent is True:
         silent = True
@@ -169,6 +173,11 @@ async def sync_data(
 
     # Others
     await achievements.teamwork(db, silent)
+    users_db = users.get_users(db)
+    # Check weekly resume only on monday at 9:00
+    if week_day == 0 and hour == 9 and minute == 0:
+        for user in users_db:
+            await weekly_resume(db, user)
     end_time = time.time()
     logger.info("Elapsed time: " + str(end_time - start_time))
 
@@ -470,3 +479,36 @@ def delete_older_timers(db: Session):
         logger.info("Deleting timer " + str(timer.id))
         db.delete(timer)
         db.commit()
+
+
+async def weekly_resume(db: Session, user: models.User):
+    logger.info("Check weekly resume for " + user.name + "...")
+    weekly_hours = time_entries.get_weekly_hours(db, user)
+    weekly_hours = utils.convert_time_to_hours(weekly_hours[0][0])
+    weekly_sessions = time_entries.get_weekly_sessions(db, user)
+    weekly_sessions = str(weekly_sessions[0][0])
+    weekly_games = time_entries.get_weekly_games(db, user)
+    weekly_games = str(weekly_games[0][0])
+    weekly_achievements = achievements.get_weekly_achievements(db, user)
+    weekly_achievements = str(weekly_achievements[0][0])
+    current_ranking = rankings.user_current_ranking(db, user)
+    current_ranking = str(current_ranking[0][0])
+    msg = (
+        "🤖*Aquí está tu resumen semana******l🤖\n"
+        + "Ranking actual: "
+        + current_ranking
+        + "\n"
+        + "Horas: "
+        + weekly_hours
+        + "\n"
+        + "Sesiones: "
+        + weekly_sessions
+        + "\n"
+        + "Juegos: "
+        + weekly_games
+        + "\n"
+        + "Logros: "
+        + weekly_achievements
+    )
+    logger.info(msg)
+    await utils.send_message_to_user(user.telegram_id, msg)

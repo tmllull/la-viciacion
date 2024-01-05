@@ -554,14 +554,7 @@ def get_older_timers(db: Session) -> list[models.TimeEntry]:
 
 
 def get_weekly_hours(db: Session, user: models.User) -> list[models.TimeEntry]:
-    current_time = datetime.datetime.now()
-    first_day = current_time - datetime.timedelta(days=current_time.weekday() + 1)
-    last_day = first_day + datetime.timedelta(days=6)
-    first_day = first_day.date()
-    last_day = last_day.date()
-    # logger.info(first_day)
-    # logger.info(last_day)
-    # logger.info("Checking active timers since " + str(time_threshold))
+    first_day, last_day = utils.get_last_week_range_dates()
     weekly_hours = (
         db.query(func.sum(models.TimeEntry.duration))
         .filter(models.TimeEntry.user_id == user.id)
@@ -569,20 +562,11 @@ def get_weekly_hours(db: Session, user: models.User) -> list[models.TimeEntry]:
         .filter(func.DATE(models.TimeEntry.start) <= last_day)
         .all()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return weekly_hours
 
 
 def get_weekly_sessions(db: Session, user: models.User) -> list[models.TimeEntry]:
-    current_time = datetime.datetime.now()
-    first_day = current_time - datetime.timedelta(days=current_time.weekday() + 1)
-    last_day = first_day + datetime.timedelta(days=6)
-    first_day = first_day.date()
-    last_day = last_day.date()
-    # logger.info(first_day)
-    # logger.info(last_day)
-    # logger.info("Checking active timers since " + str(time_threshold))
+    first_day, last_day = utils.get_last_week_range_dates()
     weekly_sessions = (
         db.query(func.count(models.TimeEntry.id))
         .filter(models.TimeEntry.user_id == user.id)
@@ -590,20 +574,11 @@ def get_weekly_sessions(db: Session, user: models.User) -> list[models.TimeEntry
         .filter(func.DATE(models.TimeEntry.start) <= last_day)
         .all()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return weekly_sessions
 
 
 def get_weekly_games(db: Session, user: models.User) -> list[models.TimeEntry]:
-    current_time = datetime.datetime.now()
-    first_day = current_time - datetime.timedelta(days=current_time.weekday() + 1)
-    last_day = first_day + datetime.timedelta(days=6)
-    first_day = first_day.date()
-    last_day = last_day.date()
-    # logger.info(first_day)
-    # logger.info(last_day)
-    # logger.info("Checking active timers since " + str(time_threshold))
+    first_day, last_day = utils.get_last_week_range_dates()
     weekly_games = (
         db.query(func.count(func.distinct(models.TimeEntry.project_clockify_id)))
         .filter(models.TimeEntry.user_id == user.id)
@@ -611,8 +586,6 @@ def get_weekly_games(db: Session, user: models.User) -> list[models.TimeEntry]:
         .filter(func.DATE(models.TimeEntry.start) <= last_day)
         .all()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return weekly_games
 
 

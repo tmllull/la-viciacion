@@ -103,6 +103,30 @@ def convert_clockify_duration(duration):
         return 0
 
 
+def get_last_week_range_dates():
+    current_date = datetime.datetime.now()
+    first_day_current_week = current_date - datetime.timedelta(
+        days=current_date.weekday()
+    )
+    # last_date_current_week = first_day_current_week + datetime.timedelta(days=6)
+    first_day_last_week = first_day_current_week - datetime.timedelta(days=7)
+    last_day_last_week = first_day_current_week - datetime.timedelta(days=1)
+    # logger.info(first_day_last_week.date())
+    # logger.info(last_day_last_week.date())
+    return first_day_last_week.date(), last_day_last_week.date()
+
+
+def get_current_week_range_dates():
+    current_date = datetime.datetime.now()
+    first_day_current_week = current_date - datetime.timedelta(
+        days=current_date.weekday()
+    )
+    last_day_current_week = first_day_current_week + datetime.timedelta(days=6)
+    # logger.info(first_day_current_week.date())
+    # logger.info(last_day_current_week.date())
+    return first_day_current_week.date(), last_day_current_week.date()
+
+
 def day_of_the_year(date):
     date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     return date.timetuple().tm_yday

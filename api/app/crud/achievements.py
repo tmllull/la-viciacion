@@ -678,12 +678,10 @@ class Achievements:
         #     logger.info(entry.start)
 
     def get_weekly_achievements(self, db: Session, user: models.User):
-        current_time = datetime.datetime.now()
-        first_day = current_time - datetime.timedelta(days=current_time.weekday() + 1)
-        last_day = first_day + datetime.timedelta(days=6)
-        first_day = first_day.date()
-        last_day = last_day.date()
-        weekly_games = (
+        first_day, last_day = utils.get_last_week_range_dates()
+        # logger.info(first_day)
+        # logger.info(last_day)
+        weekly_achievements = (
             db.query(func.count(models.UserAchievement.id))
             .filter(models.UserAchievement.user_id == user.id)
             .filter(func.DATE(models.UserAchievement.date) >= first_day)
@@ -692,8 +690,7 @@ class Achievements:
         )
         # print(sorted(played_days))
         # print(sorted(unique_dates))
-        return weekly_games
-        return
+        return weekly_achievements
 
     def just_in_time(
         self,

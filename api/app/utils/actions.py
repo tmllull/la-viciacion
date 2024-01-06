@@ -155,6 +155,7 @@ async def sync_data(
         await achievements.user_played_day_time(db, user, silent)
         await achievements.happy_new_year(db, user, silent)
         await achievements.early_riser(db, user, silent)
+        await achievements.nocturnal(db, user, silent)
         await check_forgotten_timer(db, user)
 
     logger.info("#########################")
@@ -181,7 +182,7 @@ async def sync_data(
     end_time = time.time()
     elapsed_time = end_time - start_time
     if elapsed_time > 30 and (not sync_all and not sync_season):
-        msg = "❗Ejecución lenta❗\n" + "La última ejecución ha durado más de 40 segundos"
+        msg = "❗Ejecución lenta❗\n" + "La última ejecución ha durado más de 30 segundos"
         await utils.send_message_to_admins(db, msg)
     logger.info("Elapsed time: " + str(elapsed_time))
 

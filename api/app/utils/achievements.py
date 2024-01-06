@@ -265,3 +265,10 @@ class AchievementsElems(Enum):
         + " cree que a quien madruga, Dios le ayuda."
         + " O eso, o tiene muchas cosas por hacer y ha decidido que jugar antes de las 6 de la mañana era una buena opción.",
     }
+
+    NOCTURNAL = {
+        "title": "Plus por nocturnidad",
+        "message": "*{}*"
+        + " es un animal nocturno, y por eso juega de noche (a partir de las 2) y duerme de día."
+        + " Bueno, lo más seguro ques que juegue a todas horas.",
+    }

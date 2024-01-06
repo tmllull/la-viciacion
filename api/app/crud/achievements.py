@@ -660,7 +660,7 @@ class Achievements:
     async def early_riser(self, db: Session, user: models.User, silent: bool):
         logger.info("Checking early riser achievement...")
         entries = time_entries.get_time_entry_between_hours(
-            db, user.id, start_hour=4, end_hour=6
+            db, user.id, start_hour=5, end_hour=6
         )
         if len(entries) > 0 and not self.check_already_achieved(
             db, user.id, AchievementsElems.EARLY_RISER.name
@@ -674,8 +674,24 @@ class Achievements:
             )
             msg = utils.get_ach_message(AchievementsElems.EARLY_RISER, user=user.name)
             await utils.send_message(msg, silent)
-        # for entry in entries:
-        #     logger.info(entry.start)
+
+    async def nocturnal(self, db: Session, user: models.User, silent: bool):
+        logger.info("Checking nocturnal achievement...")
+        entries = time_entries.get_time_entry_between_hours(
+            db, user.id, start_hour=2, end_hour=5
+        )
+        if len(entries) > 0 and not self.check_already_achieved(
+            db, user.id, AchievementsElems.NOCTURNAL.name
+        ):
+            logger.info("Set achievement nocturnal")
+            self.set_user_achievement(
+                db,
+                user.id,
+                AchievementsElems.NOCTURNAL.name,
+                str(date=entries[0].start),
+            )
+            msg = utils.get_ach_message(AchievementsElems.NOCTURNAL, user=user.name)
+            await utils.send_message(msg, silent)
 
     def get_weekly_achievements(self, db: Session, user: models.User):
         first_day, last_day = utils.get_last_week_range_dates()

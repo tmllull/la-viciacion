@@ -154,8 +154,8 @@ async def sync_data(
         )
         await achievements.user_played_day_time(db, user, silent)
         await achievements.happy_new_year(db, user, silent)
-        await achievements.early_riser(db, user, silent)
-        await achievements.nocturnal(db, user, silent)
+        # await achievements.early_riser(db, user, silent)
+        # await achievements.nocturnal(db, user, silent)
         await check_forgotten_timer(db, user)
 
     logger.info("#########################")

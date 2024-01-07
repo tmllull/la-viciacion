@@ -321,8 +321,12 @@ class Achievements:
             db, user.id, AchievementsElems.PLAYED_7_DAYS.name
         ):
             logger.info("Set achievement played 7 days")
+            # logger.info(total_days[6])
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_7_DAYS.name, date=total_days[6]
+                db,
+                user.id,
+                AchievementsElems.PLAYED_7_DAYS.name,
+                date=str(total_days[6]),
             )
             msg = utils.get_ach_message(AchievementsElems.PLAYED_7_DAYS, user=user.name)
             await utils.send_message(msg, silent)
@@ -332,7 +336,10 @@ class Achievements:
         ):
             logger.info("Set achievement played 15 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_15_DAYS.name, date=total_days[14]
+                db,
+                user.id,
+                AchievementsElems.PLAYED_15_DAYS.name,
+                date=str(total_days[14]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_15_DAYS, user=user.name
@@ -344,7 +351,10 @@ class Achievements:
         ):
             logger.info("Set achievement played 30 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_30_DAYS.name, date=total_days[29]
+                db,
+                user.id,
+                AchievementsElems.PLAYED_30_DAYS.name,
+                date=str(total_days[29]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_30_DAYS, user=user.name
@@ -356,7 +366,10 @@ class Achievements:
         ):
             logger.info("Set achievement played 60 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_60_DAYS.name, date=total_days[59]
+                db,
+                user.id,
+                AchievementsElems.PLAYED_60_DAYS.name,
+                date=str(total_days[59]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_60_DAYS, user=user.name
@@ -368,7 +381,10 @@ class Achievements:
         ):
             logger.info("Set achievement played 100 days")
             self.set_user_achievement(
-                db, user.id, AchievementsElems.PLAYED_100_DAYS.name, date=total_days[99]
+                db,
+                user.id,
+                AchievementsElems.PLAYED_100_DAYS.name,
+                date=str(total_days[99]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_100_DAYS, user=user.name
@@ -383,7 +399,7 @@ class Achievements:
                 db,
                 user.id,
                 AchievementsElems.PLAYED_200_DAYS.name,
-                date=total_days[199],
+                date=str(total_days[199]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_200_DAYS, user=user.name
@@ -398,7 +414,7 @@ class Achievements:
                 db,
                 user.id,
                 AchievementsElems.PLAYED_300_DAYS.name,
-                date=total_days[299],
+                date=str(total_days[299]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_300_DAYS, user=user.name
@@ -413,7 +429,7 @@ class Achievements:
                 db,
                 user.id,
                 AchievementsElems.PLAYED_365_DAYS.name,
-                date=total_days[364],
+                date=str(total_days[364]),
             )
             msg = utils.get_ach_message(
                 AchievementsElems.PLAYED_365_DAYS, user=user.name

@@ -270,5 +270,5 @@ class AchievementsElems(Enum):
         "title": "Plus por nocturnidad",
         "message": "*{}*"
         + " es un animal nocturno, y por eso empieza a jugar de madrugada (a partir de las 2)."
-        + " Bueno, lo más seguro ques que juegue a todas horas.",
+        + " Bueno, lo más seguro es que juegue a todas horas.",
     }

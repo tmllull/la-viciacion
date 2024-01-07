@@ -91,100 +91,113 @@ async def sync_data(
     logger.info("Silent mode: " + str(silent))
     logger.info("Sync clockify entries...")
     delete_older_timers(db)
-    for user in users_db:
-        if user.name is not None and user.name != "":
-            user_name = str(user.name)
-        else:
-            user_name = str(user.username)
-        logger.info("#### " + str(user_name) + " ####")
+    try:
+        for user in users_db:
+            if user.name is not None and user.name != "":
+                user_name = str(user.name)
+            else:
+                user_name = str(user.username)
+            logger.info("#### " + str(user_name) + " ####")
 
-        # Create user statistics entry (if needed)
-        users.create_user_statistics(db, user.id)
-        users.create_user_statistics_historical(db, user.id)
+            # Create user statistics entry (if needed)
+            users.create_user_statistics(db, user.id)
+            users.create_user_statistics_historical(db, user.id)
 
-        # Update clockify_id for user if has not been set and email matches with a valid user on Clockify
-        if user.clockify_id is None or not utils.check_hex(user.clockify_id):
-            users.update_clockify_id(
-                db, user.username, clockify_api.get_user_by_email(user.email)
+            # Update clockify_id for user if has not been set and email matches with a valid user on Clockify
+            if user.clockify_id is None or not utils.check_hex(user.clockify_id):
+                users.update_clockify_id(
+                    db, user.username, clockify_api.get_user_by_email(user.email)
+                )
+
+            # Sync time_entries from Clockify with local DB
+            total_entries = await utils.sync_clockify_entries(
+                db, user, start_date, silent
             )
 
-        # Sync time_entries from Clockify with local DB
-        total_entries = await utils.sync_clockify_entries(db, user, start_date, silent)
+            if total_entries < 1:
+                logger.info("No time entries for " + str(user_name))
+                continue
 
-        if total_entries < 1:
-            logger.info("No time entries for " + str(user_name))
-            continue
+            # Update some user statistics
+            logger.info("Updating played days...")
+            played_days_season = time_entries.get_played_days(db, user.id)
+            # played_days_total = time_entries.get_played_days(
+            #     db, user.id, start_date=config.INITIAL_DATE
+            # )
+            users.update_played_days(db, user.id, len(played_days_season))
+            # Check played days achievement
+            await achievements.user_played_total_days(
+                db, user, played_days_season, silent=silent
+            )
+            logger.info("Checking streaks for " + user.name)
+            best_streak_date, best_streak, current_streak = streak_days(
+                db, user, played_days_season
+            )
+            await check_streaks(db, user, current_streak, best_streak, silent=silent)
+            # TODO: Check streaks achievement
+            users.update_streaks(
+                db, user.id, current_streak, best_streak, best_streak_date
+            )
 
-        # Update some user statistics
-        logger.info("Updating played days...")
-        played_days_season = time_entries.get_played_days(db, user.id)
-        # played_days_total = time_entries.get_played_days(
-        #     db, user.id, start_date=config.INITIAL_DATE
-        # )
-        users.update_played_days(db, user.id, len(played_days_season))
-        # Check played days achievement
-        await achievements.user_played_total_days(
-            db, user, played_days_season, silent=silent
-        )
-        logger.info("Checking streaks for " + user.name)
-        best_streak_date, best_streak, current_streak = streak_days(
-            db, user, played_days_season
-        )
-        await check_streaks(db, user, current_streak, best_streak, silent=silent)
-        # TODO: Check streaks achievement
-        users.update_streaks(db, user.id, current_streak, best_streak, best_streak_date)
+            logger.info("Updating played time games...")
+            played_time_games = time_entries.get_user_games_played_time(db, user.id)
+            for game in played_time_games:
+                users.update_played_time_game(db, user.id, game[0], game[1])
+            logger.info("Updating played time...")
+            played_time = time_entries.get_user_played_time(db, user.id)
+            if played_time is not None:
+                played_time = played_time[1]
+            else:
+                played_time = 0
+            users.update_played_time(db, user.id, played_time)
+            # Other achievements
+            await achievements.user_played_total_time(
+                db, user, played_time, silent=silent
+            )
+            await achievements.user_session_time(db, user, silent=silent)
+            await achievements.user_played_total_games(db, user, silent=silent)
+            await achievements.user_streak(
+                db, user, best_streak, best_streak_date, silent=silent
+            )
+            await achievements.user_played_day_time(db, user, silent)
+            await achievements.happy_new_year(db, user, silent)
+            await achievements.early_riser(db, user, silent)
+            await achievements.nocturnal(db, user, silent)
+            await check_forgotten_timer(db, user)
 
-        logger.info("Updating played time games...")
-        played_time_games = time_entries.get_user_games_played_time(db, user.id)
+        logger.info("#########################")
+        logger.info("#### GENERAL CHECKS #####")
+        logger.info("#########################")
+
+        # Update some game statistics
+        logger.info("Updating played time for games...")
+        played_time_games = time_entries.get_games_played_time(db)
         for game in played_time_games:
-            users.update_played_time_game(db, user.id, game[0], game[1])
-        logger.info("Updating played time...")
-        played_time = time_entries.get_user_played_time(db, user.id)
-        if played_time is not None:
-            played_time = played_time[1]
-        else:
-            played_time = 0
-        users.update_played_time(db, user.id, played_time)
-        # Other achievements
-        await achievements.user_played_total_time(db, user, played_time, silent=silent)
-        await achievements.user_session_time(db, user, silent=silent)
-        await achievements.user_played_total_games(db, user, silent=silent)
-        await achievements.user_streak(
-            db, user, best_streak, best_streak_date, silent=silent
-        )
-        await achievements.user_played_day_time(db, user, silent)
-        await achievements.happy_new_year(db, user, silent)
-        # await achievements.early_riser(db, user, silent)
-        # await achievements.nocturnal(db, user, silent)
-        await check_forgotten_timer(db, user)
+            games.update_total_played_time(db, game[0], game[1])
 
-    logger.info("#########################")
-    logger.info("#### GENERAL CHECKS #####")
-    logger.info("#########################")
+        # Check rankings
+        await ranking_games_hours(db, silent)
+        await ranking_players_hours(db, silent)
 
-    # Update some game statistics
-    logger.info("Updating played time for games...")
-    played_time_games = time_entries.get_games_played_time(db)
-    for game in played_time_games:
-        games.update_total_played_time(db, game[0], game[1])
-
-    # Check rankings
-    await ranking_games_hours(db, silent)
-    await ranking_players_hours(db, silent)
-
-    # Others
-    await achievements.teamwork(db, silent)
-    users_db = users.get_users(db)
-    # Check weekly resume only on monday at 9:00
-    if week_day == 0 and hour == 9 and minute == 0:
-        for user in users_db:
-            await weekly_resume(db, user)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    if elapsed_time > 30 and (not sync_all and not sync_season):
-        msg = "❗Ejecución lenta❗\n" + "La última ejecución ha durado más de 30 segundos"
-        await utils.send_message_to_admins(db, msg)
-    logger.info("Elapsed time: " + str(elapsed_time))
+        # Others
+        await achievements.teamwork(db, silent)
+        users_db = users.get_users(db)
+        # Check weekly resume only on monday at 9:00
+        if week_day == 0 and hour == 9 and minute == 0:
+            for user in users_db:
+                await weekly_resume(db, user)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        if elapsed_time > 30 and (not sync_all and not sync_season):
+            msg = (
+                "❗Ejecución lenta❗\n"
+                + "La última ejecución ha durado más de 30 segundos"
+            )
+            await utils.send_message_to_admins(db, msg)
+        logger.info("Elapsed time: " + str(elapsed_time))
+    except Exception as e:
+        logger.error("Error on sync: " + str(e))
+        await utils.send_message_to_admins(db, "Error on sync: " + str(e))
 
 
 # async def sync_games_from_clockify(db: Session):

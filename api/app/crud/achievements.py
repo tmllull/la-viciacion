@@ -686,7 +686,7 @@ class Achievements:
                 db,
                 user.id,
                 AchievementsElems.EARLY_RISER.name,
-                str(date=entries[0].start),
+                date=str(entries[0].start),
             )
             msg = utils.get_ach_message(AchievementsElems.EARLY_RISER, user=user.name)
             await utils.send_message(msg, silent)
@@ -704,7 +704,7 @@ class Achievements:
                 db,
                 user.id,
                 AchievementsElems.NOCTURNAL.name,
-                str(date=entries[0].start),
+                date=str(entries[0].start),
             )
             msg = utils.get_ach_message(AchievementsElems.NOCTURNAL, user=user.name)
             await utils.send_message(msg, silent)

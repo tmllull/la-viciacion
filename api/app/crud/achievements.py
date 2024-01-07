@@ -709,8 +709,21 @@ class Achievements:
             msg = utils.get_ach_message(AchievementsElems.NOCTURNAL, user=user.name)
             await utils.send_message(msg, silent)
 
-    def get_weekly_achievements(self, db: Session, user: models.User):
-        first_day, last_day = utils.get_last_week_range_dates()
+    def get_weekly_achievements(self, db: Session, user: models.User, mode: int = 0):
+        """_summary_
+
+        Args:
+            db (Session): _description_
+            user (models.User): _description_
+            mode (int, optional): 0 = last week. 1 = current week. Defaults to 0.
+
+        Returns:
+            _type_: _description_
+        """
+        if mode == 0:
+            first_day, last_day = utils.get_last_week_range_dates()
+        else:
+            first_day, last_day = utils.get_current_week_range_dates()
         # logger.info(first_day)
         # logger.info(last_day)
         weekly_achievements = (

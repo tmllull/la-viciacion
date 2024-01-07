@@ -46,6 +46,15 @@ def get_user(username: str, db: Session = Depends(get_db)):
     return users.get_user(username, db)
 
 
+@router.get("/users/{username}/weekly-resume")
+@version(1)
+async def get_user_weekly_resume(username: str, db: Session = Depends(get_db)):
+    """
+    Get user by username
+    """
+    return await users.get_weekly_resume(username, db)
+
+
 @router.put("/users", response_model=schemas.User)
 @version(1)
 def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):

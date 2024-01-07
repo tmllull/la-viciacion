@@ -269,6 +269,6 @@ class AchievementsElems(Enum):
     NOCTURNAL = {
         "title": "Plus por nocturnidad",
         "message": "*{}*"
-        + " es un animal nocturno, y por eso juega de noche (a partir de las 2) y duerme de día."
+        + " es un animal nocturno, y por eso empieza a jugar de madrugada (a partir de las 2)."
         + " Bueno, lo más seguro ques que juegue a todas horas.",
     }

@@ -58,28 +58,6 @@ def get_users(db: Session = Depends(get_db)):
     return users_db
 
 
-@router.get("/playing")
-@version(1)
-def get_playing_users(db: Session = Depends(get_db)):
-    """
-    Get all users
-    """
-    users_db = users.get_users(db)
-    playing = []
-    for user in users_db:
-        info = {}
-        active_timer = time_entries.get_active_time_entry_by_user(db, user)
-        if active_timer is not None:
-            logger.info(active_timer)
-            info["user"] = user.name
-            info["game"] = games.get_game_by_id(
-                db, active_timer.project_clockify_id
-            ).name
-            info["time"] = active_timer.start
-            playing.append(info)
-    return playing
-
-
 @router.get("/{username}", response_model=schemas.User)
 @version(1)
 def get_user(username: str, db: Session = Depends(get_db)):

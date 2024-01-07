@@ -227,3 +227,12 @@ def achievements(
 ):
     """ """
     return utils.achievements_list(db)
+
+
+@router.get("/utils/playing")
+@version(1)
+def playing_users(db: Session = Depends(get_db)):
+    """
+    Get playing users
+    """
+    return utils.get_playing_users(db)

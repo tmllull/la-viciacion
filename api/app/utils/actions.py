@@ -185,7 +185,7 @@ async def sync_data(
         # Check weekly resume only on monday at 9:00
         if week_day == 0 and hour == 9 and minute == 0:
             for user in users_db:
-                await weekly_resume(db, user)
+                await weekly_resume(db, user, mode=0)
         end_time = time.time()
         elapsed_time = end_time - start_time
         if elapsed_time > 30 and (not sync_all and not sync_season):
@@ -505,15 +505,18 @@ def delete_older_timers(db: Session):
         db.commit()
 
 
-async def weekly_resume(db: Session, user: models.User):
+async def weekly_resume(
+    db: Session, user: models.User, mode: int = 0, silent: bool = False
+):
     logger.info("Check weekly resume for " + user.name + "...")
-    weekly_hours = time_entries.get_weekly_hours(db, user)
+    resume = {}
+    weekly_hours = time_entries.get_weekly_hours(db, user, mode=mode)
     weekly_hours = utils.convert_time_to_hours(weekly_hours[0][0])
-    weekly_sessions = time_entries.get_weekly_sessions(db, user)
+    weekly_sessions = time_entries.get_weekly_sessions(db, user, mode=mode)
     weekly_sessions = str(weekly_sessions[0][0])
-    weekly_games = time_entries.get_weekly_games(db, user)
+    weekly_games = time_entries.get_weekly_games(db, user, mode=mode)
     weekly_games = str(weekly_games[0][0])
-    weekly_achievements = achievements.get_weekly_achievements(db, user)
+    weekly_achievements = achievements.get_weekly_achievements(db, user, mode=mode)
     weekly_achievements = str(weekly_achievements[0][0])
     current_ranking = rankings.user_current_ranking(db, user)
     current_ranking = str(current_ranking[0][0])
@@ -535,4 +538,11 @@ async def weekly_resume(db: Session, user: models.User):
         + weekly_achievements
     )
     logger.info(msg)
-    await utils.send_message_to_user(user.telegram_id, msg)
+    if not silent:
+        await utils.send_message_to_user(user.telegram_id, msg)
+    resume["ranking"] = current_ranking
+    resume["hours"] = weekly_hours
+    resume["sessions"] = weekly_sessions
+    resume["games"] = weekly_games
+    resume["achievements"] = weekly_achievements
+    return resume

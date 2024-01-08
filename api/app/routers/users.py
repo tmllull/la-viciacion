@@ -70,6 +70,19 @@ def get_user(username: str, db: Session = Depends(get_db)):
     return user_db
 
 
+@router.get("/{username}/weekly-resume")
+@version(1)
+async def get_weekly_resume(username: str, db: Session = Depends(get_db)):
+    """
+    Get weekly resume
+    """
+    user_db = users.get_user_by_username(db, username)
+    if user_db is None:
+        raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
+    resume = await actions.weekly_resume(db, user_db, mode=1, silent=True)
+    return resume
+
+
 # @router.post("/", response_model=schemas.User)
 # @version(1)
 # def add_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):

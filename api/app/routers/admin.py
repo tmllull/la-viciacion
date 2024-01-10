@@ -170,8 +170,8 @@ async def upload_achievement_image(
         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
     logger.info("File size: " + str(file.size))
-    if file.size > 2097152:
-        logger.info(msg.FILE_TOO_BIG)
+    if file.size > 512000:
+        logger.info(msg.FILE_TOO_BIG_ACHIEVEMENTS)
         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
     try:
         data = await file.read()
@@ -193,6 +193,8 @@ async def get_achievement_image(
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
     try:
         data = achievements.get_image(db, achievement)
+        if data[0] is None:
+            return Response(content="Achievement has no image", status_code=400)
         return Response(content=data[0], media_type="image/jpeg")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

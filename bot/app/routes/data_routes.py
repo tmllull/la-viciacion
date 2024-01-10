@@ -22,7 +22,7 @@ clockify = ClockifyApi()
     STEAM_ID,
     RELEASE_DATE,
     GENRES,
-    MEAN_TIME,
+    AVG_TIME,
     DEV,
     TIME,
     RATE,
@@ -172,7 +172,7 @@ class DataRoutes:
             for genre in rawg_info["genres"]:
                 genres += genre["name"] + ","
             context.user_data[GENRES] = genres[:-1]
-            context.user_data[MEAN_TIME] = hltb_info["comp_main"]
+            context.user_data[AVG_TIME] = hltb_info["comp_main"]
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
             context.user_data[SLUG] = rawg_info["slug"]
             url = (
@@ -282,8 +282,8 @@ class DataRoutes:
                     "steam_id": str(context.user_data[STEAM_ID]),
                     "image_url": context.user_data[IMAGE_URL],
                     "genres": context.user_data[GENRES],
-                    "mean_time": utils.convert_hours_minutes_to_seconds(
-                        context.user_data[MEAN_TIME]
+                    "avg_time": utils.convert_hours_minutes_to_seconds(
+                        context.user_data[AVG_TIME]
                     ),
                     "clockify_id": clockify_id,
                     "slug": context.user_data[SLUG],

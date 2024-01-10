@@ -157,6 +157,7 @@ class Achievement(Base):
     key = Column(String(255))
     title = Column(String(255))
     message = Column(String(255))
+    image = Column(LargeBinary)
     __table_args__ = (UniqueConstraint("key"),)
 
 

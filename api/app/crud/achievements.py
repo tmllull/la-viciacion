@@ -72,6 +72,31 @@ class Achievements:
             .first()
         )
 
+    def upload_image(self, db: Session, key: str, image: bytes):
+        try:
+            stmt = (
+                update(models.Achievement)
+                .where(models.Achievement.key == key)
+                .values(image=image)
+            )
+            db.execute(stmt)
+            db.commit()
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error("Error adding image: " + str(e))
+            raise
+
+    def get_image(self, db: Session, key: str):
+        try:
+            return (
+                db.query(models.Achievement.image)
+                .filter(models.Achievement.key == key)
+                .first()
+            )
+        except SQLAlchemyError as e:
+            logger.error("Error getting image: " + str(e))
+            raise
+
     def check_already_achieved(
         self, db: Session, user_id: int, key: str, date: str = None
     ):

@@ -14,3 +14,5 @@ FILE_TOO_BIG = "File is too big. Max size is 2MB"
 
 PASSWORD_REQUIREMENTS = "The password does not meet the requirements"
 EMAIL_VALIDATION = "The email has not a valid email format"
+
+ACHIEVEMENT_NOT_EXISTS = "Achievement not exists"

@@ -508,6 +508,17 @@ def delete_older_timers(db: Session):
 async def weekly_resume(
     db: Session, user: models.User, mode: int = 0, silent: bool = False
 ):
+    """_summary_
+
+    Args:
+        db (Session): _description_
+        user (models.User): _description_
+        mode (int, optional): 0 = last week. 1 = current week. Defaults to 0.
+        silent (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        _type_: _description_
+    """
     logger.info("Check weekly resume for " + user.name + "...")
     resume = {}
     weekly_hours = time_entries.get_weekly_hours(db, user, mode=mode)

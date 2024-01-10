@@ -9,6 +9,7 @@ from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import logger as logger
+from ..utils import messages as msg
 from ..utils import my_utils as utils
 
 models.Base.metadata.create_all(bind=engine)

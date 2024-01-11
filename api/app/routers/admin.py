@@ -149,52 +149,52 @@ def send_email(
     )
 
 
-@router.patch("/achievement-image/{achievement}")
-@version(1)
-async def upload_achievement_image(
-    achievement: str,
-    # file: Annotated[UploadFile, File(description="A file read as UploadFile")],
-    file: UploadFile,
-    db: Session = Depends(get_db),
-    api_key: None = Security(auth.get_api_key),
-):
-    allowed_types = ["image/jpeg", "image/jpg", "image/png"]
-    logger.info("Content Type: " + file.content_type)
-    if file.content_type not in allowed_types:
-        logger.info(msg.FILE_TYPE_NOT_ALLOWED)
-        raise HTTPException(
-            status_code=400,
-            detail=msg.FILE_TYPE_NOT_ALLOWED,
-        )
-    if not achievements.get_ach_by_key(db, achievement):
-        logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
-        raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
-    logger.info("File size: " + str(file.size))
-    if file.size > 512000:
-        logger.info(msg.FILE_TOO_BIG_ACHIEVEMENTS)
-        raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
-    try:
-        data = await file.read()
-        achievements.upload_image(db, achievement, data)
-        return "Image uploaded"
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.patch("/achievement-image/{achievement}")
+# @version(1)
+# async def upload_achievement_image(
+#     achievement: str,
+#     # file: Annotated[UploadFile, File(description="A file read as UploadFile")],
+#     file: UploadFile,
+#     db: Session = Depends(get_db),
+#     api_key: None = Security(auth.get_api_key),
+# ):
+#     allowed_types = ["image/jpeg", "image/jpg", "image/png"]
+#     logger.info("Content Type: " + file.content_type)
+#     if file.content_type not in allowed_types:
+#         logger.info(msg.FILE_TYPE_NOT_ALLOWED)
+#         raise HTTPException(
+#             status_code=400,
+#             detail=msg.FILE_TYPE_NOT_ALLOWED,
+#         )
+#     if not achievements.get_ach_by_key(db, achievement):
+#         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
+#         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
+#     logger.info("File size: " + str(file.size))
+#     if file.size > 512000:
+#         logger.info(msg.FILE_TOO_BIG_ACHIEVEMENTS)
+#         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
+#     try:
+#         data = await file.read()
+#         achievements.upload_image(db, achievement, data)
+#         return "Image uploaded"
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/achievement-image/{achievement}")
-@version(1)
-async def get_achievement_image(
-    achievement: str,
-    db: Session = Depends(get_db),
-    api_key: None = Security(auth.get_api_key),
-):
-    if not achievements.get_ach_by_key(db, achievement):
-        logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
-        raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
-    try:
-        data = achievements.get_image(db, achievement)
-        if data[0] is None:
-            return Response(content="Achievement has no image", status_code=400)
-        return Response(content=data[0], media_type="image/jpeg")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.get("/achievement-image/{achievement}")
+# @version(1)
+# async def get_achievement_image(
+#     achievement: str,
+#     db: Session = Depends(get_db),
+#     api_key: None = Security(auth.get_api_key),
+# ):
+#     if not achievements.get_ach_by_key(db, achievement):
+#         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
+#         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
+#     try:
+#         data = achievements.get_image(db, achievement)
+#         if data[0] is None:
+#             return Response(content="Achievement has no image", status_code=400)
+#         return Response(content=data[0], media_type="image/jpeg")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))

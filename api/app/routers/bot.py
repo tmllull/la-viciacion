@@ -40,8 +40,14 @@ def get_db():
 @router.get("/users/{username}", response_model=schemas.User)
 @version(1)
 def get_user(username: str, db: Session = Depends(get_db)):
-    """
-    Get user by username
+    """_summary_
+
+    Args:
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return users.get_user(username, db)
 
@@ -49,8 +55,14 @@ def get_user(username: str, db: Session = Depends(get_db)):
 @router.get("/users/{username}/weekly-resume")
 @version(1)
 async def get_user_weekly_resume(username: str, db: Session = Depends(get_db)):
-    """
-    Get user by username
+    """_summary_
+
+    Args:
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await users.get_weekly_resume(username, db)
 
@@ -58,8 +70,14 @@ async def get_user_weekly_resume(username: str, db: Session = Depends(get_db)):
 @router.put("/users", response_model=schemas.User)
 @version(1)
 def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
-    """
-    Update user
+    """_summary_
+
+    Args:
+        user (schemas.UserUpdate): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return users.update_user(user, db)
 
@@ -67,8 +85,14 @@ def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
 @router.patch("/users", response_model=schemas.User)
 @version(1)
 def update_user(user: schemas.TelegramUser, db: Session = Depends(get_db)):
-    """
-    Update user Telegram ID
+    """_summary_
+
+    Args:
+        user (schemas.TelegramUser): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return users_crud.update_user_telegram_id(db, user)
 
@@ -78,8 +102,15 @@ def update_user(user: schemas.TelegramUser, db: Session = Depends(get_db)):
 async def add_game_to_user(
     username: str, game: schemas.NewGameUser, db: Session = Depends(get_db)
 ):
-    """
-    Add new game to user list
+    """_summary_
+
+    Args:
+        username (str): _description_
+        game (schemas.NewGameUser): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await users.add_game_to_user(username, game, db)
 
@@ -95,14 +126,32 @@ def user_games(
     completed: bool = None,
     db: Session = Depends(get_db),
 ):
+    """_summary_
+
+    Args:
+        username (str): _description_
+        limit (int, optional): _description_. Defaults to None.
+        completed (bool, optional): _description_. Defaults to None.
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     return users.get_games(username, limit, completed, db)
 
 
 @router.patch("/users/{username}/complete-game")
 @version(1)
 async def complete_game(username: str, game_id: str, db: Session = Depends(get_db)):
-    """
-    Complete game
+    """_summary_
+
+    Args:
+        username (str): _description_
+        game_id (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await users.complete_game(username, game_id, db)
 
@@ -112,8 +161,16 @@ async def complete_game(username: str, game_id: str, db: Session = Depends(get_d
 async def rate_game(
     username: str, game_id: str, score: float, db: Session = Depends(get_db)
 ):
-    """
-    Rate game
+    """_summary_
+
+    Args:
+        username (str): _description_
+        game_id (str): _description_
+        score (float): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await users.rate_game(username, game_id, score, db)
 
@@ -126,8 +183,15 @@ async def rate_game(
 @router.get("/games", response_model=list[schemas.Game])
 @version(1)
 def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)):
-    """
-    Get games from DB
+    """_summary_
+
+    Args:
+        name (str, optional): _description_. Defaults to None.
+        limit (int, optional): _description_. Defaults to None.
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return games.get_games(name, limit, db)
 
@@ -135,8 +199,14 @@ def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)
 @router.get("/games/{game_id}", response_model=schemas.Game)
 @version(1)
 async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
-    """
-    Get game from DB by id
+    """_summary_
+
+    Args:
+        game_id (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await games.get_game_by_id(game_id=game_id, db=db)
 
@@ -144,8 +214,14 @@ async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
 @router.post("/games", response_model=schemas.Game, status_code=201)
 @version(1)
 async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
-    """
-    Create new game
+    """_summary_
+
+    Args:
+        game (schemas.NewGame): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await games.create_game(game, db)
 
@@ -153,8 +229,14 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 @router.get("/games/rawg/{name}")
 @version(1)
 async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
-    """
-    Get game info from RAWG and HLTB (not from DB)
+    """_summary_
+
+    Args:
+        name (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await games.get_game_rawg_by_name(name, db)
 
@@ -193,6 +275,15 @@ def get_ranking_statistics(
     ranking: str,
     db: Session = Depends(get_db),
 ):
+    """_summary_
+
+    Args:
+        ranking (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     return statistics.get_ranking_statistics(ranking, db)
 
 
@@ -203,6 +294,16 @@ def get_user_statistics(
     username: str,
     db: Session = Depends(get_db),
 ):
+    """_summary_
+
+    Args:
+        ranking (UserStatisticsTypes): _description_
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     return statistics.get_user_statistics(username, ranking, db)
 
 
@@ -217,6 +318,15 @@ def get_user_statistics(
     username: str,
     db: Session = Depends(get_db),
 ):
+    """_summary_
+
+    Args:
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     return admin.activate_account(username, db)
 
 
@@ -225,7 +335,14 @@ def get_user_statistics(
 def platforms(
     db: Session = Depends(get_db),
 ):
-    """ """
+    """_summary_
+
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     return utils.platforms(db)
 
 
@@ -234,14 +351,26 @@ def platforms(
 def achievements(
     db: Session = Depends(get_db),
 ):
-    """ """
+    """_summary_
+
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     return utils.achievements_list(db)
 
 
 @router.get("/utils/playing")
 @version(1)
 def playing_users(db: Session = Depends(get_db)):
-    """
-    Get playing users
+    """_summary_
+
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return utils.get_playing_users(db)

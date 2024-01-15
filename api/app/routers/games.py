@@ -32,8 +32,15 @@ def get_db():
 @router.get("/", response_model=list[schemas.Game])
 @version(1)
 def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)):
-    """
-    Get games from DB
+    """_summary_
+
+    Args:
+        name (str, optional): _description_. Defaults to None.
+        limit (int, optional): _description_. Defaults to None.
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     logger.info("Getting games...")
     if name is None:
@@ -46,8 +53,17 @@ def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)
 @router.get("/{game_id}", response_model=schemas.Game)
 @version(1)
 async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
-    """
-    Get game from DB by id
+    """_summary_
+
+    Args:
+        game_id (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     game_db = games.get_game_by_id(db, game_id)
     if game_db is None:
@@ -72,8 +88,14 @@ async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
 @router.get("/rawg/{name}")
 @version(1)
 async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
-    """
-    Get game info from RAWG and HLTB (not from DB)
+    """_summary_
+
+    Args:
+        name (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     game_info = await utils.get_game_info(name)
     return game_info
@@ -82,8 +104,17 @@ async def get_game_rawg_by_name(name: str, db: Session = Depends(get_db)):
 @router.post("/", response_model=schemas.Game, status_code=201)
 @version(1)
 async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
-    """
-    Create new game
+    """_summary_
+
+    Args:
+        game (schemas.NewGame): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     games_db = games.get_game_by_name(db, game.name)
     for game_db in games_db:
@@ -97,8 +128,18 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
 async def update_game(
     game_id: str, game: schemas.UpdateGame, db: Session = Depends(get_db)
 ):
-    """
-    Create new game
+    """_summary_
+
+    Args:
+        game_id (str): _description_
+        game (schemas.UpdateGame): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     game_db = games.get_game_by_id(db, game_id)
     if game_db is None:

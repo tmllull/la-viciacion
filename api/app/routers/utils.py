@@ -39,7 +39,9 @@ def platforms(
     db: Session = Depends(get_db),
     user: models.User = Security(auth.get_current_active_user),
 ):
-    """ """
+    """
+    Get platforms list
+    """
     tags = utils.get_platforms(db)
     response = []
     for tag in tags:
@@ -53,7 +55,9 @@ def achievements_list(
     db: Session = Depends(get_db),
     user: models.User = Security(auth.get_current_active_user),
 ):
-    """ """
+    """
+    Get achievements list
+    """
     ach_list = achievements.get_achievements_list(db)
     response = []
     for ach in ach_list:
@@ -65,10 +69,10 @@ def achievements_list(
 @version(1)
 def get_playing_users(
     db: Session = Depends(get_db),
-    user: models.User = Security(auth.get_current_active_user),
+    user_logged: models.User = Security(auth.get_current_active_user),
 ):
     """
-    Get all users
+    Get playing users
     """
     users_db = users.get_users(db)
     playing = []
@@ -95,6 +99,9 @@ async def upload_achievement_image(
     db: Session = Depends(get_db),
     user: models.User = Security(auth.get_current_active_user),
 ):
+    """
+    Upload achievement image
+    """
     allowed_types = ["image/jpeg", "image/jpg", "image/png"]
     logger.info("Content Type: " + file.content_type)
     if file.content_type not in allowed_types:
@@ -125,6 +132,9 @@ async def get_achievement_image(
     db: Session = Depends(get_db),
     # api_key: None = Security(auth.get_api_key),
 ):
+    """
+    Get achievement image
+    """
     if not achievements.get_ach_by_key(db, achievement):
         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
@@ -132,6 +142,6 @@ async def get_achievement_image(
         data = achievements.get_image(db, achievement)
         if data[0] is None:
             return Response(content="Achievement has no image", status_code=400)
-        return Response(content=data[0], media_type="image/jpeg")
+        return Response(content=data[0], media_type="image/*")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

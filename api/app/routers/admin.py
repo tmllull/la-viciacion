@@ -47,8 +47,16 @@ def get_db():
 @router.get("/")
 @version(1)
 def test_endpoint(user: models.User = Security(auth.get_current_active_user)):
-    """
-    Test endpoint
+    """_summary_
+
+    Args:
+        user (models.User, optional): _description_. Defaults to Security(auth.get_current_active_user).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     if not user.is_admin:
         raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
@@ -61,8 +69,17 @@ def init(
     db: Session = Depends(get_db),
     api_key: None = Security(auth.get_api_key),
 ):
-    """
-    Init base data
+    """_summary_
+
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+        api_key (None, optional): _description_. Defaults to Security(auth.get_api_key).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     try:
         logger.info("Creating admin users")
@@ -95,6 +112,20 @@ async def sync_data(
     ),
     db: Session = Depends(get_db),
 ):
+    """Sync data from Clockify
+
+    Args:
+        api_key (None, optional): API Key. Defaults to Security(auth.get_api_key).
+        sync_season (bool, optional): Select if sync entire current season. Defaults to Query( default=None, title="Sync all season data", description="Sync all time entries for the current year", ).
+        silent (bool, optional): Sync data without send Telegram notifications. Defaults to Query( default=None, title="Run in silent mode", description="Disable Telegram notifications", ).
+        sync_all (bool, optional): Sync entire data (from the very beginning). Defaults to Query( default=None, title="Sync all data", description="Sync all time entries for the whole time", ).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
+    """
     try:
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
@@ -113,8 +144,19 @@ def update_user(
     user: models.User = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Update user by admin
+    """_summary_
+
+    Args:
+        user_data (schemas.UserUpdateForAdmin): _description_
+        user (models.User, optional): _description_. Defaults to Security(auth.get_current_active_user).
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     if not user.is_admin:
         raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
@@ -131,6 +173,19 @@ def activate_account(
     db: Session = Depends(get_db),
     api_key: None = Security(auth.get_api_key),
 ):
+    """_summary_
+
+    Args:
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+        api_key (None, optional): _description_. Defaults to Security(auth.get_api_key).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
+    """
     if users.activate_account(db, username):
         return msg.ACCOUNT_ALREADY_ACTIVATED
     else:
@@ -143,58 +198,15 @@ def send_email(
     info: schemas.Email,
     api_key: None = Security(auth.get_api_key),
 ):
-    """ """
+    """_summary_
+
+    Args:
+        info (schemas.Email): _description_
+        api_key (None, optional): _description_. Defaults to Security(auth.get_api_key).
+
+    Returns:
+        _type_: _description_
+    """
     return email.send_mail(
         receivers=info.receiver, subject=info.subject, msg=info.message
     )
-
-
-# @router.patch("/achievement-image/{achievement}")
-# @version(1)
-# async def upload_achievement_image(
-#     achievement: str,
-#     # file: Annotated[UploadFile, File(description="A file read as UploadFile")],
-#     file: UploadFile,
-#     db: Session = Depends(get_db),
-#     api_key: None = Security(auth.get_api_key),
-# ):
-#     allowed_types = ["image/jpeg", "image/jpg", "image/png"]
-#     logger.info("Content Type: " + file.content_type)
-#     if file.content_type not in allowed_types:
-#         logger.info(msg.FILE_TYPE_NOT_ALLOWED)
-#         raise HTTPException(
-#             status_code=400,
-#             detail=msg.FILE_TYPE_NOT_ALLOWED,
-#         )
-#     if not achievements.get_ach_by_key(db, achievement):
-#         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
-#         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
-#     logger.info("File size: " + str(file.size))
-#     if file.size > 512000:
-#         logger.info(msg.FILE_TOO_BIG_ACHIEVEMENTS)
-#         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
-#     try:
-#         data = await file.read()
-#         achievements.upload_image(db, achievement, data)
-#         return "Image uploaded"
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-# @router.get("/achievement-image/{achievement}")
-# @version(1)
-# async def get_achievement_image(
-#     achievement: str,
-#     db: Session = Depends(get_db),
-#     api_key: None = Security(auth.get_api_key),
-# ):
-#     if not achievements.get_ach_by_key(db, achievement):
-#         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
-#         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
-#     try:
-#         data = achievements.get_image(db, achievement)
-#         if data[0] is None:
-#             return Response(content="Achievement has no image", status_code=400)
-#         return Response(content=data[0], media_type="image/jpeg")
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))

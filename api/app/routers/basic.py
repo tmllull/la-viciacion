@@ -50,8 +50,14 @@ async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
 ):
-    """
-    Login endpoint
+    """_summary_
+
+    Args:
+        form_data (Annotated[OAuth2PasswordRequestForm, Depends): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     return await login_for_access_token(form_data, db)
 
@@ -115,6 +121,18 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
 ):
+    """_summary_
+
+    Args:
+        form_data (Annotated[OAuth2PasswordRequestForm, Depends): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
+    """
     user = auth.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -144,5 +162,10 @@ async def login_for_access_token(
 def active_user(user: models.User = Security(auth.get_current_active_user)):
     """
     Get active user info
+    """
+    """_summary_
+
+    Returns:
+        _type_: _description_
     """
     return user

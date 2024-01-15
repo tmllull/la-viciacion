@@ -51,8 +51,13 @@ class RankingUsersTypes(str, Enum):
 @router.get("/", response_model=list[schemas.User])
 @version(1)
 def get_users(db: Session = Depends(get_db)):
-    """
-    Get all users
+    """_summary_
+
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
     """
     users_db = users.get_users(db)
     return users_db
@@ -61,8 +66,17 @@ def get_users(db: Session = Depends(get_db)):
 @router.get("/{username}", response_model=schemas.User)
 @version(1)
 def get_user(username: str, db: Session = Depends(get_db)):
-    """
-    Get user by username
+    """_summary_
+
+    Args:
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     user_db = users.get_user_by_username(db, username)
     if user_db is None:
@@ -73,8 +87,17 @@ def get_user(username: str, db: Session = Depends(get_db)):
 @router.get("/{username}/weekly-resume")
 @version(1)
 async def get_weekly_resume(username: str, db: Session = Depends(get_db)):
-    """
-    Get weekly resume
+    """_summary_
+
+    Args:
+        username (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
     """
     user_db = users.get_user_by_username(db, username)
     if user_db is None:
@@ -245,6 +268,6 @@ async def get_avatar(
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     try:
         data = users.get_avatar(db, username)
-        return Response(content=data[0], media_type="image/jpeg")
+        return Response(content=data[0], media_type="image/*")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

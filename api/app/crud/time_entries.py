@@ -602,6 +602,7 @@ def get_weekly_sessions(
         .filter(models.TimeEntry.user_id == user.id)
         .filter(func.DATE(models.TimeEntry.start) >= first_day)
         .filter(func.DATE(models.TimeEntry.start) <= last_day)
+        .filter(models.TimeEntry.duration > 0)
         .all()
     )
     return weekly_sessions

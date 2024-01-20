@@ -116,6 +116,16 @@ def get_user_statistics(
     ranking: str = None,
     db: Session = Depends(get_db),
 ):
+    """_summary_
+
+    Args:
+        username (str): _description_
+        ranking (str, optional): _description_. Defaults to None.
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
     if ranking is not None:
         rankings_list = ranking.split(",")
     else:

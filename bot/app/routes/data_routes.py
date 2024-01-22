@@ -270,11 +270,15 @@ class DataRoutes:
                     logger.info(response.json())
                     clockify_id = response.json()["id"]
                 context.user_data[CLOCKIFY_PROJECT_ID] = clockify_id
-                release_date = str(
-                    datetime.strptime(
-                        context.user_data[RELEASE_DATE], "%d-%m-%Y"
-                    ).date()
-                )
+                try:
+                    release_date = str(
+                        datetime.strptime(
+                            context.user_data[RELEASE_DATE], "%d-%m-%Y"
+                        ).date()
+                    )
+                except Exception as e:
+                    logger.warning("Release date error: " + str(e))
+                    release_date = None
                 new_game = {
                     "name": context.user_data[GAME],
                     "dev": context.user_data[DEV],

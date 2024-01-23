@@ -114,7 +114,7 @@ async def upload_achievement_image(
         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
     logger.info("File size: " + str(file.size))
-    if file.size > 512000:
+    if file.size > 1024000:
         logger.info(msg.FILE_TOO_BIG_ACHIEVEMENTS)
         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
     try:

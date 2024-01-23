@@ -38,7 +38,7 @@ class AchievementsElems(Enum):
         "message": "De las 24h del día, 8 se deberían dedicar a dormir, y las otras 16 a hacer cosas. "
         + "*"
         + "{}"
-        + "* ha deicidido invertirlas a jugar. Lo de comer y hacer otras necesidades como asearse ya para otro día.",
+        + "* ha decidido invertirlas a jugar. Lo de comer y hacer otras necesidades como asearse ya para otro día.",
     }
 
     # Time on game

@@ -361,3 +361,4 @@ logs.log
 db*
 docker-compose.yml
 Dockerfile
+assets/*

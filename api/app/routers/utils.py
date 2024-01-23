@@ -1,3 +1,5 @@
+import imghdr
+
 from fastapi import APIRouter, Depends, HTTPException, Response, Security, UploadFile
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
@@ -114,7 +116,7 @@ async def upload_achievement_image(
         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
     logger.info("File size: " + str(file.size))
-    if file.size > 512000:
+    if file.size > 1024000:
         logger.info(msg.FILE_TOO_BIG_ACHIEVEMENTS)
         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
     try:
@@ -142,6 +144,8 @@ async def get_achievement_image(
         data = achievements.get_image(db, achievement)
         if data[0] is None:
             return Response(content="Achievement has no image", status_code=400)
-        return Response(content=data[0], media_type="image/*")
+        format_type = imghdr.what(None, h=data[0])
+        # print(format_type)
+        return Response(content=data[0], media_type="image/" + format_type)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

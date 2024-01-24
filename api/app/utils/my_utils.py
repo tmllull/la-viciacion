@@ -1,12 +1,14 @@
 import datetime
 import json
 import re
+from io import BytesIO
 
 import pytz
 import requests
 import telegram
 from dateutil.parser import isoparse
 from howlongtobeatpy import HowLongToBeat
+from PIL import Image
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
@@ -238,16 +240,44 @@ async def sync_clockify_entries(
         raise e
 
 
-async def send_message(msg, silent):
+def convert_blob_to_image(
+    blob_data,
+    output_format: str,
+):
+    try:
+        image = Image.open(BytesIO(blob_data))
+        converted_image = BytesIO()
+        image.save(converted_image, format=output_format)
+        converted_data = converted_image.getvalue()
+
+        return converted_data
+    except Exception as e:
+        print(f"Error converting image: {e}")
+        raise
+
+
+async def send_message(msg, silent, image=None):
+    logger.info("Sending message...")
     if not silent:
         bot = telegram.Bot(config.TELEGRAM_TOKEN)
         async with bot:
-            await bot.send_message(
-                text=msg,
-                chat_id=config.TELEGRAM_GROUP_ID,
-                parse_mode=telegram.constants.ParseMode.MARKDOWN,
-            )
-        logger.info("Message sent successfully!")
+            try:
+                if image is None:
+                    await bot.send_message(
+                        text=msg,
+                        chat_id=config.TELEGRAM_GROUP_ID,
+                        parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                    )
+                else:
+                    await bot.send_photo(
+                        chat_id=config.TELEGRAM_GROUP_ID,
+                        photo=image,
+                        caption=msg,
+                        parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                    )
+                logger.info("Message sent successfully!")
+            except Exception as e:
+                logger.error("Error sending telegram message: " + str(e))
 
 
 async def send_message_to_user(user_telegram_id, msg):

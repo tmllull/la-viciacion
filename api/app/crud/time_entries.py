@@ -396,16 +396,9 @@ async def sync_clockify_entries_db(
                     db.commit()
                 if completed is not None and already_playing.completed != 1:
                     logger.info("Completing game " + str(game.id) + "...")
-                    # played_time = get_user_games_played_time(db, user.id, game.id)
-                    # # The follow list only will have 1 item
-                    # for played_game in played_time:
-                    #     users.update_played_time_game(
-                    #         db, user.id, played_game[0], played_game[1]
-                    #     )
-                    # Force to update played time game for user
-                    logger.info("Updating played game time...")
-                    played_time_games = get_user_games_played_time(db, user.id)
-                    for played_game in played_time_games:
+                    played_time = get_user_games_played_time(db, user.id, game.id)
+                    # The follow list only will have 1 item
+                    for played_game in played_time:
                         users.update_played_time_game(
                             db, user.id, played_game[0], played_game[1]
                         )

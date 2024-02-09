@@ -622,6 +622,19 @@ async def complete_game(
 ):
     current_year = datetime.datetime.now().year
     try:
+        db_game = games.get_game_by_id(db, game_id)
+        user = get_user_by_id(db, user_id)
+        user_game = get_game_by_id(db, user_id, db_game.id)
+        game_info = await utils.get_game_info(db_game.name)
+        if not from_sync:
+            clockify_response = clockify_api.create_empty_time_entry(
+                db,
+                user.clockify_key,
+                game_id,
+                user_game.platform,
+                completed=True,
+            )
+            return get_game_by_id(db, user_id, game_id)
         if completed_date is None:
             completed_date = datetime.datetime.now()
         else:
@@ -654,24 +667,24 @@ async def complete_game(
         db.execute(stmt)
         db.commit()
         logger.info("Game completed")
-        db_game = games.get_game_by_id(db, game_id)
-        user = get_user_by_id(db, user_id)
-        user_game = get_game_by_id(db, user_id, db_game.id)
-        game_info = await utils.get_game_info(db_game.name)
+        # db_game = games.get_game_by_id(db, game_id)
+        # user = get_user_by_id(db, user_id)
+        # user_game = get_game_by_id(db, user_id, db_game.id)
+        # game_info = await utils.get_game_info(db_game.name)
         if game_info["hltb"] is not None:
             avg_time = game_info["hltb"]["comp_main"]
         else:
             avg_time = 0
         games.update_avg_time_game(db, game_id, avg_time)
         game = games.get_game_by_id(db, game_id)
-        if not from_sync:
-            clockify_response = clockify_api.create_empty_time_entry(
-                db,
-                user.clockify_key,
-                game_id,
-                user_game.platform,
-                completed=True,
-            )
+        # if not from_sync:
+        #     clockify_response = clockify_api.create_empty_time_entry(
+        #         db,
+        #         user.clockify_key,
+        #         game_id,
+        #         user_game.platform,
+        #         completed=True,
+        #     )
         num_completed_games = (
             db.query(models.UserGame.game_id)
             .filter_by(user_id=user_id, completed=1)

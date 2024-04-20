@@ -193,6 +193,7 @@ class TimeEntry(Base):
     start = Column(DateTime)
     end = Column(DateTime)
     duration = Column(Integer)
+    tags = Column(String(255))
 
     __table_args__ = (UniqueConstraint("id"),)
 

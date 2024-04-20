@@ -357,7 +357,7 @@ yarn-error.log*
 # Custom files
 logs.log
 *.crt
-.gitlab-ci.yml
+# .gitlab-ci.yml
 db*
 docker-compose.yml
 Dockerfile

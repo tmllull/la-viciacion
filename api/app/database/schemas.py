@@ -216,6 +216,7 @@ class TimeEntrie(BaseModel):
     start: Union[datetime.date, None] = None
     end: Union[datetime.date, None] = None
     duration: Union[int, None] = None
+    tags: Union[str, None] = None
 
     class Config:
         from_attributes = True

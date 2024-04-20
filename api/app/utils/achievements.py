@@ -163,35 +163,35 @@ class AchievementsElems(Enum):
     # Total days
     PLAYED_7_DAYS = {
         "title": "7 días jugados",
-        "message": "*{}* ha acumulado un total de 7 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 7 días jugados en lo que va de año.",
     }
     PLAYED_15_DAYS = {
         "title": "15 días jugados",
-        "message": "*{}* ha acumulado un total de 15 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 15 días jugados en lo que va de año.",
     }
     PLAYED_30_DAYS = {
         "title": "30 días jugados",
-        "message": "*{}* ha acumulado un total de 30 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 30 días jugados en lo que va de año.",
     }
     PLAYED_60_DAYS = {
         "title": "60 días jugados",
-        "message": "*{}* ha acumulado un total de 60 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 60 días jugados en lo que va de año.",
     }
     PLAYED_100_DAYS = {
         "title": "100 días jugados",
-        "message": "*{}* ha acumulado un total de 100 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 100 días jugados en lo que va de año.",
     }
     PLAYED_200_DAYS = {
         "title": "200 días jugados",
-        "message": "*{}* ha acumulado un total de 200 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 200 días jugados en lo que va de año.",
     }
     PLAYED_300_DAYS = {
         "title": "300 días jugados",
-        "message": "*{}* ha acumulado un total de 300 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 300 días jugados en lo que va de año.",
     }
     PLAYED_365_DAYS = {
         "title": "365 días jugados",
-        "message": "*{}* ha acumulado un total de 365 días jugados en lo que va de año.",
+        "message": "*{}* acumula un total de 365 días jugados en lo que va de año.",
     }
 
     # Streaks

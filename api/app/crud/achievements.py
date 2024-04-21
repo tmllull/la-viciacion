@@ -100,8 +100,6 @@ class Achievements:
     def check_already_achieved(
         self, db: Session, user_id: int, key: str, date: str = None
     ) -> bool:
-        if date is not None:
-            year = datetime.datetime.strptime(date, "%Y-%m-%d").year
         ach_id = self.get_ach_by_key(db, str(key))
         already_achieved = (
             db.query(models.UserAchievement)

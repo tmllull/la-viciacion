@@ -1,3 +1,4 @@
+import base64
 import logging
 import sys
 
@@ -21,8 +22,11 @@ if not logger.handlers:
     logger.addHandler(stdout_handler)
 
 
-def info(msg):
-    logger.info(msg)
+def info(msg: str):
+    if msg.isalnum():
+        logger.info(msg)
+    else:
+        logger.info(base64.b64encode(msg.encode("UTF-8")))
 
 
 def debug(msg):

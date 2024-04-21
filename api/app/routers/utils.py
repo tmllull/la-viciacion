@@ -18,11 +18,11 @@ models.Base.metadata.create_all(bind=engine)
 
 achievements = Achievements()
 
+# To add dependency for active user: dependencies=[Depends(auth.get_current_active_user)],
 router = APIRouter(
     prefix="/utils",
     tags=["Utils"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(auth.get_current_active_user)],
 )
 
 
@@ -105,7 +105,6 @@ async def upload_achievement_image(
     Upload achievement image
     """
     allowed_types = ["image/jpeg", "image/jpg", "image/png"]
-    logger.info("Content Type: " + file.content_type)
     if file.content_type not in allowed_types:
         logger.info(msg.FILE_TYPE_NOT_ALLOWED)
         raise HTTPException(

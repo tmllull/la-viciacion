@@ -479,12 +479,12 @@ async def check_forgotten_timer(db: Session, user: models.User):
     # hour = current_time.hour
     minutes = current_time.minute
     active_timer = time_entries.get_forgotten_timer_by_user(db, user)
-    if active_timer is not None and (minutes == 0 or minutes == 30):
+    if active_timer is not None and (minutes == 0):
         logger.info(user.name + " has an active timer for more than 3 hours")
         msg = (
             "Hola, "
             + user.name
-            + ". Tienes un timer activo desde hace más de 3 horas."
+            + ". Tienes un timer activo desde hace más de 4 horas."
             + " Si es correcto, sigue disfrutando. Si te has olvidado de pararlo,"
             + " por favor, descartalo (no lo pares, tienes una"
             + " opción para descartar sin guardar) y añade una entrada a mano con el tiempo correcto."

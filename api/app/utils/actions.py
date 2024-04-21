@@ -121,9 +121,6 @@ async def sync_data(
             # Update some user statistics
             logger.info("Updating played days...")
             played_days_season = time_entries.get_played_days(db, user.id)
-            # played_days_total = time_entries.get_played_days(
-            #     db, user.id, start_date=config.INITIAL_DATE
-            # )
             users.update_played_days(db, user.id, len(played_days_season))
             # Check played days achievement
             await achievements.user_played_total_days(
@@ -200,21 +197,10 @@ async def sync_data(
         await utils.send_message_to_admins(db, "Error on sync: " + str(e))
 
 
-# async def sync_games_from_clockify(db: Session):
-#     # TODO: TBI if needed. The following code not works
-#     played_games = games.get_all_played_games(db)
-#     logger.info("Adding games...")
-#     for game in played_games:
-#         if not games.get_game_by_name(db, game[0]):
-#             await games.new_game(db, game)
-
-
 def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEntry]):
     """
     TODO:
     """
-    #    played_dates = time_entries.get_played_days(db, user.id)
-    # return
 
     max_streak = 0
     start_streak_date = None
@@ -476,7 +462,6 @@ async def ranking_players_hours(db: Session, silent: bool):
 async def check_forgotten_timer(db: Session, user: models.User):
     logger.info("Check forgotten timers...")
     current_time = datetime.datetime.now().time()
-    # hour = current_time.hour
     minutes = current_time.minute
     active_timer = time_entries.get_forgotten_timer_by_user(db, user)
     if active_timer is not None and (minutes == 0):
@@ -496,7 +481,6 @@ async def check_forgotten_timer(db: Session, user: models.User):
 def delete_older_timers(db: Session):
     logger.info("Delete older timers...")
     current_time = datetime.datetime.now().time()
-    # hour = current_time.hour
     minutes = current_time.minute
     active_timers = time_entries.get_older_timers(db)
     for timer in active_timers:

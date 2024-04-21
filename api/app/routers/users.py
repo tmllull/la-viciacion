@@ -151,7 +151,6 @@ async def add_game_to_user(
     if already_playing:
         raise HTTPException(status_code=409, detail=msg.USER_ALREADY_PLAYING)
     try:
-        # played_games = users.get_games(db, user.id)
         game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             raise HTTPException(status_code=404, detail=msg.GAME_NOT_FOUND)

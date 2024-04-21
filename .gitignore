@@ -362,3 +362,4 @@ db*
 docker-compose.yml
 Dockerfile
 assets/*
+.vscode

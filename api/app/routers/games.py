@@ -81,7 +81,6 @@ async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
 #     game_db = games.get_game_by_name(db, name)
 #     if game_db is None:
 #         raise HTTPException(status_code=404, detail="Game not exists")
-
 #     return game_db
 
 

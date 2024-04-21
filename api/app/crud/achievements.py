@@ -213,7 +213,6 @@ class Achievements:
         silent: bool = False,
     ):
         logger.info("Check played time in one day achievements...")
-        # played_time = played_time / 60 / 60
         played_days = time_entries.get_played_time_by_day(db, user.id)
         for played_day in played_days:
             date = str(played_day[0])
@@ -727,15 +726,12 @@ class Achievements:
                 players = players[:-2]
                 players = players.rsplit(",", 1)
                 players = " y".join(players)
-                # TODO: send notification
                 msg = utils.get_ach_message(ach, user=players)
                 await utils.send_message(
                     msg,
                     silent,
                     image=self.get_image(db, ach.name)[0],
                 )
-                # else:
-                #     db.delete(notification_all_sent)
             else:
                 logger.info("All users unlocked this achievement")
 
@@ -796,8 +792,6 @@ class Achievements:
             first_day, last_day = utils.get_last_week_range_dates()
         else:
             first_day, last_day = utils.get_current_week_range_dates()
-        # logger.info(first_day)
-        # logger.info(last_day)
         weekly_achievements = (
             db.query(func.count(models.UserAchievement.id))
             .filter(models.UserAchievement.user_id == user.id)
@@ -805,8 +799,6 @@ class Achievements:
             .filter(func.DATE(models.UserAchievement.date) <= last_day)
             .all()
         )
-        # print(sorted(played_days))
-        # print(sorted(unique_dates))
         return weekly_achievements
 
     def just_in_time(

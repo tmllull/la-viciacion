@@ -183,10 +183,8 @@ def create_user_statistics_historical(db: Session, user_id: id):
 
 def update_user(db: Session, user: schemas.UserUpdate):
     try:
-        # logger.info(user)
         db_user = get_user_by_username(db, user.username)
         name = user.name if user.name is not None else db_user.name
-        # username = user.username if user.username is not None else db_user.username
         email = user.email if user.email is not None else db_user.email
         telegram_id = (
             user.telegram_id if user.telegram_id is not None else db_user.telegram_id
@@ -230,10 +228,8 @@ def update_user(db: Session, user: schemas.UserUpdate):
 
 def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
     try:
-        # logger.info(user)
         db_user = get_user_by_username(db, user.username)
         name = user.name if user.name is not None else db_user.name
-        # username = user.username if user.username is not None else db_user.username
         email = user.email if user.email is not None else db_user.email
         telegram_id = (
             user.telegram_id if user.telegram_id is not None else db_user.telegram_id
@@ -368,12 +364,10 @@ async def add_new_game(
             return None
         if current_year == config.CURRENT_SEASON:
             try:
-                # info_game = await utils.get_game_info(game_db.name)
                 user_game = models.UserGame(
                     game_id=game_db.id,
                     user_id=user.id,
                     completed=0,
-                    # project_clockify_id=game_db.clockify_id,
                     platform=game.platform,
                     started_date=started_date,
                 )
@@ -383,7 +377,6 @@ async def add_new_game(
             except SQLAlchemyError as e:
                 db.rollback()
                 if "Duplicate" not in str(e):
-                    # else:
                     logger.info("Error adding new user game: " + str(e))
                     raise e
         try:
@@ -391,7 +384,6 @@ async def add_new_game(
                 game_id=game_db.id,
                 user_id=user.id,
                 completed=0,
-                # project_clockify_id=game_db.clockify_id,
                 platform=game.platform,
                 started_date=started_date,
             )
@@ -401,7 +393,6 @@ async def add_new_game(
         except SQLAlchemyError as e:
             db.rollback()
             if "Duplicate" not in str(e):
-                # else:
                 logger.info("Error adding new user game historical: " + str(e))
                 raise e
         played_games = get_games(db, user.id)
@@ -452,7 +443,6 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
         except SQLAlchemyError as e:
             db.rollback()
             if "Duplicate" not in str(e):
-                # else:
                 logger.info("Error adding new game statistics: " + str(e))
                 raise e
     try:
@@ -471,7 +461,6 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
     except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            # else:
             logger.info("Error adding new game statistics: " + str(e))
             raise e
 
@@ -515,15 +504,12 @@ def get_games(
         stmt = (
             select(
                 models.UserGame.__table__,
-                # models.Game.name.label("game_name"),
-                # models.PlatformTag.name.label("platform_name"),
             )
-            # .join(models.Game, models.UserGame.game_id == models.Game.id)
-            # .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .where(
                 models.UserGame.user_id == user_id,
                 models.UserGame.completed == completed,
-            ).limit(limit)
+            )
+            .limit(limit)
         )
         return db.execute(stmt).fetchall()
 
@@ -531,12 +517,9 @@ def get_games(
         stmt = (
             select(
                 models.UserGame.__table__,
-                # models.Game.name.label("game_name"),
-                # models.PlatformTag.name.label("platform_name"),
             )
-            # .join(models.Game, models.UserGame.game_id == models.Game.id)
-            # .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
-            .where(models.UserGame.user_id == user_id).limit(limit)
+            .where(models.UserGame.user_id == user_id)
+            .limit(limit)
         )
         return db.execute(stmt).fetchall()
 
@@ -548,9 +531,7 @@ def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
 def update_played_days(
     db: Session, user_id: int, season_played_days: int, total_played_days: int = None
 ):
-    # current_year = datetime.datetime.now().year
     try:
-        # if current_year == config.CURRENT_SEASON:
         stmt = (
             update(models.UserStatistics)
             .where(models.UserStatistics.user_id == user_id)
@@ -667,24 +648,12 @@ async def complete_game(
         db.execute(stmt)
         db.commit()
         logger.info("Game completed")
-        # db_game = games.get_game_by_id(db, game_id)
-        # user = get_user_by_id(db, user_id)
-        # user_game = get_game_by_id(db, user_id, db_game.id)
-        # game_info = await utils.get_game_info(db_game.name)
         if game_info["hltb"] is not None:
             avg_time = game_info["hltb"]["comp_main"]
         else:
             avg_time = 0
         games.update_avg_time_game(db, game_id, avg_time)
         game = games.get_game_by_id(db, game_id)
-        # if not from_sync:
-        #     clockify_response = clockify_api.create_empty_time_entry(
-        #         db,
-        #         user.clockify_key,
-        #         game_id,
-        #         user_game.platform,
-        #         completed=True,
-        #     )
         num_completed_games = (
             db.query(models.UserGame.game_id)
             .filter_by(user_id=user_id, completed=1)
@@ -706,14 +675,6 @@ async def complete_game(
         logger.info(message)
         await utils.send_message(message, silent)
         return get_game_by_id(db, user_id, game_id)
-        # num_completed_games = (
-        #     db.query(models.UserGame.game_id)
-        #     .filter_by(user_id=user_id, completed=1)
-        #     .count()
-        # )
-        # user_game = get_game_by_id(db, user_id, game_id)
-        # completion_time = user_game.completion_time
-        # return num_completed_games, completion_time
 
     except Exception as e:
         db.rollback()
@@ -741,7 +702,6 @@ async def rate_game(
         db.execute(stmt)
         db.commit()
         return get_game_by_id(db, user_id, game_id)
-        logger.info("Game completed")
 
     except Exception as e:
         db.rollback()
@@ -955,20 +915,6 @@ def last_completed_games(db: Session, username: str, limit: int = 10):
 def get_achievements(db: Session, username: str):
     try:
         user = get_user_by_username(db, username)
-        # stmt = (
-        #     select(
-        #         models.UserAchievement.user_id,
-        #         models.UserAchievement.achievement_id,
-        #         models.Achievement.id,
-        #         models.Achievement.title,
-        #     )
-        #     .join(models.User, models.User.id == models.UserAchievement.user_id)
-        #     .join(
-        #         models.Achievement, models.UserAchievement.id == models.Achievement.id
-        #     )
-        #     .where(models.UserAchievement.user_id == user.id)
-        #     .group_by(models.UserAchievement.user_id)
-        # )
         stmt = (
             select(
                 models.UserAchievement.user_id,

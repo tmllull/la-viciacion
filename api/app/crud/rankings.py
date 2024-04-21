@@ -58,7 +58,6 @@ def user_days_played(db: Session, limit: int = None) -> list[models.User]:
             .join(
                 models.UserStatistics, models.User.id == models.UserStatistics.user_id
             )
-            # .group_by(models.User.id, models.User.name)
             .order_by(desc(models.UserStatistics.played_days))
             .limit(limit)
         )
@@ -80,7 +79,6 @@ def user_best_streak(db: Session, limit: int = None):
             .join(
                 models.UserStatistics, models.User.id == models.UserStatistics.user_id
             )
-            # .group_by(models.User.id, models.User.name)
             .order_by(desc(models.UserStatistics.best_streak))
             .limit(limit)
         )
@@ -101,7 +99,6 @@ def user_current_streak(db: Session, limit: int = None):
             .join(
                 models.UserStatistics, models.User.id == models.UserStatistics.user_id
             )
-            # .group_by(models.User.id, models.User.name)
             .order_by(desc(models.UserStatistics.current_streak))
             .limit(limit)
         )
@@ -234,7 +231,6 @@ def games_most_played(db: Session, limit: int = 10):
             .join(
                 models.GameStatistics, models.Game.id == models.GameStatistics.game_id
             )
-            # .group_by(models.User.id, models.User.name)
             .order_by(desc(models.GameStatistics.played_time))
             .limit(limit)
         )

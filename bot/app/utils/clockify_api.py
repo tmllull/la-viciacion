@@ -25,11 +25,6 @@ class ClockifyApi:
             url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
             headers = {"X-API-KEY": api_key}
             payload = data
-
-            # logger.info("Request: {0}: {1}".format(method, url))
-            # logger.info("Headers: {0}".format(headers))
-            # logger.info("Payload: {0}".format(payload))
-
             try:
                 if payload is not None:
                     request = requests.request(
@@ -45,11 +40,6 @@ class ClockifyApi:
                 logger.debug(
                     "Error({}): {}".format(request.status_code, request.content)
                 )
-                # logger.debug(request.content)
-            # else:
-            #     logger.debug(
-            #         "Error({}): {}".format(request.status_code, request.content)
-            #     )
             return request
 
     def add_project(self, project_name):
@@ -96,58 +86,18 @@ class ClockifyApi:
         now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         # TODO: TBI
         return "TBI"
-        user = config.CLOCKIFY_USERS.get(user_id)
-        if api_key is None:
-            return self.API_USER_NOT_ADDED
-        else:
-            if user is not None:
-                endpoint = "/workspaces/{}/user/{}/time-entries".format(
-                    config.CLOCKIFY_WORKSPACE, user
-                )
-                if action == "start":
-                    project_id = self.get_project_id_by_strict_name(game_name, api_key)
-                    method = self.POST
-                    data = {
-                        "start": now,
-                        "description": "new time register for " + game_name,
-                        "billable": "false",
-                        "projectId": project_id,
-                    }
-                elif action == "stop":
-                    method = self.PATCH
-                    data = {
-                        "end": now,
-                    }
-            else:
-                return self.USER_NOT_EXISTS
-            response = self.send_clockify_request(method, endpoint, data, api_key)
-            # TODO add more handles (if needed)
-            if response.status_code == 404 and action == "stop":
-                return self.ERROR_TIMER_ACTIVE
-            elif response.status_code == 200 or response.status_code == 201:
-                return self.RESPONSE_OK
-            else:
-                return self.GENERIC_ERROR
 
     def active_clockify_timer(self, game_name, user_id):
         # TODO: TBI
         return "TBI"
-        return self.send_clockify_timer_request(
-            "start", user_id, game_name, config.CLOCKIFY_USERS_API.get(user_id)
-        )
 
     def stop_active_clockify_timer(self, user_id):
         # TODO: TBI
         return "TBI"
-        return self.send_clockify_timer_request(
-            "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
-        )
 
     def get_time_entries(self, user_id, start=None):
         if user_id is None:
             return []
-        # start must be in format yyyy-MM-ddThh:mm:ssZ
-        # start = "2023-09-01T00:00:00Z"
         page = 0
         headers = {"X-API-KEY": config.CLOCKIFY_ADMIN_API_KEY}
         entries = []

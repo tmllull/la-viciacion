@@ -39,9 +39,6 @@ class UserForAdmins(UserBase):
     clockify_id: Union[str, None] = None
     clockify_key: Union[str, None] = None
 
-    # class Config:
-    #     from_attributes = True
-
 
 class UserStatistics(BaseModel):
     user_id: int
@@ -53,9 +50,6 @@ class UserStatistics(BaseModel):
     played_days: Union[int, None] = 0
     unplayed_streak: Union[int, None] = None
 
-    # class Config:
-    #     from_attributes = True
-
 
 class UserUpdate(BaseModel):
     name: Union[str, None] = None
@@ -65,9 +59,6 @@ class UserUpdate(BaseModel):
     telegram_id: Union[int, None] = None
     clockify_id: Union[str, None] = None
     clockify_key: Union[str, None] = None
-
-    # class Config:
-    #     from_attributes = True
 
 
 class UserUpdateForAdmin(BaseModel):
@@ -81,20 +72,10 @@ class UserUpdateForAdmin(BaseModel):
     clockify_id: Union[str, None] = None
     clockify_key: Union[str, None] = None
 
-    # class Config:
-    #     from_attributes = True
-
 
 class TelegramUser(BaseModel):
     username: str
     telegram_id: int
-
-
-# class GamesInfoBase(BaseModel):
-#     id: int
-
-#     class Config:
-#         from_attributes = True
 
 
 class Game(BaseModel):
@@ -105,11 +86,8 @@ class Game(BaseModel):
     steam_id: Union[str, None] = None
     image_url: Union[str, None] = None
     genres: Union[str, None] = None
-    # played_time: Union[int, None] = 0
     avg_time: Union[int, None] = 0
     slug: Union[str, None] = None
-    # current_ranking: Optional[Union[int, None]] = 10000000
-    # clockify_id: Union[str, None] = None
 
     class Config:
         from_attributes = True
@@ -135,10 +113,6 @@ class NewGame(BaseModel):
     genres: Optional[Union[str, None]] = None
     avg_time: Optional[Union[int, None]] = None
     slug: Optional[Union[str, None]] = None
-    # clockify_id: Optional[Union[str, None]] = None
-
-    # class Config:
-    #     from_attributes = True
 
 
 class UpdateGame(BaseModel):
@@ -149,7 +123,6 @@ class UpdateGame(BaseModel):
     image_url: Optional[Union[str, None]] = None
     genres: Optional[Union[str, None]] = None
     avg_time: Optional[Union[int, None]] = None
-    # clockify_id: Optional[Union[str, None]] = None
 
 
 class NewGameUser(BaseModel):
@@ -166,23 +139,15 @@ class UsersGamesBase(BaseModel):
 
 class UserGame(UsersGamesBase):
     id: Union[int, None] = None
-    # user: Union[str, None] = None
     user_id: Union[int, None] = None
     game_id: Union[str, None] = None
-    # game_name: Union[str, None] = None
-    # project_clockify_id: Union[str, None] = None
     started_date: Union[datetime.date, None] = None
     platform: Union[str, None] = None
-    # platform_name: Union[str, None] = None
     completed: Union[int, None] = None
     completed_date: Union[datetime.date, None] = None
     score: Union[float, None] = None
     played_time: Union[int, None] = None
     completion_time: Union[int, None] = None
-    # last_update: Union[str, None] = None
-
-    # class Config:
-    #     from_attributes = True
 
 
 class Achievement(BaseModel):
@@ -208,10 +173,8 @@ class UserAchievement(BaseModel):
 
 class TimeEntrie(BaseModel):
     id: Union[int, None] = None
-    # user: Union[str, None] = None
     user_id: Union[str, None] = None
     user_clockify_id: Union[str, None] = None
-    # project: Union[str, None] = None
     project_clockify_id: Union[str, None] = None
     start: Union[datetime.date, None] = None
     end: Union[datetime.date, None] = None
@@ -235,14 +198,3 @@ class HttpExceptionDetailModel(BaseModel):
 
 class HttpException(BaseModel):
     detail: HttpExceptionDetailModel
-
-
-# class CompletedGame(BaseModel):
-#     completed_games: Union[int, None]
-#     completion_time: Union[int, None]
-#     avg_time: Union[int, None]
-
-
-# class RankingsResponse(BaseModel):
-#     type: str
-#     data: List[Union[str, int, None]]

@@ -23,7 +23,6 @@ class Config:
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
             self.RAWG_URL = config["RAWG_URL"]
             self.INITIAL_DATE = config["INITIAL_DATE"]
-            # self.CURRENT_SEASON = int(config["CURRENT_SEASON"])
             self.INVITATION_KEY = config["INVITATION_KEY"]
             self.API_KEY = config["API_KEY"]
             self.SECRET_KEY = config["SECRET_KEY"]
@@ -49,7 +48,6 @@ class Config:
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
             self.RAWG_URL = os.environ["RAWG_URL"]
             self.INITIAL_DATE = os.environ["INITIAL_DATE"]
-            # self.CURRENT_SEASON = int(os.environ["CURRENT_SEASON"])
             self.INVITATION_KEY = os.environ["INVITATION_KEY"]
             self.API_KEY = os.environ["API_KEY"]
             self.SECRET_KEY = os.environ["SECRET_KEY"]
@@ -62,6 +60,3 @@ class Config:
             self.SMTP_PASS = os.environ["SMTP_PASS"]
 
         self.CURRENT_SEASON = datetime.datetime.now().year
-
-        # self.silent = False
-        # self.sync_all = False

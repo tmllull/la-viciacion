@@ -94,14 +94,6 @@ def get_time_entry_by_date(
         )
 
 
-# def get_game_played_time(db: Session, game):
-#     stmt = select(models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)).where(
-#         models.TimeEntry.project == game
-#     )
-#     result = db.execute(stmt)
-#     return result
-
-
 def get_user_games_played_time(
     db: Session, user_id: str, game_id: str = None
 ) -> list[models.TimeEntry]:
@@ -118,17 +110,6 @@ def get_user_games_played_time(
             .group_by(models.TimeEntry.project_clockify_id)
             .all()
         )
-        # stmt = (
-        #     select(
-        #         models.TimeEntry.project_clockify_id,
-        #         func.sum(models.TimeEntry.duration),
-        #     )
-        #     .where(
-        #         models.TimeEntry.user_id == user_id,
-        #         models.TimeEntry.project_clockify_id == game_id,
-        #     )
-        #     .group_by(models.TimeEntry.project_clockify_id)
-        # )
     else:
         return (
             db.query(
@@ -141,15 +122,6 @@ def get_user_games_played_time(
             .group_by(models.TimeEntry.project_clockify_id)
             .all()
         )
-        # stmt = (
-        #     select(
-        #         models.TimeEntry.project_clockify_id,
-        #         func.sum(models.TimeEntry.duration),
-        #     )
-        #     .where(models.TimeEntry.user_id == user_id)
-        #     .group_by(models.TimeEntry.project_clockify_id)
-        # )
-    # return db.execute(stmt)
 
 
 def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntry]:
@@ -196,18 +168,14 @@ def get_played_days(
     for played_day in played_end_days:
         played_days.append(played_day[0])
     unique_dates = list(set(played_days))
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return sorted(unique_dates)
 
 
 async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
-    # current_year = datetime.datetime.now().year
     for entry in entries:
         if entry["projectId"] is None:
-            # TODO: Send user notification
             msg = (
                 "Hola, "
                 + user.name
@@ -346,8 +314,6 @@ async def sync_clockify_entries_db(
                     )
                 db.execute(stmt)
                 db.commit()
-                # update_game = models.UserGame(platform=platform)
-                # users.update_game(db, update_game, already_playing.id)
 
             # Check if game on clockify already exists on local DB
             game = games.get_game_by_id(db, entry["projectId"])
@@ -471,15 +437,12 @@ def get_time_entry_by_time(
 
 
 def get_played_time_by_day(db: Session, user_id: int):
-    played_time_days = []
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start), func.sum(models.TimeEntry.duration))
         .filter(models.TimeEntry.user_id == user_id)
         .group_by(func.DATE(models.TimeEntry.start))
         .all()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return sorted(played_start_days)
 
 
@@ -504,9 +467,6 @@ def get_time_entry_between_hours(
         .filter(extract("hour", models.TimeEntry.start) < end_hour)
         .all()
     )
-
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return time_entries
 
 
@@ -517,15 +477,12 @@ def get_active_time_entry_by_user(db: Session, user: models.User) -> models.Time
         .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
         .first()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return active_time_entry
 
 
 def get_forgotten_timer_by_user(db: Session, user: models.User):
     current_time = datetime.datetime.now()
     time_threshold = current_time - datetime.timedelta(hours=4)
-    # logger.info("Checking active timers since " + str(time_threshold))
     active_time_entry = (
         db.query(models.TimeEntry)
         .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
@@ -533,23 +490,18 @@ def get_forgotten_timer_by_user(db: Session, user: models.User):
         .filter(models.TimeEntry.start < time_threshold)
         .first()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return active_time_entry
 
 
 def get_older_timers(db: Session) -> list[models.TimeEntry]:
     current_time = datetime.datetime.now()
     time_threshold = current_time - datetime.timedelta(minutes=5)
-    # logger.info("Checking active timers since " + str(time_threshold))
     active_time_entry = (
         db.query(models.TimeEntry)
         .filter(models.TimeEntry.duration.is_(None))
         .filter(models.TimeEntry.start < time_threshold)
         .all()
     )
-    # print(sorted(played_days))
-    # print(sorted(unique_dates))
     return active_time_entry
 
 
@@ -633,8 +585,3 @@ def get_weekly_games(
         .all()
     )
     return weekly_games
-
-
-# def get_all_played_games(db: Session):
-#     stmt = select(models.TimeEntry.project, models.TimeEntry.project_id)
-#     return db.execute(stmt)

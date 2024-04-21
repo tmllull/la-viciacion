@@ -13,23 +13,6 @@ config = Config()
 
 
 class AdminRoutes:
-    # async def get_users(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-    #     logger.info("Getting users...")
-    #     try:
-    #         query = update.callback_query
-    #         user = query.from_user
-    #         if user.id in config.ADMIN_USERS:
-    #             users = requests.get(config.API_URL + "/users").json()
-    #             msg = ""
-    #             for user in users:
-    #                 username = str(user["username"])
-    #                 name = str(user["name"])
-    #                 user_id = str(user["telegram_id"])
-    #                 msg += name + ": " + username + " - " + user_id + "\n"
-    #             await utils.response_conversation(update, context, msg)
-    #             return ConversationHandler.END
-    #     except Exception as e:
-    #         logger.info(e)
 
     async def send_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info("Send message option...")

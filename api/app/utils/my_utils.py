@@ -114,11 +114,8 @@ def get_last_week_range_dates():
     first_day_current_week = current_date - datetime.timedelta(
         days=current_date.weekday()
     )
-    # last_date_current_week = first_day_current_week + datetime.timedelta(days=6)
     first_day_last_week = first_day_current_week - datetime.timedelta(days=7)
     last_day_last_week = first_day_current_week - datetime.timedelta(days=1)
-    # logger.info(first_day_last_week.date())
-    # logger.info(last_day_last_week.date())
     return first_day_last_week.date(), last_day_last_week.date()
 
 
@@ -128,8 +125,6 @@ def get_current_week_range_dates():
         days=current_date.weekday()
     )
     last_day_current_week = first_day_current_week + datetime.timedelta(days=6)
-    # logger.info(first_day_current_week.date())
-    # logger.info(last_day_current_week.date())
     return first_day_current_week.date(), last_day_current_week.date()
 
 
@@ -207,7 +202,6 @@ async def get_new_game_info(game) -> schemas.NewGame:
     genres = genres[:-1]
     image_url = rawg_info["background_image"]
     new_game = schemas.NewGame(
-        # id=project_id,
         name=game_name,
         dev=dev,
         release_date=release_date,
@@ -316,7 +310,7 @@ async def send_message_to_admins(db: Session, msg):
 def get_ach_message(
     ach: AchievementsElems, user: str, db: Session = None, game_id: str = None
 ):
-    msg = "🏆"  +ach.value["title"]  +"🏆\n"
+    msg = "🏆" + ach.value["title"] + "🏆\n"
     if game_id is not None:
         game_db = games.get_game_by_id(db, game_id)
         msg = msg + ach.value["message"].format(user, game_db.name)

@@ -44,9 +44,6 @@ class BasicRoutes:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
         try:
-            # logger.info(update)
-            # await utils.response_conversation(update, context, "Checkpoint")
-            # logger.info("Validating account...")
             query = update.callback_query
             await query.answer()
             response = utils.make_request(

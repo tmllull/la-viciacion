@@ -223,33 +223,6 @@ class RankingRoutes:
         logger.info("Ranking debt")
         await utils.response_conversation(update, context, "Deuda técnica: TBI")
         return
-        # debt_list = {}
-        # # db.log(context.user_data["user"], ActionLogs.RANKING_DEBT)
-        # db.cursor.execute(dbq.players)
-        # players = db.cursor.fetchall()
-        # for player in players:
-        #     debt = 0
-        #     db.cursor.execute(dbq.get_played_mean_hours, (player[0],))
-        #     played_mean_hours = db.cursor.fetchall()
-        #     for row in played_mean_hours:
-        #         played = row[0]
-        #         mean = float(row[1])
-        #         if mean > 0:
-        #             h_mean = int(str(mean).split(".")[0]) * 60 * 60
-        #             remaining_minutes = mean - float(str(mean).split(".")[0])
-        #             m_mean = round(remaining_minutes * 60) * 60
-        #             mean_seconds = h_mean + m_mean
-        #             if mean_seconds > int(played):
-        #                 debt = debt + (mean_seconds - int(played))
-        #     debt_list[player[0]] = debt
-        # debt_list = dict(sorted(debt_list.items(), key=lambda x: x[1], reverse=True))
-        # msg = "Deuda técnica:\n"
-        # for player in debt_list:
-        #     debt = utils.convert_time_to_hours(debt_list[player])
-        #     msg = msg + player + ": " + debt + "\n"
-        #     # logger.info(player[0] + "-" + str(debt))
-
-        # await utils.response_conversation(update, context, msg)
 
     async def games_last_played(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -284,15 +257,3 @@ class RankingRoutes:
                 + "\n"
             )
         await utils.response_conversation(update, context, msg)
-
-        # await utils.response_conversation(update, context, "TBI")
-        # return
-        # db.log(context.user_data["user"], ActionLogs.RANKING_MOST_PLAYED)
-        # most_played = db.ranking_most_played_games()
-        # msg = "Juegos más jugados:\n"
-        # for i, game in enumerate(most_played):
-        #     time = utils.convert_time_to_hours(game[1])
-        #     msg = (
-        #         msg + str(i + 1) + ". *" + str(game[0]) + "*" + " - " + str(time) + "\n"
-        #     )
-        # await utils.response_conversation(update, context, msg)

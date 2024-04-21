@@ -1,7 +1,6 @@
 from telegram import InlineKeyboardButton
 
 EXIT = "❌ Salir"
-# EXIT = "❌ Cancelar"
 
 ACTIVATE_ACCOUNT = [
     [
@@ -18,14 +17,8 @@ MAIN_MENU = [
         InlineKeyboardButton("🏅 Rankings", callback_data="rankings"),
     ],
     [
-        # InlineKeyboardButton("🕹 ¿A qué puedo jugar?", callback_data="recommender"),
         InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
-        # InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
     ],
-    # [
-    # InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
-    # InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
-    # ],
     [
         InlineKeyboardButton(EXIT, callback_data="cancel"),
     ],
@@ -37,18 +30,12 @@ ADMIN_MENU = [
         InlineKeyboardButton("🏅 Rankings", callback_data="rankings"),
     ],
     [
-        # InlineKeyboardButton("🕹 ¿A qué puedo jugar?", callback_data="recommender"),
-        # InlineKeyboardButton("🔎 Info juego", callback_data="info_game"),
-    ],
-    [
         InlineKeyboardButton("📎 Actualizar datos", callback_data="update_data"),
-        # InlineKeyboardButton("✅ Estado del servicio", callback_data="status"),
     ],
     [
         InlineKeyboardButton(EXIT, callback_data="cancel"),
     ],
     [
-        # InlineKeyboardButton("🔎 Usuarios", callback_data="get_users"),
         InlineKeyboardButton("📢 Enviar notificación", callback_data="send_message"),
     ],
 ]
@@ -110,12 +97,5 @@ DATA_ACTIONS = [
     ["📝 Puntuar juego"],
     [EXIT],
 ]
-
-# EXCEL_ACTIONS = [
-#     ["🆕 Empezar juego", "⏲ Añadir tiempo"],
-#     ["✅ Completar juego", "📝 Puntuar juego"],
-#     ["▶️ Activar timer", "⏹ Parar timer"],
-#     [EXIT],
-# ]
 
 CANCEL = [EXIT]

@@ -47,7 +47,6 @@ class RankingStatisticsTypes(str, Enum):
 
 @router.get(
     "/rankings",
-    # response_model=list[schemas.RankingsResponse],
     response_description="Return a list of rankings",
 )
 @version(1)

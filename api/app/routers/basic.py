@@ -40,7 +40,6 @@ def hello_world(request: Request):
     """
     Test endpoint
     """
-    # return {"message": "Hello World", "root_path": request.scope.get("root_path")}
     return "API is working!"
 
 

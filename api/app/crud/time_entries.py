@@ -524,7 +524,7 @@ def get_active_time_entry_by_user(db: Session, user: models.User) -> models.Time
 
 def get_forgotten_timer_by_user(db: Session, user: models.User):
     current_time = datetime.datetime.now()
-    time_threshold = current_time - datetime.timedelta(hours=3)
+    time_threshold = current_time - datetime.timedelta(hours=4)
     # logger.info("Checking active timers since " + str(time_threshold))
     active_time_entry = (
         db.query(models.TimeEntry)

@@ -234,7 +234,6 @@ async def upload_avatar(
     db: Session = Depends(get_db),
 ):
     allowed_types = ["image/jpeg", "image/jpg", "image/png"]
-    logger.info("Content Type: " + file.content_type)
     if file.content_type not in allowed_types:
         logger.info(msg.FILE_TYPE_NOT_ALLOWED)
         raise HTTPException(

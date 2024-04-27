@@ -34,7 +34,10 @@ def debug(msg):
 
 
 def warning(msg):
-    logger.warning(msg)
+    if msg.isalnum():
+        logger.warning(msg)
+    else:
+        logger.warning(base64.b64encode(msg.encode("UTF-8")))
 
 
 def exception(msg):

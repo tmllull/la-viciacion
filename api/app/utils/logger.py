@@ -24,10 +24,6 @@ if not logger.handlers:
 
 def info(msg: str):
     logger.info(msg)
-    # if msg.isalnum():
-    #     logger.info(msg)
-    # else:
-    #     logger.info(base64.b64encode(msg.encode("UTF-8")))
 
 
 def debug(msg):
@@ -36,10 +32,6 @@ def debug(msg):
 
 def warning(msg: str):
     logger.warning(msg)
-    # if msg.isalnum():
-    #     logger.warning(msg)
-    # else:
-    #     logger.warning(base64.b64encode(msg.encode("UTF-8")))
 
 
 def exception(msg):

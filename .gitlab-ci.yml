@@ -4,8 +4,8 @@ variables:
 
 stages:
   - sonar
-  - build api main
-  - build api develop
+  # - build api main
+  # - build api develop
 
 sonarcloud-check:
   image:

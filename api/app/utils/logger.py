@@ -26,18 +26,24 @@ def info(msg: str):
     if msg.isalnum():
         logger.info(msg)
     else:
-        logger.info(base64.b64encode(msg.encode("UTF-8")))
+        logger.info(msg)
+
+
+#        logger.info(base64.b64encode(msg.encode("UTF-8")))
 
 
 def debug(msg):
     logger.debug(msg)
 
 
-def warning(msg):
+def warning(msg: str):
     if msg.isalnum():
         logger.warning(msg)
     else:
-        logger.warning(base64.b64encode(msg.encode("UTF-8")))
+        logger.warning(msg)
+
+
+#        logger.warning(base64.b64encode(msg.encode("UTF-8")))
 
 
 def exception(msg):

@@ -29,7 +29,7 @@ build:
     - docker:20.10.16-dind
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY/tmllull/la-viciacion:latest .
+    - docker build -t $CI_REGISTRY/tmllull/la-viciacion:latest api/.
     - docker push $CI_REGISTRY/tmllull/la-viciacion:latest
   only:
     - main
@@ -41,7 +41,7 @@ build:
     - docker:20.10.16-dind
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY/tmllull/la-viciacion:develop .
+    - docker build -t $CI_REGISTRY/tmllull/la-viciacion:develop api/.
     - docker push $CI_REGISTRY/tmllull/la-viciacion:develop
   only:
     - develop

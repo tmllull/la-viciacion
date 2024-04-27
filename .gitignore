@@ -360,6 +360,6 @@ logs.log
 # .gitlab-ci.yml
 db*
 docker-compose.yml
-Dockerfile
+#Dockerfile
 assets/*
 .vscode

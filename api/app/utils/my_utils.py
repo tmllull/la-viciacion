@@ -230,7 +230,6 @@ async def sync_clockify_entries(
         return total_entries
     except Exception as e:
         logger.error("Error syncing clockify entries: " + str(e))
-        # raise e
 
 
 def convert_blob_to_image(

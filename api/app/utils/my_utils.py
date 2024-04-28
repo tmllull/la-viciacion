@@ -2,8 +2,6 @@ import datetime
 import json
 import re
 from io import BytesIO
-
-# import pytz
 from zoneinfo import ZoneInfo
 
 import requests

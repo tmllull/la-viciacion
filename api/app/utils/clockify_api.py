@@ -9,6 +9,7 @@ from . import logger
 from . import my_utils as utils
 
 config = Config()
+time_format = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class ClockifyApi:
@@ -95,7 +96,7 @@ class ClockifyApi:
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
         method = None
         data = None
-        now = datetime.datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.datetime.now(timezone.utc).strftime(time_format)
         user = ""  # TODO: migrate to DB. config.CLOCKIFY_USERS.get(user_id)
         if api_key is None:
             return self.API_USER_NOT_ADDED
@@ -153,11 +154,11 @@ class ClockifyApi:
                 date = datetime.datetime.now()
                 date = date.replace(hour=0, minute=0, second=0)
                 start = date - datetime.timedelta(days=1)
-                start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+                start = start.strftime(time_format)
             else:
                 date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
                 start = date - datetime.timedelta()
-                start = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+                start = start.strftime(time_format)
             page = 0
             entries = []
             has_entries = True
@@ -192,16 +193,10 @@ class ClockifyApi:
         self, db, user_api_key, project_id, platform, completed=False
     ):
         # /workspaces/{workspaceId}/time-entries
-        # start_date = datetime.datetime.utcnow() - datetime.timedelta(seconds=1)
-        # start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
             if user_api_key is not None:
-                start_date = datetime.datetime.now(timezone.utc).strftime(
-                    "%Y-%m-%dT%H:%M:%SZ"
-                )
-                end_date = datetime.datetime.now(timezone.utc).strftime(
-                    "%Y-%m-%dT%H:%M:%SZ"
-                )
+                start_date = datetime.datetime.now(timezone.utc).strftime(time_format)
+                end_date = datetime.datetime.now(timezone.utc).strftime(time_format)
                 tags = []
                 tags.append(platform)
                 data = {

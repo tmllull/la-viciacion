@@ -314,9 +314,15 @@ class Achievements:
                     db,
                     user.id,
                     ach.name,
+                    game_id=time_entry.project_clockify_id,
                     date=str(time_entry.start),
                 )
-                msg = utils.get_ach_message(ach, user=user.name)
+                msg = utils.get_ach_message(
+                    ach,
+                    user=user.name,
+                    db=db,
+                    game_id=time_entry.project_clockify_id,
+                )
                 await utils.send_message(
                     msg,
                     silent,
@@ -335,9 +341,15 @@ class Achievements:
                     db,
                     user.id,
                     ach.name,
+                    game_id=time_entry.project_clockify_id,
                     date=str(time_entry.start),
                 )
-                msg = utils.get_ach_message(ach, user=user.name)
+                msg = utils.get_ach_message(
+                    ach,
+                    user=user.name,
+                    db=db,
+                    game_id=time_entry.project_clockify_id,
+                )
                 await utils.send_message(
                     msg,
                     silent,

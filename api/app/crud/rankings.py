@@ -158,6 +158,7 @@ def user_completed_games(db: Session, limit: int = None):
                 )
                 .filter(models.UserGame.user_id == user.id)
                 .filter(models.UserGame.completed == 1)
+                .limit(limit)
             )
             completed = db.execute(stmt).fetchone()[0]
             user_data["user_id"] = user.id

@@ -3,7 +3,9 @@ import json
 import re
 from io import BytesIO
 
-import pytz
+# import pytz
+from zoneinfo import ZoneInfo
+
 import requests
 import telegram
 from dateutil.parser import isoparse
@@ -88,8 +90,7 @@ def convert_date_from_text(date: str):
 
 def change_timezone_clockify(time) -> str:
     date_time = isoparse(time)
-    spain_timezone = pytz.timezone("Europe/Madrid")
-    # returns spain_timezone
+    spain_timezone = ZoneInfo("Europe/Madrid")  # pytz.timezone("Europe/Madrid")
     return str(date_time.astimezone(spain_timezone).strftime("%Y-%m-%d %H:%M:%S"))
 
 

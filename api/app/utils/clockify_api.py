@@ -1,5 +1,6 @@
 import datetime
 import json
+from datetime import timezone
 
 import requests
 
@@ -94,7 +95,7 @@ class ClockifyApi:
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
         method = None
         data = None
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         user = ""  # TODO: migrate to DB. config.CLOCKIFY_USERS.get(user_id)
         if api_key is None:
             return self.API_USER_NOT_ADDED
@@ -183,7 +184,7 @@ class ClockifyApi:
             logger.info("Error getting time entries: " + str(e))
             raise e
 
-    def update_time_entry():
+    def update_time_entry(self):
         # /workspaces/{workspaceId}/time-entries/{id}
         return
 
@@ -195,8 +196,12 @@ class ClockifyApi:
         # start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
             if user_api_key is not None:
-                start_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-                end_date = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                start_date = datetime.datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
+                end_date = datetime.datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
                 tags = []
                 tags.append(platform)
                 data = {

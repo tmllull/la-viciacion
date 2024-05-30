@@ -388,8 +388,6 @@ async def sync_clockify_entries_db(
         except Exception as e:
             db.rollback()
             logger.info("Error adding time entry " + str(entry) + ": " + str(e))
-            raise e
-    # return
 
 
 def get_time_entry_by_time(

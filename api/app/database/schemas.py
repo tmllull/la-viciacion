@@ -17,13 +17,13 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    name: Union[str, None] = None
-    telegram_id: Union[int, None] = None
-    is_admin: Union[int, None] = 0
-    email: Union[str, None] = None
-    is_active: Union[int, None] = 0
-    clockify_id: Union[str, None] = None
-    clockify_key: Union[str, None] = None
+    name: str | None = None
+    telegram_id: int | None = None
+    is_admin: int | None = 0
+    email: str | None = None
+    is_active: int | None = 0
+    clockify_id: str | None = None
+    clockify_key: str | None = None
 
     class Config:
         from_attributes = True
@@ -31,46 +31,46 @@ class User(UserBase):
 
 class UserForAdmins(UserBase):
     id: int
-    name: Union[str, None] = None
-    telegram_id: Union[int, None] = None
-    is_admin: Union[int, None] = 0
-    email: Union[str, None] = None
-    is_active: Union[int, None] = 0
-    clockify_id: Union[str, None] = None
-    clockify_key: Union[str, None] = None
+    name: str | None = None
+    telegram_id: int | None = None
+    is_admin: int | None = 0
+    email: str | None = None
+    is_active: int | None = 0
+    clockify_id: str | None = None
+    clockify_key: str | None = None
 
 
 class UserStatistics(BaseModel):
     user_id: int
-    played_time: Union[int, None] = 0
-    current_ranking_hours: Union[int, None] = None
-    current_streak: Union[int, None] = 0
-    best_streak: Union[int, None] = 0
-    best_streak_date: Union[datetime.date, None] = None
-    played_days: Union[int, None] = 0
-    unplayed_streak: Union[int, None] = None
+    played_time: int | None = 0
+    current_ranking_hours: int | None = None
+    current_streak: int | None = 0
+    best_streak: int | None = 0
+    best_streak_date: datetime.date | None = None
+    played_days: int | None = 0
+    unplayed_streak: int | None = None
 
 
 class UserUpdate(BaseModel):
-    name: Union[str, None] = None
+    name: str | None = None
     username: str
-    password: Union[str, None] = None
-    email: Union[str, None] = None
-    telegram_id: Union[int, None] = None
-    clockify_id: Union[str, None] = None
-    clockify_key: Union[str, None] = None
+    password: str | None = None
+    email: str | None = None
+    telegram_id: int | None = None
+    clockify_id: str | None = None
+    clockify_key: str | None = None
 
 
 class UserUpdateForAdmin(BaseModel):
-    name: Union[str, None] = None
+    name: str | None = None
     username: str
-    password: Union[str, None] = None
-    email: Union[str, None] = None
-    telegram_id: Union[int, None] = None
-    is_admin: Union[int, None] = None
-    is_active: Union[int, None] = None
-    clockify_id: Union[str, None] = None
-    clockify_key: Union[str, None] = None
+    password: str | None = None
+    email: str | None = None
+    telegram_id: int | None = None
+    is_admin: int | None = None
+    is_active: int | None = None
+    clockify_id: str | None = None
+    clockify_key: str | None = None
 
 
 class TelegramUser(BaseModel):
@@ -81,13 +81,13 @@ class TelegramUser(BaseModel):
 class Game(BaseModel):
     id: str
     name: str
-    dev: Union[str, None] = None
+    dev: str | None = None
     release_date: Union[datetime.date, str, None] = None
-    steam_id: Union[str, None] = None
-    image_url: Union[str, None] = None
-    genres: Union[str, None] = None
-    avg_time: Union[int, None] = 0
-    slug: Union[str, None] = None
+    steam_id: str | None = None
+    image_url: str | None = None
+    genres: str | None = None
+    avg_time: int | None = 0
+    slug: str | None = None
 
     class Config:
         from_attributes = True
@@ -95,39 +95,39 @@ class Game(BaseModel):
 
 class GameStatistics(BaseModel):
     game_id: str
-    played_time: Union[int, None] = 0
-    avg_time: Union[int, None] = 0
-    current_ranking: Optional[Union[int, None]] = 10000000
+    played_time: int | None = 0
+    avg_time: int | None = 0
+    current_ranking: Optional[int | None] = 10000000
 
     class Config:
         from_attributes = True
 
 
 class NewGame(BaseModel):
-    clockify_id: Optional[Union[str, None]] = None
+    clockify_id: Optional[str | None] = None
     name: str
-    dev: Optional[Union[str, None]] = None
-    release_date: Optional[Union[datetime.date, None]] = None
-    steam_id: Optional[Union[str, None]] = None
-    image_url: Optional[Union[str, None]] = None
-    genres: Optional[Union[str, None]] = None
-    avg_time: Optional[Union[int, None]] = None
-    slug: Optional[Union[str, None]] = None
+    dev: Optional[str | None] = None
+    release_date: Optional[datetime.date | None] = None
+    steam_id: Optional[str | None] = None
+    image_url: Optional[str | None] = None
+    genres: Optional[str | None] = None
+    avg_time: Optional[int | None] = None
+    slug: Optional[str | None] = None
 
 
 class UpdateGame(BaseModel):
     name: str
-    dev: Optional[Union[str, None]] = None
-    release_date: Optional[Union[datetime.date, None]] = None
-    steam_id: Optional[Union[str, None]] = None
-    image_url: Optional[Union[str, None]] = None
-    genres: Optional[Union[str, None]] = None
-    avg_time: Optional[Union[int, None]] = None
+    dev: Optional[str | None] = None
+    release_date: Optional[datetime.date | None] = None
+    steam_id: Optional[str | None] = None
+    image_url: Optional[str | None] = None
+    genres: Optional[str | None] = None
+    avg_time: Optional[int | None] = None
 
 
 class NewGameUser(BaseModel):
     game_id: str
-    platform: Union[str, None] = None
+    platform: str | None = None
 
 
 class UsersGamesBase(BaseModel):
@@ -138,48 +138,48 @@ class UsersGamesBase(BaseModel):
 
 
 class UserGame(UsersGamesBase):
-    id: Union[int, None] = None
-    user_id: Union[int, None] = None
-    game_id: Union[str, None] = None
-    started_date: Union[datetime.date, None] = None
-    platform: Union[str, None] = None
-    completed: Union[int, None] = None
-    completed_date: Union[datetime.date, None] = None
-    score: Union[float, None] = None
-    played_time: Union[int, None] = None
-    completion_time: Union[int, None] = None
+    id: int | None = None
+    user_id: int | None = None
+    game_id: str | None = None
+    started_date: datetime.date | None = None
+    platform: str | None = None
+    completed: int | None = None
+    completed_date: datetime.date | None = None
+    score: float | None = None
+    played_time: int | None = None
+    completion_time: int | None = None
 
 
 class Achievement(BaseModel):
-    id: Union[int, None] = None
-    key: Union[str, None] = None
-    title: Union[str, None] = None
-    message: Union[str, None] = None
+    id: int | None = None
+    key: str | None = None
+    title: str | None = None
+    message: str | None = None
 
     class Config:
         from_attributes = True
 
 
 class UserAchievement(BaseModel):
-    id: Union[int, None] = None
-    user_id: Union[int, None] = None
-    achievement_id: Union[int, None] = None
-    date: Union[datetime.date, None] = None
-    game_id: Union[str, None] = None
+    id: int | None = None
+    user_id: int | None = None
+    achievement_id: int | None = None
+    date: datetime.date | None = None
+    game_id: str | None = None
 
     class Config:
         from_attributes = True
 
 
 class TimeEntrie(BaseModel):
-    id: Union[int, None] = None
-    user_id: Union[str, None] = None
-    user_clockify_id: Union[str, None] = None
-    project_clockify_id: Union[str, None] = None
-    start: Union[datetime.date, None] = None
-    end: Union[datetime.date, None] = None
-    duration: Union[int, None] = None
-    tags: Union[str, None] = None
+    id: int | None = None
+    user_id: str | None = None
+    user_clockify_id: str | None = None
+    project_clockify_id: str | None = None
+    start: datetime.date | None = None
+    end: datetime.date | None = None
+    duration: int | None = None
+    tags: str | None = None
 
     class Config:
         from_attributes = True

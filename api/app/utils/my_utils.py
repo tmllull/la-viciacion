@@ -2,8 +2,8 @@ import datetime
 import json
 import re
 from io import BytesIO
+from zoneinfo import ZoneInfo
 
-import pytz
 import requests
 import telegram
 from dateutil.parser import isoparse
@@ -88,8 +88,7 @@ def convert_date_from_text(date: str):
 
 def change_timezone_clockify(time) -> str:
     date_time = isoparse(time)
-    spain_timezone = pytz.timezone("Europe/Madrid")
-    # returns spain_timezone
+    spain_timezone = ZoneInfo("Europe/Madrid")  # pytz.timezone("Europe/Madrid")
     return str(date_time.astimezone(spain_timezone).strftime("%Y-%m-%d %H:%M:%S"))
 
 
@@ -230,8 +229,7 @@ async def sync_clockify_entries(
         await time_entries.sync_clockify_entries_db(db, user, entries, silent)
         return total_entries
     except Exception as e:
-        logger.info("Error syncing clockify entries: " + str(e))
-        raise e
+        logger.error("Error syncing clockify entries: " + str(e))
 
 
 def convert_blob_to_image(

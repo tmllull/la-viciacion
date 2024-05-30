@@ -1,19 +1,19 @@
-fastapi[all]
-uvicorn[standard]
-python-multipart
-python-jose[cryptography]
-passlib[bcrypt]
-databases
-aiosqlite
-bcrypt
-fastapi_login
-mysql-connector-python
-pymysql
-sqlalchemy
-requests
-howlongtobeatpy
-rawg
-pytz
+fastapi==0.109.0
+fastapi-login==1.9.3
+fastapi-versioning==0.10.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+databases==0.8.0
+# aiosqlite==0.19.0
+bcrypt==4.1.2
+# fastapi_login==1.9.3
+mysql-connector-python==8.3.0
+pymysql==1.1.0
+sqlalchemy==1.4.51
+requests==2.31.0
+howlongtobeatpy==1.0.5
+rawg==1.2.0
 python_telegram_bot==20.1
-fastapi-versioning
-Pillow
+Pillow==10.2.0

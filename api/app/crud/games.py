@@ -168,8 +168,9 @@ def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
         return db.query(models.Game).filter(models.Game.id == game_id).first()
     except Exception as e:
         db.rollback()
-        logger.info("Error updating game: " + str(e))
-        raise ("Error updating game: " + str(e))
+        error_message = "Error updating game: " + str(e)
+        logger.info(error_message)
+        raise RuntimeError(error_message) from e
 
 
 def update_total_played_time(db: Session, game_id, total_played):

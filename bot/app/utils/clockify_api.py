@@ -1,4 +1,5 @@
 import datetime
+from datetime import timezone
 
 import requests
 import utils.logger as logger
@@ -81,9 +82,6 @@ class ClockifyApi:
                 # exit()
 
     def send_clockify_timer_request(self, action, user_id, game_name, api_key):
-        method = None
-        data = None
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         # TODO: TBI
         return "TBI"
 

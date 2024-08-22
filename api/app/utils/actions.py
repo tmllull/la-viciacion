@@ -215,7 +215,14 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
             0,
             0,
         )
+    elif len(played_dates) == 1:
+        return (
+            played_dates[1],
+            1,
+            1,
+        )
 
+    logger.info("PLAYED DATES: " + str(len(played_dates)))
     for i in range(1, len(played_dates)):
         # Check diff between current and last date
         diff = (played_dates[i] - played_dates[i - 1]).days
@@ -228,8 +235,12 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
                 max_streak = current_streak
                 end_max_streak_date = played_dates[i - 1]
             current_streak = 0
-    # Check today to add this day to the streak
+    # Check last date to add this day to the streak. If last d
     today = datetime.date.today()
+    # Add last elem to streak if its yesterday
+    if (today - played_dates[-1]).days == 1:
+        current_streak += 1
+    # Add today to streak if the last elem is today
     if (today - played_dates[-1]).days == 0:
         current_streak += 1
 

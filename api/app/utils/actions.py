@@ -239,7 +239,7 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
         end_max_streak_date = played_dates[-1]
 
     # Check is there is more than 1 day without play
-    if (today - played_dates[-1]).days > 0:
+    if (today - played_dates[-1]).days > 1:
         current_streak = 0
 
     return end_max_streak_date, max_streak, current_streak

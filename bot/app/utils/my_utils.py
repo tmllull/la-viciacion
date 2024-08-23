@@ -10,12 +10,11 @@ import requests
 import telegram
 import utils.logger as logger
 import utils.messages as msgs
-from dotenv import dotenv_values
-from howlongtobeatpy import HowLongToBeat
 from telegram import Bot, Update
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
+from typing import Tuple, Dict, Any
 
 config = Config()
 clockify = ClockifyApi()
@@ -87,7 +86,7 @@ class MyUtils:
                 parse_mode=telegram.constants.ParseMode.MARKDOWN,
             )
 
-    def check_valid_chat(self, update: Update) -> bool:
+    def check_valid_chat(self, update: Update) -> Tuple[bool, Dict[str, Any]]:
         try:
             username = update.message.from_user.username
             user_id = update.message.from_user.id
@@ -103,16 +102,21 @@ class MyUtils:
                 url = config.API_URL + "/users"
                 response = self.make_request("PATCH", url, json=user)
                 logger.info(response.json())
-                return response.json()
+                return True, response.json()
             else:
+                logger.info("STATUS CODE: " + str(response.status_code))
                 logger.info(
                     "Error on request to check valid chat: " + str(response.status_code)
                 )
                 logger.info(response.json())
                 logger.info("Response above.")
-                return False
+                return False, {}
         except Exception as e:
             logger.info("Error checking valid chat: " + str(e))
+            if "Max retries exceeded" in str(e):
+                return False, {"error": "api"}
+            else:
+                return False, {"error": "unknown"}
 
     async def reply_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, msg

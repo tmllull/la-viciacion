@@ -70,8 +70,8 @@ class BasicRoutes:
 
     async def menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info(update.message.from_user.username + " has started conversation...")
-        user = utils.check_valid_chat(update)
-        if user:
+        valid, user = utils.check_valid_chat(update)
+        if valid:
             if user["is_active"]:
                 tg_info = update.message.from_user
                 context.user_data["username"] = tg_info.username
@@ -96,7 +96,10 @@ class BasicRoutes:
                     "Para poder usar el bot, primero debes activar tu cuenta usando el comando /activate en un chat directo con el bot.",
                 )
         else:
-            await utils.reply_message(update, context, msgs.forbidden)
+            if user["error"] == "api":
+                await utils.reply_message(update, context, msgs.api_error)
+            else:
+                await utils.reply_message(update, context, msgs.forbidden)
 
     async def back(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         query = update.callback_query

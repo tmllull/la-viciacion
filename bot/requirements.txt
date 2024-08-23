@@ -1,5 +1,3 @@
-python_telegram_bot==20.7
+python_telegram_bot==21.4
 python-dotenv
 requests
-howlongtobeatpy
-rawg

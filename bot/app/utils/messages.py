@@ -5,6 +5,11 @@ forbidden = (
     + "Por favor, ponte en concacto con algún administrador."
 )
 
+api_error = (
+    "Parece que hay problemas con la API. "
+    + "Por favor, ponte en concacto con algún administrador."
+)
+
 command_list = (
     "La lista actual de comandos es la siguiente:\n"
     + "/help - Muestra esta lista\n"

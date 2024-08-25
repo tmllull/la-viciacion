@@ -291,8 +291,16 @@ class DataRoutes:
                     await update.message.reply_text(
                         "Juego añadido", reply_markup=ReplyKeyboardRemove()
                     )
+                elif response.status_code == 404:
+                    logger.info("Game not found on DB")
+                    await update.message.reply_text(
+                        "No he encontrado el juego en mi base de datos. Habla con un administrador.",
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
                 else:
-                    logger.info("Error adding new game to user: " + response.json())
+                    logger.info(
+                        "Error adding new game to user: " + str(response.json())
+                    )
                     await update.message.reply_text(
                         "Error adding new game to user: " + str(response.json()),
                         reply_markup=ReplyKeyboardRemove(),

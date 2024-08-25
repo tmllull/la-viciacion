@@ -148,3 +148,9 @@ async def get_achievement_image(
         return Response(content=data[0], media_type="image/" + format_type)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# @router.get("/sentry-debug")
+# @version(1)
+# async def trigger_error():
+#     division_by_zero = 1 / 0

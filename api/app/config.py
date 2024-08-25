@@ -33,6 +33,8 @@ class Config:
             self.SMTP_EMAIL = config["SMTP_EMAIL"]
             self.SMTP_USER = config["SMTP_USER"]
             self.SMTP_PASS = config["SMTP_PASS"]
+            self.SENTRY_URL = config["SENTRY_URL_API"]
+            self.SENTRY_ENV = config["SENTRY_ENV"]
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -58,5 +60,7 @@ class Config:
             self.SMTP_EMAIL = os.environ["SMTP_EMAIL"]
             self.SMTP_USER = os.environ["SMTP_USER"]
             self.SMTP_PASS = os.environ["SMTP_PASS"]
+            self.SENTRY_URL = os.environ["SENTRY_URL_API"]
+            self.SENTRY_ENV = os.environ["SENTRY_ENV"]
 
         self.CURRENT_SEASON = datetime.datetime.now().year

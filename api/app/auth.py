@@ -3,7 +3,8 @@ from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Security, status
 from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordBearer
-from jose import JWTError, jwt
+
+import jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -85,7 +86,7 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except Exception:
         raise credentials_exception
     user = users.get_user_by_username(db, username=token_data.username)
     if user is None:

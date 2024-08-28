@@ -141,7 +141,8 @@ async def sync_data(
 @version(1)
 def update_user(
     user_data: schemas.UserUpdateForAdmin,
-    user: models.User = Security(auth.get_current_active_user),
+    api_key: None = Security(auth.get_api_key),
+    #    user: models.User = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """_summary_
@@ -158,8 +159,8 @@ def update_user(
     Returns:
         _type_: _description_
     """
-    if not user.is_admin:
-        raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
+    # if not user.is_admin:
+    #     raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
     db_user = users.get_user_by_username(db, user_data.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)

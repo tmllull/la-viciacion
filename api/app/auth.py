@@ -6,7 +6,6 @@ from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordBearer
 
 import jwt
 
-# from passlib.context import CryptContext
 from pydantic import BaseModel
 import bcrypt
 from sqlalchemy.orm import Session
@@ -38,10 +37,6 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-# salt = bcrypt.gensalt()
-
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -52,16 +47,12 @@ def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.checkpw(
         plain_password.encode("utf-8"), hashed_password.encode("utf-8")
     )
-    # return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str):
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
     return hashed_password
-
-
-#    return pwd_context.hash(password)
 
 
 def authenticate_user(db, username: str, password: str):

@@ -141,12 +141,14 @@ async def sync_data(
 @version(1)
 def update_user(
     user_data: schemas.UserUpdateForAdmin,
+    # api_key: None = Security(auth.get_api_key),
     user: models.User = Security(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """_summary_
 
     Args:
+        api_key (None, optional): API Key. Defaults to Security(auth.get_api_key).
         user_data (schemas.UserUpdateForAdmin): _description_
         user (models.User, optional): _description_. Defaults to Security(auth.get_current_active_user).
         db (Session, optional): _description_. Defaults to Depends(get_db).

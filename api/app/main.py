@@ -10,9 +10,23 @@ from .database.database import SessionLocal, engine
 from .routers import admin, basic, bot, games, statistics, users, utils
 from .utils import logger
 
-models.Base.metadata.create_all(bind=engine)
+import sentry_sdk
 
 config = Config()
+
+sentry_sdk.init(
+    dsn=config.SENTRY_URL,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+    environment=config.SENTRY_ENV,
+)
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LaViciacion API", version="0.1.0")
 

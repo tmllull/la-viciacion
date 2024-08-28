@@ -3,9 +3,11 @@ from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Security, status
 from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordBearer
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+
+import jwt
+
 from pydantic import BaseModel
+import bcrypt
 from sqlalchemy.orm import Session
 
 from .config import Config
@@ -35,20 +37,22 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str):
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
 
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def get_password_hash(password: str):
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
+    return hashed_password
 
 
 def authenticate_user(db, username: str, password: str):
@@ -85,7 +89,7 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except Exception:
         raise credentials_exception
     user = users.get_user_by_username(db, username=token_data.username)
     if user is None:

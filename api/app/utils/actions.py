@@ -217,7 +217,7 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
         )
     elif len(played_dates) == 1:
         return (
-            played_dates[1],
+            played_dates[0],
             1,
             1,
         )

@@ -349,7 +349,6 @@ async def sync_clockify_entries_db(
                         from_sync=True,
                     )
                     already_playing = users.get_game_by_id(db, user.id, game_id)
-                # TODO: revise if this else is needed and how to implement it properly
                 if platform is not None and already_playing.platform != platform:
                     stmt = (
                         update(models.UserGame)
@@ -381,10 +380,6 @@ async def sync_clockify_entries_db(
 
                 db.commit()
             # TODO: Add historical info
-
-            # TODO: Check time achievements related to session
-            # if "-01-01" in start:
-            #     pass
         except Exception as e:
             db.rollback()
             logger.info("Error adding time entry " + str(entry) + ": " + str(e))

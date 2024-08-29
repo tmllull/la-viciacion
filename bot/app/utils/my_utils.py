@@ -166,9 +166,6 @@ class MyUtils:
             return 0
         return time * 3600
 
-    def random_send(self, percent):
-        return random.randrange(100) <= percent
-
     def format_text_for_md2(self, text):
         text = (
             text.replace(".", "\.")

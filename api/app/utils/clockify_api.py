@@ -130,20 +130,6 @@ class ClockifyApi:
             else:
                 return self.GENERIC_ERROR
 
-    def active_clockify_timer(self, game_name, user_id):
-        # TODO: TBI
-        return "TBI"
-        return self.send_clockify_timer_request(
-            "start", user_id, game_name, config.CLOCKIFY_USERS_API.get(user_id)
-        )
-
-    def stop_active_clockify_timer(self, user_id):
-        # TODO: TBI
-        return "TBI"
-        return self.send_clockify_timer_request(
-            "stop", user_id, None, config.CLOCKIFY_USERS_API.get(user_id)
-        )
-
     def get_time_entries(self, clockify_user_id, start_date=None):
         logger.info("Getting time entries...")
         if clockify_user_id is None or not utils.check_hex(clockify_user_id):

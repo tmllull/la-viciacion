@@ -81,18 +81,6 @@ class ClockifyApi:
                 Exception(game_name + " not exists")
                 # exit()
 
-    def send_clockify_timer_request(self, action, user_id, game_name, api_key):
-        # TODO: TBI
-        return "TBI"
-
-    def active_clockify_timer(self, game_name, user_id):
-        # TODO: TBI
-        return "TBI"
-
-    def stop_active_clockify_timer(self, user_id):
-        # TODO: TBI
-        return "TBI"
-
     def get_time_entries(self, user_id, start=None):
         if user_id is None:
             return []

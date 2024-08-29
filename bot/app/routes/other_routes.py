@@ -18,12 +18,5 @@ utils = MyUtils()
 
 
 class OtherRoutes:
-
-    async def random_response(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        if utils.check_valid_chat(update):
-            if "SPECIAL WORD" in update.message.text.lower() and utils.random_send(90):
-                await utils.reply_message(
-                    update, context, "put random message from another function"
-                )
+    def __init__(self):
+        pass

@@ -27,7 +27,7 @@ def create_admin_user(db: Session, username: str):
         db_user = db.query(models.User).filter(models.User.username == username).first()
         if db_user is None:
             salt = bcrypt.gensalt()
-            default_password = "admin"
+            default_password = config.DEFAULT_ADMIN_PASS
             # Hashing the password
             hashed_password = bcrypt.hashpw(default_password.encode("utf-8"), salt)
             db_user = models.User(
@@ -449,7 +449,7 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
         except SQLAlchemyError as e:
             db.rollback()
             if "Duplicate" not in str(e):
-                logger.info("Error adding new game statistics: " + str(e))
+                logger.error("Error updating game: " + str(e))
                 raise e
     try:
         stmt = (
@@ -467,7 +467,7 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
     except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            logger.info("Error adding new game statistics: " + str(e))
+            logger.error("Error updating game historical: " + str(e))
             raise e
 
 
@@ -614,7 +614,7 @@ async def complete_game(
         user_game = get_game_by_id(db, user_id, db_game.id)
         game_info = await utils.get_game_info(db_game.name)
         if not from_sync:
-            clockify_response = clockify_api.create_empty_time_entry(
+            clockify_api.create_empty_time_entry(
                 db,
                 user.clockify_key,
                 game_id,

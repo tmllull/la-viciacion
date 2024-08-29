@@ -20,6 +20,7 @@ from telegram.ext import (
 )
 from utils.config import Config
 from utils.my_utils import MyUtils
+import sentry_sdk
 
 ##########
 ## INIT ##
@@ -33,6 +34,18 @@ ranking_routes = RankingRoutes()
 admin_routes = AdminRoutes()
 other_routes = OtherRoutes()
 data_routes = DataRoutes()
+
+sentry_sdk.init(
+    dsn=config.SENTRY_URL,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+    environment=config.SENTRY_ENV,
+)
 
 FILTER_YES = "^(✅ Sí)$"
 FILTER_NO = "^(❌ No)$"

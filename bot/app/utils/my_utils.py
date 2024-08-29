@@ -93,7 +93,7 @@ class MyUtils:
             chat_id = update.message.chat_id
             if chat_id < 0:
                 if chat_id != int(config.TELEGRAM_GROUP_ID):
-                    return False
+                    return False, {}
             url = config.API_URL + "/users/" + username
             logger.info(url)
             response = self.make_request("GET", url)

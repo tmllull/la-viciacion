@@ -125,15 +125,35 @@ def get_user_games_played_time(
 
 
 def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntry]:
-    if start_date is None:
-        return db.query(models.TimeEntry).order_by(models.TimeEntry.user_id)
-    else:
+    if start_date:
         logger.info(start_date)
         return (
             db.query(models.TimeEntry)
             .filter(models.TimeEntry.start >= start_date)
             .order_by(models.TimeEntry.user_id)
         )
+    else:
+        return db.query(models.TimeEntry).order_by(models.TimeEntry.user_id)
+
+
+def get_time_entries_by_user(
+    db: Session, user_id: int, start_date: str = None
+) -> list[models.TimeEntry]:
+    if start_date:
+        logger.info(start_date)
+        return db.query(models.TimeEntry).filter(
+            models.TimeEntry.user_id == user_id,
+            models.TimeEntry.start >= start_date,
+        )
+    else:
+        logger.info("Get ALL time entries for user " + str(user_id))
+        time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.user_id == user_id)
+            .order_by(models.TimeEntry.project_clockify_id)
+            .all()
+        )
+        return time_entries
 
 
 def get_played_days(

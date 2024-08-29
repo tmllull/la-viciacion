@@ -27,7 +27,7 @@ def create_admin_user(db: Session, username: str):
         db_user = db.query(models.User).filter(models.User.username == username).first()
         if db_user is None:
             salt = bcrypt.gensalt()
-            default_password = "admin"
+            default_password = config.DEFAULT_ADMIN_PASS
             # Hashing the password
             hashed_password = bcrypt.hashpw(default_password.encode("utf-8"), salt)
             db_user = models.User(
@@ -128,7 +128,6 @@ def create_user(
         )
         db.add(db_user)
         db.commit()
-        # db.refresh(db_user)
         try:
             user_statistics = models.UserStatistics(
                 user_id=db_user.id, current_ranking_hours=1000
@@ -142,12 +141,7 @@ def create_user(
                 raise e
             else:
                 logger.warning("User already exists in DB")
-        return (
-            True,
-            -1,
-            # get_user_by_username(db, user.username),
-            # db.query(models.User).filter(models.User.username == user.username).first(),
-        )
+        return (True, -1)
 
     except SQLAlchemyError as e:
         db.rollback()
@@ -449,7 +443,7 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
         except SQLAlchemyError as e:
             db.rollback()
             if "Duplicate" not in str(e):
-                logger.info("Error adding new game statistics: " + str(e))
+                logger.error("Error updating game: " + str(e))
                 raise e
     try:
         stmt = (
@@ -467,7 +461,7 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
     except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            logger.info("Error adding new game statistics: " + str(e))
+            logger.error("Error updating game historical: " + str(e))
             raise e
 
 
@@ -614,7 +608,7 @@ async def complete_game(
         user_game = get_game_by_id(db, user_id, db_game.id)
         game_info = await utils.get_game_info(db_game.name)
         if not from_sync:
-            clockify_response = clockify_api.create_empty_time_entry(
+            clockify_api.create_empty_time_entry(
                 db,
                 user.clockify_key,
                 game_id,

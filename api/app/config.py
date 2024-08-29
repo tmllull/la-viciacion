@@ -11,6 +11,7 @@ class Config:
             # Load .env
             config = dotenv_values(".env")
             self.ADMIN_USERS = json.loads(config["ADMIN_USERS"])
+            self.DEFAULT_ADMIN_PASS = config["DEFAULT_ADMIN_PASS"]
             self.TELEGRAM_TOKEN = config["TELEGRAM_TOKEN"]
             self.TELEGRAM_GROUP_ID = config["TELEGRAM_GROUP_ID"]
             self.TELEGRAM_ADMIN_CHAT_ID = config["TELEGRAM_ADMIN_CHAT_ID"]
@@ -39,6 +40,7 @@ class Config:
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
             self.ADMIN_USERS = json.loads(os.environ["ADMIN_USERS"])
+            self.DEFAULT_ADMIN_PASS = os.environ["DEFAULT_ADMIN_PASS"]
             self.TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
             self.TELEGRAM_ADMIN_CHAT_ID = os.environ["TELEGRAM_ADMIN_CHAT_ID"]
             self.DB_HOST = os.environ["MARIADB_HOST"]

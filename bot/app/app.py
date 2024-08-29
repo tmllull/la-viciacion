@@ -5,7 +5,6 @@ from routes.admin_routes import AdminRoutes
 from routes.basic_routes import BasicRoutes
 from routes.data_routes import DataRoutes
 from routes.my_routes import MyRoutes
-from routes.other_routes import OtherRoutes
 from routes.ranking_routes import RankingRoutes
 from telegram import BotCommand, Update
 from telegram.ext import (
@@ -32,7 +31,6 @@ my_routes = MyRoutes()
 basic_routes = BasicRoutes()
 ranking_routes = RankingRoutes()
 admin_routes = AdminRoutes()
-other_routes = OtherRoutes()
 data_routes = DataRoutes()
 
 sentry_sdk.init(

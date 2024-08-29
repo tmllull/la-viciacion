@@ -128,7 +128,6 @@ def create_user(
         )
         db.add(db_user)
         db.commit()
-        # db.refresh(db_user)
         try:
             user_statistics = models.UserStatistics(
                 user_id=db_user.id, current_ranking_hours=1000
@@ -142,12 +141,7 @@ def create_user(
                 raise e
             else:
                 logger.warning("User already exists in DB")
-        return (
-            True,
-            -1,
-            # get_user_by_username(db, user.username),
-            # db.query(models.User).filter(models.User.username == user.username).first(),
-        )
+        return (True, -1)
 
     except SQLAlchemyError as e:
         db.rollback()

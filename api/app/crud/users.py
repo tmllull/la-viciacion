@@ -119,6 +119,7 @@ def create_user(
     hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), salt)
 
     try:
+        logger.info("Creating new user: " + str(user.username))
         db_user = models.User(
             username=user.username,
             name=user.name,
@@ -127,7 +128,7 @@ def create_user(
         )
         db.add(db_user)
         db.commit()
-        db.refresh(db_user)
+        # db.refresh(db_user)
         try:
             user_statistics = models.UserStatistics(
                 user_id=db_user.id, current_ranking_hours=1000
@@ -141,7 +142,12 @@ def create_user(
                 raise e
             else:
                 logger.warning("User already exists in DB")
-        return True, db_user
+        return (
+            True,
+            -1,
+            # get_user_by_username(db, user.username),
+            # db.query(models.User).filter(models.User.username == user.username).first(),
+        )
 
     except SQLAlchemyError as e:
         db.rollback()

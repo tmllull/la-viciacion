@@ -21,6 +21,8 @@ class Config:
             self.API_KEY = config["API_KEY"]
             self.SECRET_KEY = config["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = config["ACCESS_TOKEN_EXPIRE_MINUTES"]
+            self.SENTRY_URL = config["SENTRY_URL_BOT"]
+            self.SENTRY_ENV = config["SENTRY_ENV"]
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -34,3 +36,5 @@ class Config:
             self.API_KEY = os.environ["API_KEY"]
             self.SECRET_KEY = os.environ["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
+            self.SENTRY_URL = os.environ["SENTRY_URL_BOT"]
+            self.SENTRY_ENV = os.environ["SENTRY_ENV"]

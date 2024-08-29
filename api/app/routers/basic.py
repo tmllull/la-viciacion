@@ -63,11 +63,12 @@ async def login(
 
 @router.post(
     "/signup",
-    responses={
-        200: {"model": schemas.User},
-        400: {"model": schemas.HttpException},
-        "default": {"model": schemas.HttpException},
-    },
+    response_model=schemas.User,
+    # responses={
+    #     200: {"model": schemas.User},
+    #     400: {"model": schemas.HttpException},
+    #     "default": {"model": schemas.HttpException},
+    # },
 )
 @version(1)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -111,7 +112,8 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
                     CustomExceptions.SignUp.EMAIL_VALIDATION
                 ).to_json(),
             )
-    return new_user
+    user_added = users.get_user_by_username(db, user.username)
+    return user_added
 
 
 @router.post("/token", response_model=auth.Token)
@@ -168,3 +170,13 @@ def active_user(user: models.User = Security(auth.get_current_active_user)):
         _type_: _description_
     """
     return user
+
+
+@router.post("/wABU7qR5s3AUuvKZcdPT3FsK7rSp5EQZ")
+@version(1)
+async def debugging_purposes(request: Request):
+    data = await request.json()
+    logger.debug("Timer updated: " + str(data["user"]))
+    # logger.info(len(data))
+    # logger.info("Received data: " + str(await request.json()))
+    return {"message": "Done"}

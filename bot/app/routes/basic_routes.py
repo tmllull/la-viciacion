@@ -23,8 +23,8 @@ class BasicRoutes:
                 context,
                 "Esta opción sólo puede usarse en un chat directo con el bot",
             )
-        user = utils.check_valid_chat(update)
-        if user:
+        valid, user = utils.check_valid_chat(update)
+        if valid:
             if user["is_active"]:
                 await utils.reply_message(
                     update, context, "Tu cuenta ya ha sido activada"

@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import time_entries, users
+from ..crud import time_entries, users, games
 from ..database import models, schemas
 from ..utils import actions as actions
 from ..utils import logger
@@ -568,19 +568,79 @@ class Achievements:
                 image=self.get_image(db, ach.name)[0],
             )
 
-    def user_played_hours_game(
+    async def user_played_hours_game(
         self,
         db: Session,
         user: models.User,
         game_id: str,
         played_time: int,
         date: str = None,
+        silent: bool = False,
     ):
+        played_time = int(played_time / 60 / 60)
         # 100 h
+        ach = AchievementsElems.PLAYED_100_HOURS_GAME
+        if played_time >= 100 and not self.check_already_achieved(
+            db, user.id, ach.name
+        ):
+            game = games.get_game_by_id(db, game_id)
+            logger.info(
+                "Set achievement played 100 hours game: "
+                + game.name
+                + " ("
+                + str(played_time)
+                + ")"
+            )
+            self.set_user_achievement(db, user.id, ach.name, game_id)
+            msg = utils.get_ach_message(ach=ach, user=user.name, db=db, game_id=game_id)
+            await utils.send_message(
+                msg,
+                silent,
+                image=self.get_image(db, ach.name)[0],
+            )
 
-        # 500 h
+        # The following are not activated yet
+        # # 500 h
+        # ach = AchievementsElems.PLAYED_500_HOURS_GAME
+        # if played_time >= 500 and not self.check_already_achieved(
+        #     db, user.id, ach.name
+        # ):
+        #     game = games.get_game_by_id(db, game_id)
+        #     logger.info(
+        #         "Set achievement played 500 hours game: "
+        #         + game.name
+        #         + " ("
+        #         + str(played_time)
+        #         + ")"
+        #     )
+        #     self.set_user_achievement(db, user.id, ach.name, game_id)
+        #     msg = utils.get_ach_message(ach=ach, user=user.name, db=db, game_id=game_id)
+        #     await utils.send_message(
+        #         msg,
+        #         silent,
+        #         image=self.get_image(db, ach.name)[0],
+        #     )
 
-        # 1000 h
+        # # 1000 h
+        # ach = AchievementsElems.PLAYED_1000_HOURS_GAME
+        # if played_time >= 1000 and not self.check_already_achieved(
+        #     db, user.id, ach.name
+        # ):
+        #     game = games.get_game_by_id(db, game_id)
+        #     logger.info(
+        #         "Set achievement played 1000 hours game: "
+        #         + game.name
+        #         + " ("
+        #         + str(played_time)
+        #         + ")"
+        #     )
+        #     self.set_user_achievement(db, user.id, ach.name, game_id)
+        #     msg = utils.get_ach_message(ach=ach, user=user.name, db=db, game_id=game_id)
+        #     await utils.send_message(
+        #         msg,
+        #         silent,
+        #         image=self.get_image(db, ach.name)[0],
+        #     )
         return
 
     async def happy_new_year(

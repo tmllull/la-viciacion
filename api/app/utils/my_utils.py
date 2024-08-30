@@ -78,7 +78,7 @@ def convert_hours_minutes_to_seconds(time) -> int:
 
 
 def convert_date_from_text(date: str):
-    logger.debug("Converting date")
+    # logger.debug("Converting date")
     if date is None or date == "":
         return date
     if ":" not in date:

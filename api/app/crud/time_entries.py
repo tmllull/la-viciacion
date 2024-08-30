@@ -1,5 +1,5 @@
 import datetime
-from typing import Union
+from typing import Union, Tuple
 
 from sqlalchemy import (
     asc,
@@ -160,6 +160,7 @@ def get_played_days(
     db: Session, user_id: int, start_date: str = None, end_date: str = None
 ) -> list[models.TimeEntry]:
     played_days = []
+    real_played_days = []
     if start_date is None:
         current_date = datetime.datetime.now()
         start_date = str(current_date.year) + "-01-01"
@@ -185,10 +186,13 @@ def get_played_days(
     )
     for played_day in played_start_days:
         played_days.append(played_day[0])
+        real_played_days.append(played_day[0])
     for played_day in played_end_days:
         played_days.append(played_day[0])
-    unique_dates = list(set(played_days))
-    return sorted(unique_dates)
+    played_days = list(set(played_days))  # Remove duplicates
+    real_played_days = sorted(real_played_days)
+    played_days = sorted(played_days)
+    return played_days, real_played_days
 
 
 async def sync_clockify_entries_db(

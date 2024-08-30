@@ -62,11 +62,28 @@ class AchievementsElems(Enum):
     # }
     PLAYED_100_HOURS_GAME = {
         "title": "Cualquiera diría que le gusta ese juego",
-        "message": "Todo apunta a que _"
+        "message": "Todo apunta a que a *"
         + "{}"
-        + "_ ha enganchado a *"
+        + "* le ha enganchado _"
         + "{}"
-        + "*, porque acaba de rebasar la barrera de las 100 horas invertidas en él.",
+        + "_, porque acaba de rebasar la barrera de las 100 horas invertidas en él.",
+    }
+    PLAYED_500_HOURS_GAME = {
+        "title": "Una buena inversión",
+        "message": "Si he pagado por un juego, es para jugarlo."
+        + " Eso es lo que habrá pensado *"
+        + "{}"
+        + "*, que acaba de pasar las 500 horas jugadas a _"
+        + "{}"
+        + "_.",
+    }
+    PLAYED_1000_HOURS_GAME = {
+        "title": "¿Para qué diversificar?",
+        "message": "A *"
+        + "{}"
+        + "* lo único que le importa en esta vida es _"
+        + "{}"
+        + "_. 1000 horas (y seguro que subiendo). Mejor no preguntar.",
     }
 
     # Total time

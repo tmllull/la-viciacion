@@ -110,7 +110,7 @@ class MyUtils:
                 )
                 logger.info(response.json())
                 logger.info("Response above.")
-                return False, {}
+                return False, {"error": "not_found"}
         except Exception as e:
             logger.info("Error checking valid chat: " + str(e))
             if "Max retries exceeded" in str(e):

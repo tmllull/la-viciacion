@@ -21,6 +21,14 @@ config = Config()
 class RankingRoutes:
     async def rankings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.info("Ranking")
+        if context.user_data["is_admin"]:
+            await utils.response_conversation(
+                update,
+                context,
+                "Esta opción está desactivada hasta final de temporada.",
+            )
+            logger.info("Option deactivated")
+            return
         # Uncomment the following code at the end part of season
         # await utils.response_conversation(
         #     update, context, "Esta opción está desactivada hasta final de temporada."

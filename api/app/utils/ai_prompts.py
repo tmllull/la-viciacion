@@ -16,6 +16,7 @@ Debes incluir siempre el nombre del usuario.
 Debes incluir siempre el nombre del juego.
 Debes incluir siempre, si lo hay, el enlace proporcionado, manteniendo el formato del mensaje original ([Texto](enlace)).
 Debes incluir siempre la cantidad de juegos (empezados o completados) indicado en el mensaje original.
+Si se ha completado un juego, debes añadir, además, la media de tiempo que se indica en el mensaje original.
 """
 
 RANKING_USER_PROMPT = """

@@ -15,6 +15,7 @@ from ..database import models, schemas
 from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
+from ..utils import ai_prompts as prompts
 
 clockify_api = ClockifyApi()
 config = Config()
@@ -393,7 +394,9 @@ async def ranking_games_hours(db: Session, silent: bool):
                     if i == 10:
                         break
                 i += 1
-            await utils.send_message(msg, silent)
+            await utils.send_message(
+                msg, silent, openai=True, system_prompt=prompts.RANKING_GAMES_PROMPT
+            )
             logger.info(msg)
     except Exception as e:
         logger.info("Error in check ranking games: " + str(e))
@@ -463,7 +466,9 @@ async def ranking_players_hours(db: Session, silent: bool):
                 + "\n"
             )
             users.update_current_ranking_hours(db, i + 1, player.user_id)
-        await utils.send_message(msg, silent)
+        await utils.send_message(
+            msg, silent, openai=True, system_prompt=prompts.RANKING_USER_PROMPT
+        )
         logger.info(msg)
     logger.info("Updating players ranking...")
     current_ranking = users.current_ranking_hours(db)

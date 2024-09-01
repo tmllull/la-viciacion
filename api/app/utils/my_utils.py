@@ -19,6 +19,7 @@ from ..utils import logger
 from .achievements import AchievementsElems
 from .clockify_api import ClockifyApi
 from ..clients.open_ai import OpenAIClient
+from ..utils import ai_prompts as prompts
 
 oai_client = OpenAIClient()
 clockify_api = ClockifyApi()
@@ -250,17 +251,27 @@ def convert_blob_to_image(
         raise
 
 
-async def send_message(msg, silent, image=None):
+async def send_message(
+    msg,
+    silent,
+    image=None,
+    openai=False,
+    system_prompt=prompts.DEFAULT_SYSTEM_PROMPT,
+):
     logger.info("Sending message...")
     if not silent:
-        try:
-            completion = oai_client.chat_completion(prompt=msg)
-            if completion is not None:
-                logger.info(completion.choices[0].message.content)
-                msg = completion.choices[0].message.content
-        except Exception as e:
-            logger.info(e)
-            msg = msg
+        if openai:
+            try:
+                # logger.debug("Original message: " + msg)
+                # logger.debug("System prompt: " + system_prompt)
+                completion = oai_client.chat_completion(
+                    user_prompt=msg, system_prompt=system_prompt
+                )
+                if completion is not None:
+                    logger.info(completion.choices[0].message.content)
+                    msg = completion.choices[0].message.content
+            except Exception as e:
+                logger.info("Error generatins completion: " + str(e))
         bot = telegram.Bot(config.TELEGRAM_TOKEN)
         async with bot:
             try:

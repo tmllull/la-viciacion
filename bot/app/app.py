@@ -55,7 +55,7 @@ sentry_sdk.init(
     # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
     environment=config.ENVIRONMENT,
-    before_send=before_send,
+    # before_send=before_send,
 )
 
 FILTER_YES = "^(✅ Sí)$"

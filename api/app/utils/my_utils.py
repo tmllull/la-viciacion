@@ -18,7 +18,9 @@ from ..database import models, schemas
 from ..utils import logger
 from .achievements import AchievementsElems
 from .clockify_api import ClockifyApi
+from ..clients.open_ai import OpenAIClient
 
+oai_client = OpenAIClient()
 clockify_api = ClockifyApi()
 config = Config()
 
@@ -78,7 +80,7 @@ def convert_hours_minutes_to_seconds(time) -> int:
 
 
 def convert_date_from_text(date: str):
-    logger.debug("Converting date")
+    # logger.debug("Converting date")
     if date is None or date == "":
         return date
     if ":" not in date:
@@ -251,6 +253,14 @@ def convert_blob_to_image(
 async def send_message(msg, silent, image=None):
     logger.info("Sending message...")
     if not silent:
+        try:
+            completion = oai_client.chat_completion(prompt=msg)
+            if completion is not None:
+                logger.info(completion.choices[0].message.content)
+                msg = completion.choices[0].message.content
+        except Exception as e:
+            logger.info(e)
+            msg = msg
         bot = telegram.Bot(config.TELEGRAM_TOKEN)
         async with bot:
             try:

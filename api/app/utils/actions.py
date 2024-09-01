@@ -120,7 +120,11 @@ async def sync_data(
 
             # Update some user statistics
             logger.info("Updating played days...")
-            played_days_season = time_entries.get_played_days(db, user.id)
+            played_days_season, real_played_days_season = time_entries.get_played_days(
+                db, user.id
+            )
+            # logger.info("Played days: " + str(len(played_days_season)))
+            # logger.info("Real played days: " + str(len(real_played_days_season)))
             users.update_played_days(db, user.id, len(played_days_season))
             # Check played days achievement
             await achievements.user_played_total_days(
@@ -228,8 +232,6 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
             1,
             1,
         )
-
-    logger.info("PLAYED DATES: " + str(len(played_dates)))
     for i in range(1, len(played_dates)):
         # Check diff between current and last date
         diff = (played_dates[i] - played_dates[i - 1]).days

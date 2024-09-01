@@ -19,6 +19,7 @@ from telegram.ext import (
 )
 from utils.config import Config
 from utils.my_utils import MyUtils
+from utils import logger as logger
 import sentry_sdk
 
 ##########
@@ -33,6 +34,17 @@ ranking_routes = RankingRoutes()
 admin_routes = AdminRoutes()
 data_routes = DataRoutes()
 
+
+def before_send(event, hint):
+    # modify event here
+    logger.debug("------BEFORE SENTRY------")
+    logger.debug("Event:")
+    logger.debug(event)
+    logger.debug("Hint:")
+    logger.debug(hint)
+    return event
+
+
 sentry_sdk.init(
     dsn=config.SENTRY_URL,
     # Set traces_sample_rate to 1.0 to capture 100%
@@ -42,7 +54,8 @@ sentry_sdk.init(
     # of sampled transactions.
     # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
-    environment=config.SENTRY_ENV,
+    environment=config.ENVIRONMENT,
+    before_send=before_send,
 )
 
 FILTER_YES = "^(✅ Sí)$"

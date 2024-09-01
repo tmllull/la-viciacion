@@ -31,7 +31,8 @@ class OpenAIClient:
 
     def chat_completion(
         self,
-        prompt: str,
+        user_prompt: str,
+        system_prompt: str,
         model: str = "gpt-4o-mini",
         temperature: float = 1,
         max_tokens: int = None,
@@ -53,10 +54,10 @@ class OpenAIClient:
         if not hasattr(self, "client"):
             logger.info("OpenAI client not initialized")
             return None
-        user_message = [{"role": "user", "content": prompt}]
+        user_message = [{"role": "user", "content": user_prompt}]
         system_message = {
             "role": "system",
-            "content": prompts.SYSTEM_CONFIG,
+            "content": system_prompt,
         }
         messages = [system_message] + user_message
         completion = self.client.chat.completions.create(

@@ -13,6 +13,7 @@ from ..utils import logger
 from ..utils import my_utils as utils
 from ..utils.clockify_api import ClockifyApi
 from . import games
+from ..utils import ai_prompts as prompts
 
 clockify_api = ClockifyApi()
 config = Config()
@@ -415,6 +416,8 @@ async def add_new_game(
         await utils.send_message(
             msg,
             silent,
+            openai=True,
+            system_prompt=prompts.NEW_OR_COMPLETED_GAME_PROMPT,
         )
         logger.info("Game added!")
         return user_game
@@ -673,7 +676,12 @@ async def complete_game(
             + "."
         )
         logger.info(message)
-        await utils.send_message(message, silent)
+        await utils.send_message(
+            message,
+            silent,
+            openai=True,
+            system_prompt=prompts.NEW_OR_COMPLETED_GAME_PROMPT,
+        )
         return get_game_by_id(db, user_id, game_id)
 
     except Exception as e:

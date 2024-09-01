@@ -406,7 +406,7 @@ async def add_new_game(
         msg = (
             "*"
             + user.name
-            + "* está jugando a "
+            + "* acaba de empezar "
             + started_game
             + ", su juego número "
             + str(len(played_games))

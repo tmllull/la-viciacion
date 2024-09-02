@@ -7,7 +7,7 @@ from fastapi_versioning import VersionedFastAPI
 from .config import Config
 from .database import models
 from .database.database import SessionLocal, engine
-from .routers import admin, basic, bot, games, statistics, users, utils
+from .routers import admin, basic, bot, games, statistics, users, utils, webhooks
 from .utils import logger
 
 import sentry_sdk
@@ -49,6 +49,7 @@ app.include_router(games.router)
 app.include_router(statistics.router)
 app.include_router(bot.router)
 app.include_router(utils.router)
+app.include_router(webhooks.router)
 
 app = VersionedFastAPI(app, version_format="{major}", prefix_format="/api/v{major}")
 

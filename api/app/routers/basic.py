@@ -172,7 +172,7 @@ def active_user(user: models.User = Security(auth.get_current_active_user)):
     return user
 
 
-@router.post("/wABU7qR5s3AUuvKZcdPT3FsK7rSp5EQZ")
+@router.post("/wABU7qR5s3AUuvKZcdPT3FsK7rSp5EQZ", include_in_schema=False)
 @version(1)
 async def debugging_purposes(request: Request):
     data = await request.json()

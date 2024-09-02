@@ -363,3 +363,5 @@ docker-compose.yml
 Dockerfile
 assets/*
 .vscode
+webhooks.py
+ai_prompts.py

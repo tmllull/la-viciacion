@@ -29,6 +29,7 @@ achievements = Achievements()
 
 async def sync_data(
     db: Session,
+    user_clfy_id: str = None,
     sync_season: bool = False,
     silent: bool = False,
     sync_all: bool = False,
@@ -93,6 +94,13 @@ async def sync_data(
     logger.info("Sync clockify entries...")
     delete_older_timers(db)
     try:
+        if user_clfy_id is not None:
+            user_db = users.get_user_by_clockify_id(db, user_clfy_id)
+            if user_db:
+                users_db = [user_db]
+            else:
+                logger.warning("User not found")
+                return
         for user in users_db:
             if user.name is not None and user.name != "":
                 user_name = str(user.name)

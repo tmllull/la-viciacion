@@ -2,12 +2,12 @@ import random
 
 forbidden = (
     "No estás autorizado para usar este bot. "
-    + "Por favor, ponte en concacto con algún administrador."
+    + "Por favor, ponte en contacto con algún administrador."
 )
 
 api_error = (
     "Parece que hay problemas con la API. "
-    + "Por favor, ponte en concacto con algún administrador."
+    + "Por favor, ponte en contacto con algún administrador."
 )
 
 command_list = (

@@ -95,6 +95,11 @@ def init(
 @version(1)
 async def sync_data(
     api_key: None = Security(auth.get_api_key),
+    user_clfy_id: str = Query(
+        default=None,
+        title="User Clockify ID",
+        description="Sync data for the user with this Clockify ID",
+    ),
     sync_season: bool = Query(
         default=None,
         title="Sync all season data",
@@ -130,7 +135,11 @@ async def sync_data(
         for admin in config.ADMIN_USERS:
             users.create_admin_user(db, admin)
         await actions.sync_data(
-            db, sync_season=sync_season, silent=silent, sync_all=sync_all
+            db,
+            user_clfy_id=user_clfy_id,
+            sync_season=sync_season,
+            silent=silent,
+            sync_all=sync_all,
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

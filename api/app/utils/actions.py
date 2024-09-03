@@ -152,14 +152,15 @@ async def sync_data(
             logger.info("Updating played time games and check achievements...")
             played_time_games = time_entries.get_user_games_played_time(db, user.id)
             for game in played_time_games:
-                users.update_played_time_game(db, user.id, game[0], game[1])
-                await achievements.user_played_hours_game(
-                    db=db,
-                    user=user,
-                    game_id=game[0],
-                    played_time=game[1],
-                    silent=silent,
-                )
+                if game[1] is not None:
+                    users.update_played_time_game(db, user.id, game[0], game[1])
+                    await achievements.user_played_hours_game(
+                        db=db,
+                        user=user,
+                        game_id=game[0],
+                        played_time=game[1],
+                        silent=silent,
+                    )
             logger.info("Updating played time...")
             played_time = time_entries.get_user_played_time(db, user.id)
             if played_time is not None:

@@ -258,8 +258,8 @@ async def send_message(
     openai=False,
     system_prompt=prompts.DEFAULT_SYSTEM_PROMPT,
 ):
-    logger.info("Sending message...")
     if not silent:
+        logger.info("Preparing message...")
         if openai:
             try:
                 # logger.debug("Original message: " + msg)
@@ -271,10 +271,11 @@ async def send_message(
                     logger.info(completion.choices[0].message.content)
                     msg = completion.choices[0].message.content
             except Exception as e:
-                logger.info("Error generatins completion: " + str(e))
+                logger.info("Error generating completion: " + str(e))
         bot = telegram.Bot(config.TELEGRAM_TOKEN)
         async with bot:
             try:
+                logger.info("Sending message...")
                 if image is None:
                     await bot.send_message(
                         text=msg,
@@ -291,6 +292,8 @@ async def send_message(
                 logger.info("Message sent successfully!")
             except Exception as e:
                 logger.error("Error sending telegram message: " + str(e))
+    else:
+        logger.info("Silent mode. Message not sent.")
 
 
 async def send_message_to_user(user_telegram_id, msg):

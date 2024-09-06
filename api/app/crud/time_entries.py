@@ -510,16 +510,27 @@ def get_forgotten_timer_by_user(db: Session, user: models.User):
     return active_time_entry
 
 
-def get_older_timers(db: Session) -> list[models.TimeEntry]:
+def get_older_active_timers(
+    db: Session, user: models.User = None
+) -> list[models.TimeEntry]:
     current_time = datetime.datetime.now()
     time_threshold = current_time - datetime.timedelta(minutes=5)
-    active_time_entry = (
-        db.query(models.TimeEntry)
-        .filter(models.TimeEntry.duration.is_(None))
-        .filter(models.TimeEntry.start < time_threshold)
-        .all()
-    )
-    return active_time_entry
+    if user is None:
+        active_time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.duration.is_(None))
+            .filter(models.TimeEntry.start < time_threshold)
+            .all()
+        )
+    else:
+        active_time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
+            .filter(models.TimeEntry.duration.is_(None))
+            .filter(models.TimeEntry.start < time_threshold)
+            .all()
+        )
+    return active_time_entries
 
 
 def get_weekly_hours(

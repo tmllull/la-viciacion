@@ -92,15 +92,20 @@ async def sync_data(
     logger.info("Current season: " + str(config.CURRENT_SEASON))
     logger.info("Silent mode: " + str(silent))
     logger.info("Sync clockify entries...")
-    delete_older_timers(db)
+    # delete_older_timers(db)
     try:
         if user_clfy_id is not None:
             user_db = users.get_user_by_clockify_id(db, user_clfy_id)
             if user_db:
                 users_db = [user_db]
+                logger.info("Delete older timers for " + str(user_db.name) + "...")
+                # delete_older_active_timers(db, user_db)
             else:
                 logger.warning("User not found")
                 return
+        # else:
+        #     logger.info("Delete older timers for all users...")
+        #     delete_older_active_timers(db)
         for user in users_db:
             if user.name is not None and user.name != "":
                 user_name = str(user.name)
@@ -511,13 +516,12 @@ async def check_forgotten_timer(db: Session, user: models.User):
         await utils.send_message_to_user(user.telegram_id, msg)
 
 
-def delete_older_timers(db: Session):
-    logger.info("Delete older timers...")
+def delete_older_active_timers(db: Session, user: models.User = None):
     current_time = datetime.datetime.now().time()
     minutes = current_time.minute
-    active_timers = time_entries.get_older_timers(db)
+    active_timers = time_entries.get_older_active_timers(db, user)
     for timer in active_timers:
-        logger.info("Deleting timer " + str(timer.id))
+        # logger.info("Deleting timer " + str(timer.id))
         db.delete(timer)
         db.commit()
 

@@ -99,13 +99,13 @@ async def sync_data(
             if user_db:
                 users_db = [user_db]
                 logger.info("Delete older timers for " + str(user_db.name) + "...")
-                # delete_older_active_timers(db, user_db)
+                delete_older_active_timers(db, user_db)
             else:
                 logger.warning("User not found")
                 return
-        # else:
-        #     logger.info("Delete older timers for all users...")
-        #     delete_older_active_timers(db)
+        else:
+            logger.info("Delete older timers for all users...")
+            delete_older_active_timers(db)
         for user in users_db:
             if user.name is not None and user.name != "":
                 user_name = str(user.name)

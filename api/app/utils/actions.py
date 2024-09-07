@@ -123,7 +123,6 @@ async def sync_data(
                 user_name = str(user.name)
             else:
                 user_name = str(user.username)
-            logger.debug("Sync clockify entries for " + str(user_name) + "...")
             # logger.info("#### " + str(user_name) + " ####")
 
             # Create user statistics entry (if needed)
@@ -137,6 +136,7 @@ async def sync_data(
                 )
 
             # Sync time_entries from Clockify with local DB
+            logger.debug("Sync clockify entries for " + str(user_name) + "...")
             total_entries = await utils.sync_clockify_entries(
                 db, user, start_date, silent
             )

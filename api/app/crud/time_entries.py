@@ -18,10 +18,13 @@ from ..config import Config
 from ..database import models, schemas
 from ..utils import actions
 from ..utils import actions as actions
-from ..utils import logger
 from ..utils import my_utils as utils
 from ..utils.clockify_api import ClockifyApi
 from . import clockify, games, users
+from ..utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 clockify_api = ClockifyApi()
 config = Config()

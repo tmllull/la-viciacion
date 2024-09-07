@@ -1,5 +1,5 @@
 import datetime
-
+import sentry_sdk
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_versioning import VersionedFastAPI
@@ -8,9 +8,11 @@ from .config import Config
 from .database import models
 from .database.database import SessionLocal, engine
 from .routers import admin, basic, bot, games, statistics, users, utils, webhooks
-from .utils import logger
+from .utils.logger import LogManager
 
-import sentry_sdk
+log_manager = LogManager()
+logger = log_manager.get_logger()
+
 
 config = Config()
 
@@ -71,9 +73,18 @@ async def add_timestamp_to_logs(request, call_next):
     # Calcula la duración de la solicitud
     duration = end_time - start_time
 
+    # Obtener los query parameters como un diccionario
+    query_params = request.query_params
+
+    # Formatear los query params para mostrarlos en los logs
+    if query_params:
+        query_str = f"?{query_params}"
+    else:
+        query_str = ""
+
     # Registra la hora actual y la duración en los logs
     logger.info(
-        f'REQUEST - "{request.method} {request.url.path}" - {response.status_code} - {duration}'
+        f'REQUEST - "{request.method} {request.url.path}{query_str}" - {response.status_code} - {duration}'
     )
 
     return response

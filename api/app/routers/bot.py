@@ -11,7 +11,10 @@ from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..routers import admin, games, statistics, users, utils
 from ..utils import actions as actions
-from ..utils import logger as logger
+from ..utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 models.Base.metadata.create_all(bind=engine)
 

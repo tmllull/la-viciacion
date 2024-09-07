@@ -4,7 +4,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from ..config import Config
-from ..utils import logger
+from ..utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 config = Config()
 

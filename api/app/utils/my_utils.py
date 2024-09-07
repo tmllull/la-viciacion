@@ -15,11 +15,14 @@ from sqlalchemy.orm import Session
 from ..config import Config
 from ..crud import games, time_entries, users
 from ..database import models, schemas
-from ..utils import logger
 from .achievements import AchievementsElems
 from .clockify_api import ClockifyApi
 from ..clients.open_ai import OpenAIClient
 from ..utils import ai_prompts as prompts
+from ..utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 oai_client = OpenAIClient()
 clockify_api = ClockifyApi()

@@ -12,10 +12,13 @@ from ..config import Config
 from ..crud import clockify, games, rankings, time_entries, users
 from ..crud.achievements import Achievements
 from ..database import models, schemas
-from . import logger
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
 from ..utils import ai_prompts as prompts
+from .logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 clockify_api = ClockifyApi()
 config = Config()
@@ -100,7 +103,8 @@ async def sync_data(
                 if user_db:
                     users_db = [user_db]
                     logger.debug("Delete older timers for " + str(user_db.name) + "...")
-                    delete_older_active_timers(db, user_db)
+                    # delete_older_active_timers(db, user_db)
+                    delete_older_timers(db, user_db)
                 else:
                     logger.warning("User not found")
                     return
@@ -109,7 +113,8 @@ async def sync_data(
                 logger.error("Error deleting timers for user " + str(user_clfy_id))
         else:
             logger.debug("Delete older timers for all users...")
-            delete_older_active_timers(db)
+            # delete_older_active_timers(db)
+            delete_older_timers(db)
         logger.info("########################")
         logger.info("##### USER CHECKS ######")
         logger.info("########################")
@@ -118,7 +123,6 @@ async def sync_data(
                 user_name = str(user.name)
             else:
                 user_name = str(user.username)
-            logger.debug("Sync clockify entries for " + str(user_name) + "...")
             # logger.info("#### " + str(user_name) + " ####")
 
             # Create user statistics entry (if needed)
@@ -132,6 +136,7 @@ async def sync_data(
                 )
 
             # Sync time_entries from Clockify with local DB
+            logger.debug("Sync clockify entries for " + str(user_name) + "...")
             total_entries = await utils.sync_clockify_entries(
                 db, user, start_date, silent
             )
@@ -525,6 +530,16 @@ async def check_forgotten_timer(db: Session, user: models.User):
 
 
 def delete_older_active_timers(db: Session, user: models.User = None):
+    current_time = datetime.datetime.now().time()
+    minutes = current_time.minute
+    active_timers = time_entries.get_older_active_timers(db, user)
+    for timer in active_timers:
+        # logger.info("Deleting timer " + str(timer.id))
+        db.delete(timer)
+        db.commit()
+
+
+def delete_older_timers(db: Session, user: models.User = None):
     current_time = datetime.datetime.now().time()
     minutes = current_time.minute
     active_timers = time_entries.get_older_active_timers(db, user)

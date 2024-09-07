@@ -1,7 +1,10 @@
 from enum import Enum
 
 from ..database import schemas
-from ..utils import logger
+from ..utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 
 class CustomExceptions:

@@ -1,8 +1,11 @@
 from openai import OpenAI
 
 from ..config import Config
-from ..utils import logger as logger
 from ..utils import ai_prompts as prompts
+from ..utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 config = Config()
 

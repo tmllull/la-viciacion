@@ -38,7 +38,7 @@ class ClockifyApi:
                 else:
                     request = requests.request(method, url, headers=headers)
             except Exception as e:
-                logger.info("Error on send request on clockify")
+                logger.error("Error on send request on clockify")
                 exit(e)
 
             if not request.ok:
@@ -131,7 +131,7 @@ class ClockifyApi:
                 return self.GENERIC_ERROR
 
     def get_time_entries(self, clockify_user_id, start_date=None):
-        logger.info("Getting time entries...")
+        logger.debug("Getting time entries...")
         if clockify_user_id is None or not utils.check_hex(clockify_user_id):
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ
@@ -168,7 +168,7 @@ class ClockifyApi:
             ordered_entries = sorted(entries, key=get_date)
             return ordered_entries
         except Exception as e:
-            logger.info("Error getting time entries: " + str(e))
+            logger.error("Error getting time entries: " + str(e))
             raise e
 
     def update_time_entry(self):
@@ -204,7 +204,7 @@ class ClockifyApi:
                 )
                 return response.json()
             else:
-                logger.info("Invalid Clockify API Key")
+                logger.warning("Invalid Clockify API Key")
         except Exception as e:
             logger.warning("Error creating empty entry: " + str(e))
 

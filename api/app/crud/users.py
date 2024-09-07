@@ -37,8 +37,8 @@ def create_admin_user(db: Session, username: str):
             db.add(db_user)
             db.commit()
             logger.info("Admin user created")
-        else:
-            logger.warning(username + " already exists as admin")
+        # else:
+        #     logger.warning(username + " already exists as admin")
     except SQLAlchemyError as e:
         db.rollback()
         logger.error("Error creating admin user: " + str(e))
@@ -103,12 +103,14 @@ def get_user_by_id(db: Session, id: int) -> models.User:
         logger.error("Error getting user by id: " + str(e))
         raise
 
+
 def get_user_by_clockify_id(db: Session, id: int) -> models.User:
     try:
         return db.query(models.User).filter(models.User.clockify_id == id).first()
     except SQLAlchemyError as e:
         logger.error("Error getting user by id: " + str(e))
         raise
+
 
 def create_user(
     db: Session, user: schemas.UserCreate

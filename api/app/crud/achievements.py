@@ -30,7 +30,7 @@ class Achievements:
         self.silent = silent
 
     def populate_achievements(self, db: Session):
-        logger.info("Populating achievements")
+        logger.debug("Populating achievements")
         for achievement in list(AchievementsElems):
             key = achievement.name
             title = achievement.value["title"]
@@ -50,7 +50,7 @@ class Achievements:
                     # db.refresh(achievement)
                 except SQLAlchemyError as e:
                     db.rollback()
-                    logger.info("Error adding achievement: " + str(e))
+                    logger.error("Error adding achievement: " + str(e))
             else:
                 # logger.info("Updating achievement")
                 stmt = (
@@ -140,7 +140,7 @@ class Achievements:
         date: str = None,
         silent: bool = False,
     ):
-        logger.info("Check total played time achievements...")
+        logger.debug("Check total played time achievements...")
         if played_time is None:
             return
         played_time = played_time / 60 / 60
@@ -210,7 +210,7 @@ class Achievements:
         user: models.User,
         silent: bool = False,
     ):
-        logger.info("Check played time in one day achievements...")
+        logger.debug("Check played time in one day achievements...")
         played_days = time_entries.get_played_time_by_day(db, user.id)
         for played_day in played_days:
             date = str(played_day[0])
@@ -276,7 +276,7 @@ class Achievements:
     async def user_session_time(
         self, db: Session, user: models.User, silent: bool = False
     ):
-        logger.info("Check session played time achievements...")
+        logger.debug("Check session played time achievements...")
         # -5 min
         ach = AchievementsElems.PLAYED_LESS_5_MIN_SESSION
         if not self.check_already_achieved(db, user.id, ach.name):
@@ -359,7 +359,7 @@ class Achievements:
     async def user_played_total_days(
         self, db: Session, user: models.User, total_days: list, silent: bool = False
     ):
-        logger.info(
+        logger.debug(
             "Check total played days achievements (" + str(len(total_days)) + ")..."
         )
         # achieved_date = total_days[1]
@@ -512,7 +512,7 @@ class Achievements:
     async def user_played_total_games(
         self, db: Session, user: models.User, date: str = None, silent: bool = False
     ):
-        logger.info("Check total played games achievements...")
+        logger.debug("Check total played games achievements...")
         played_games = users.get_games(db, user.id)
         # 10
         # logger.info("Played games for " + user.name + ": " + str(len(played_games)))
@@ -678,7 +678,7 @@ class Achievements:
         date: datetime.datetime = None,
         silent: bool = False,
     ):
-        logger.info("Check streaks achievements...")
+        logger.debug("Check streaks achievements...")
         if date is not None:
             date = date.strftime("%Y-%m-%d %H:%M:%S")
         # 7 days
@@ -771,19 +771,19 @@ class Achievements:
             )
 
     async def teamwork(self, db: Session, silent: bool):
-        logger.info("Checking teamwork achievement...")
+        logger.debug("Checking teamwork achievement...")
         user_list = users.get_users(db)
         playing: List[models.User] = []
         for user in user_list:
             has_active_time_entry = time_entries.get_active_time_entry_by_user(db, user)
             if has_active_time_entry is not None:
                 playing.append(user)
-        logger.info(
+        logger.debug(
             "Playing users: " + str(len(playing)) + "/" + str(user_list.count())
         )
         ach = AchievementsElems.TEAMWORK
         if len(playing) >= 4:  # and notification_sent is None:
-            logger.info("4 or more users are playing!")
+            logger.debug("4 or more users are playing!")
             someone_not_achieved = False
             players = ""
             for player in playing:
@@ -803,10 +803,10 @@ class Achievements:
                     image=self.get_image(db, ach.name)[0],
                 )
             else:
-                logger.info("All users unlocked this achievement")
+                logger.debug("All users unlocked this achievement")
 
     async def early_riser(self, db: Session, user: models.User, silent: bool):
-        logger.info("Checking early riser achievement...")
+        logger.debug("Checking early riser achievement...")
         entries = time_entries.get_time_entry_between_hours(
             db, user.id, start_hour=5, end_hour=6
         )
@@ -827,7 +827,7 @@ class Achievements:
             )
 
     async def nocturnal(self, db: Session, user: models.User, silent: bool):
-        logger.info("Checking nocturnal achievement...")
+        logger.debug("Checking nocturnal achievement...")
         entries = time_entries.get_time_entry_between_hours(
             db, user.id, start_hour=2, end_hour=5
         )

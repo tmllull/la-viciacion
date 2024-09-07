@@ -5,8 +5,11 @@ from datetime import timezone
 import requests
 
 from ..config import Config
-from . import logger
 from . import my_utils as utils
+from .logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 config = Config()
 time_format = "%Y-%m-%dT%H:%M:%SZ"

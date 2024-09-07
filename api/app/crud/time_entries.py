@@ -540,6 +540,25 @@ def get_older_active_timers(
     return active_time_entries
 
 
+def get_older_timers(db: Session, user: models.User = None) -> list[models.TimeEntry]:
+    current_time = datetime.datetime.now()
+    time_threshold = current_time - datetime.timedelta(minutes=5)
+    if user is None:
+        active_time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.start < time_threshold)
+            .all()
+        )
+    else:
+        active_time_entries = (
+            db.query(models.TimeEntry)
+            .filter(models.TimeEntry.user_clockify_id == user.clockify_id)
+            .filter(models.TimeEntry.start < time_threshold)
+            .all()
+        )
+    return active_time_entries
+
+
 def get_weekly_hours(
     db: Session, user: models.User, mode: int = 0
 ) -> list[models.TimeEntry]:
@@ -620,3 +639,11 @@ def get_weekly_games(
         .all()
     )
     return weekly_games
+
+
+def delete_time_entry(db: Session, time_entry_id: str):
+    try:
+        db.query(models.TimeEntry).filter(models.TimeEntry.id == time_entry_id).delete()
+        db.commit()
+    except Exception as e:
+        logger.error(e)

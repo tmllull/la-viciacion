@@ -81,7 +81,7 @@ async def sync_data(
     if current_date.month == 1 and current_date.day == 1:
         start_date = str(current_date.year) + "-01-01"
         if current_date.hour == 0 and current_date.minute == 0:
-            logger.info("Clear current season tables...")
+            logger.debug("Clear current season tables...")
             silent = True
             db.query(models.TimeEntry).delete()
             db.query(models.UserGame).delete()
@@ -91,27 +91,35 @@ async def sync_data(
             db.commit()
     logger.info("Current season: " + str(config.CURRENT_SEASON))
     logger.info("Silent mode: " + str(silent))
-    logger.info("Sync clockify entries...")
+    # logger.info("Sync clockify entries...")
     # delete_older_timers(db)
     try:
         if user_clfy_id is not None:
-            user_db = users.get_user_by_clockify_id(db, user_clfy_id)
-            if user_db:
-                users_db = [user_db]
-                logger.info("Delete older timers for " + str(user_db.name) + "...")
-                delete_older_active_timers(db, user_db)
-            else:
-                logger.warning("User not found")
-                return
+            try:
+                user_db = users.get_user_by_clockify_id(db, user_clfy_id)
+                if user_db:
+                    users_db = [user_db]
+                    logger.debug("Delete older timers for " + str(user_db.name) + "...")
+                    delete_older_active_timers(db, user_db)
+                else:
+                    logger.warning("User not found")
+                    return
+            except Exception as e:
+                logger.error(e)
+                logger.error("Error deleting timers for user " + str(user_clfy_id))
         else:
-            logger.info("Delete older timers for all users...")
+            logger.debug("Delete older timers for all users...")
             delete_older_active_timers(db)
+        logger.info("########################")
+        logger.info("##### USER CHECKS ######")
+        logger.info("########################")
         for user in users_db:
             if user.name is not None and user.name != "":
                 user_name = str(user.name)
             else:
                 user_name = str(user.username)
-            logger.info("#### " + str(user_name) + " ####")
+            logger.debug("Sync clockify entries for " + str(user_name) + "...")
+            # logger.info("#### " + str(user_name) + " ####")
 
             # Create user statistics entry (if needed)
             users.create_user_statistics(db, user.id)
@@ -129,11 +137,11 @@ async def sync_data(
             )
 
             if total_entries < 1:
-                logger.info("No time entries for " + str(user_name))
+                logger.debug("No time entries for " + str(user_name))
                 continue
 
             # Update some user statistics
-            logger.info("Updating played days...")
+            logger.debug("Updating played days...")
             played_days_season, real_played_days_season = time_entries.get_played_days(
                 db, user.id
             )
@@ -144,7 +152,7 @@ async def sync_data(
             await achievements.user_played_total_days(
                 db, user, played_days_season, silent=silent
             )
-            logger.info("Checking streaks for " + user.name)
+            logger.debug("Checking streaks for " + user.name)
             best_streak_date, best_streak, current_streak = streak_days(
                 db, user, played_days_season
             )
@@ -154,7 +162,7 @@ async def sync_data(
                 db, user.id, current_streak, best_streak, best_streak_date
             )
 
-            logger.info("Updating played time games and check achievements...")
+            logger.debug("Updating played time games and check achievements...")
             played_time_games = time_entries.get_user_games_played_time(db, user.id)
             for game in played_time_games:
                 if game[1] is not None:
@@ -166,7 +174,7 @@ async def sync_data(
                         played_time=game[1],
                         silent=silent,
                     )
-            logger.info("Updating played time...")
+            logger.debug("Updating played time...")
             played_time = time_entries.get_user_played_time(db, user.id)
             if played_time is not None:
                 played_time = played_time[1]
@@ -193,7 +201,7 @@ async def sync_data(
         logger.info("#########################")
 
         # Update some game statistics
-        logger.info("Updating played time for games...")
+        logger.debug("Updating played time for games...")
         played_time_games = time_entries.get_games_played_time(db)
         for game in played_time_games:
             games.update_total_played_time(db, game[0], game[1])
@@ -328,7 +336,7 @@ async def check_streaks(
 
 
 async def ranking_games_hours(db: Session, silent: bool):
-    logger.info("Checking games ranking hours...")
+    logger.debug("Checking games ranking hours...")
     try:
         msg = ""
         most_played_games = games.get_most_played_time(db, 11)
@@ -413,8 +421,8 @@ async def ranking_games_hours(db: Session, silent: bool):
             )
             logger.info(msg)
     except Exception as e:
-        logger.info("Error in check ranking games: " + str(e))
-    logger.info("Updating games ranking...")
+        logger.error("Error in check ranking games: " + str(e))
+    logger.debug("Updating games ranking...")
     most_played = games.get_most_played_time(db)
     i = 1
     for game in most_played:
@@ -423,7 +431,7 @@ async def ranking_games_hours(db: Session, silent: bool):
 
 
 async def ranking_players_hours(db: Session, silent: bool):
-    logger.info("Ranking player hours...")
+    logger.debug("Ranking player hours...")
     played_time_db = users.played_time(db)
     most_played: list[models.User] = []
     most_played_to_check = []  # Only for easy check with current ranking
@@ -484,7 +492,7 @@ async def ranking_players_hours(db: Session, silent: bool):
             msg, silent, openai=True, system_prompt=prompts.RANKING_USER_PROMPT
         )
         logger.info(msg)
-    logger.info("Updating players ranking...")
+    logger.debug("Updating players ranking...")
     current_ranking = users.current_ranking_hours(db)
     i = 1
     for user in current_ranking:
@@ -498,12 +506,12 @@ async def ranking_players_hours(db: Session, silent: bool):
 
 
 async def check_forgotten_timer(db: Session, user: models.User):
-    logger.info("Check forgotten timers...")
+    logger.debug("Check forgotten timers...")
     current_time = datetime.datetime.now().time()
     minutes = current_time.minute
     active_timer = time_entries.get_forgotten_timer_by_user(db, user)
     if active_timer is not None and (minutes == 0):
-        logger.info(user.name + " has an active timer for more than 3 hours")
+        logger.info(user.name + " has an active timer for more than 4 hours")
         msg = (
             "Hola, "
             + user.name
@@ -540,7 +548,7 @@ async def weekly_resume(
     Returns:
         _type_: _description_
     """
-    logger.info("Check weekly resume for " + user.name + "...")
+    logger.debug("Check weekly resume for " + user.name + "...")
     resume = {}
     weekly_hours = time_entries.get_weekly_hours(db, user, mode=mode)
     weekly_hours = utils.convert_time_to_hours(weekly_hours[0][0])
@@ -569,7 +577,7 @@ async def weekly_resume(
         + "Logros: "
         + weekly_achievements
     )
-    logger.info(msg)
+    logger.debug(msg)
     if not silent:
         await utils.send_message_to_user(user.telegram_id, msg)
     resume["ranking"] = current_ranking

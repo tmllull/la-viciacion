@@ -154,6 +154,8 @@ def date_from_datetime(datetime: str):
 async def get_game_info(game: str):
     # Rawg
     game_request = requests.get(config.RAWG_URL + game)
+    # logger.debug("RAWG:")
+    # logger.debug(json.loads(game_request.content)["results"][0])
     try:
         rawg_content = json.loads(game_request.content)["results"][0]
     except Exception:
@@ -161,17 +163,20 @@ async def get_game_info(game: str):
     # HLTB
     game = game.replace(":", "")
     game = game.replace("/", "")
-    results_list = await HowLongToBeat().async_search(game)
-    if results_list is not None and len(results_list) > 0:
-        best_element = max(results_list, key=lambda element: element.similarity)
-        hltb_content = best_element.json_content
-    else:
+    try:
+        results_list = await HowLongToBeat().async_search(game)
+        if results_list is not None and len(results_list) > 0:
+            best_element = max(results_list, key=lambda element: element.similarity)
+            hltb_content = best_element.json_content
+        else:
+            hltb_content = None
+    except Exception:
         hltb_content = None
-
     return {"rawg": rawg_content, "hltb": hltb_content}
 
 
 async def get_new_game_info(game) -> schemas.NewGame:
+    logger.debug("Get new game info from rawg and hltb...")
     game_name = game["name"]
     project_id = game["id"]
     released = ""
@@ -180,18 +185,24 @@ async def get_new_game_info(game) -> schemas.NewGame:
     dev = ""
     avg_time = 0
     game_info = await get_game_info(game_name)
+    logger.debug("Game info: " + str(game_info))
     rawg_info = game_info["rawg"]
     hltb_info = game_info["hltb"]
     game_name = rawg_info["name"]
     released = rawg_info["released"]
-    if hltb_info is None:
+    try:
+        if hltb_info is None:
+            steam_id = 0
+            dev = "-"
+            avg_time = 0
+        else:
+            steam_id = hltb_info["profile_steam"]
+            dev = hltb_info["profile_dev"]
+            avg_time = hltb_info["comp_main"]
+    except Exception:
         steam_id = 0
         dev = "-"
         avg_time = 0
-    else:
-        steam_id = hltb_info["profile_steam"]
-        dev = hltb_info["profile_dev"]
-        avg_time = hltb_info["comp_main"]
     if steam_id == 0:
         steam_id = ""
     if released is not None:
@@ -224,9 +235,7 @@ async def sync_clockify_entries(
         total_entries = 0
         entries = clockify_api.get_time_entries(user.clockify_id, date)
         total_entries = len(entries)
-        logger.info(
-            "Sync " + str(total_entries) + " entries for user " + str(user.name)
-        )
+        logger.info("Sync " + str(total_entries) + " entries for " + str(user.name))
         if total_entries == 0:
             return 0
         await time_entries.sync_clockify_entries_db(db, user, entries, silent)

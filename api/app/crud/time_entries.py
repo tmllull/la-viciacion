@@ -126,7 +126,7 @@ def get_user_games_played_time(
 
 def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntry]:
     if start_date:
-        logger.info(start_date)
+        logger.debug(start_date)
         return (
             db.query(models.TimeEntry)
             .filter(models.TimeEntry.start >= start_date)
@@ -140,13 +140,13 @@ def get_time_entries_by_user(
     db: Session, user_id: int, start_date: str = None
 ) -> list[models.TimeEntry]:
     if start_date:
-        logger.info(start_date)
+        logger.debug(start_date)
         return db.query(models.TimeEntry).filter(
             models.TimeEntry.user_id == user_id,
             models.TimeEntry.start >= start_date,
         )
     else:
-        logger.info("Get ALL time entries for user " + str(user_id))
+        logger.debug("Get ALL time entries for user " + str(user_id))
         time_entries = (
             db.query(models.TimeEntry)
             .filter(models.TimeEntry.user_id == user_id)
@@ -199,14 +199,14 @@ async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
     for entry in entries:
-        if entry["projectId"] is None:
-            msg = (
-                "Hola, "
-                + user.name
-                + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
-            )
-            await utils.send_message_to_user(user.telegram_id, msg)
-            continue
+        # if entry["projectId"] is None:
+        #     msg = (
+        #         "Hola, "
+        #         + user.name
+        #         + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
+        #     )
+        #     await utils.send_message_to_user(user.telegram_id, msg)
+        #     continue
         try:
             # Extract data from time entry
             start = entry["timeInterval"]["start"]
@@ -347,8 +347,12 @@ async def sync_clockify_entries_db(
             else:
                 logger.info("Project " + entry["projectId"] + " not in DB")
                 project = clockify_api.get_project_by_id(entry["projectId"])
+                logger.debug("Clockify project:")
+                logger.debug(project)
                 game_name = project["name"]
                 new_game_info = await utils.get_new_game_info(project)
+                logger.debug("New game info:")
+                logger.debug(new_game_info.__dict__)
                 new_game = await games.new_game(db, new_game_info)
                 game_id = new_game.id
 
@@ -406,7 +410,7 @@ async def sync_clockify_entries_db(
             # TODO: Add historical info
         except Exception as e:
             db.rollback()
-            logger.info("Error adding time entry " + str(entry) + ": " + str(e))
+            logger.error("Error adding time entry " + str(entry) + ": " + str(e))
 
 
 def get_time_entry_by_time(

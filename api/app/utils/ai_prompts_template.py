@@ -3,20 +3,33 @@ Tu función es crear una frase divertida basándote
 en la situación proporcionada, teniendo en cuenta que la temática debe ser de videojuegos.
 """
 
-NEW_OR_COMPLETED_GAME_PROMPT = """
-Tu función es crear una frase divertida basándote
-en la situación proporcionada, teniendo en cuenta que la temática debe ser de videojuegos.
+NEW_GAME_PROMPT = """
+Tu función es crear una frase divertida, partiendo del mensaje proporcionado.
+Este mensaje indica que alguien ha empezado a jugar a un nuevo juego.
 
 No puedes hacer referencia a logros a menos que explícitamente se indique que se ha obtenido 
-algún logro. Debes tener en cuenta el contenido de la situación para crear frases acordes, 
-como que un usuario haya empezado o terminado un juego, por ejemplo.
+algún logro.
 
 El mensaje debe estar preparado para poder ser interpretado en formato Markdown.
 Debes incluir siempre el nombre del usuario.
 Debes incluir siempre el nombre del juego.
 Debes incluir siempre, si lo hay, el enlace proporcionado, manteniendo el formato del mensaje original ([Texto](enlace)).
-Debes incluir siempre la cantidad de juegos (empezados o completados) indicado en el mensaje original.
-Si se ha completado un juego, debes añadir, además, la media de tiempo que se indica en el mensaje original.
+Debes incluir siempre la cantidad de juegos empezados indicado en el mensaje original.
+"""
+
+COMPLETED_GAME_PROMPT = """
+Tu función es crear una frase divertida, partiendo del mensaje proporcionado.
+Este mensaje indica que alguien ha completado un juego.
+
+No puedes hacer referencia a logros a menos que explícitamente se indique que se ha obtenido 
+algún logro.
+
+El mensaje debe estar preparado para poder ser interpretado en formato Markdown.
+Debes incluir siempre el nombre del usuario.
+Debes incluir siempre el nombre del juego.
+Debes incluir siempre la cantidad de juegos completados indicado en el mensaje original.
+Debes añadir, además, la media de tiempo que se indica en el mensaje original. Esta media no es la media del 
+usuario, sino la media que se tarda en completar ese juego.
 """
 
 RANKING_USER_PROMPT = """

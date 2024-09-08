@@ -428,7 +428,7 @@ async def add_new_game(
             msg,
             silent,
             openai=True,
-            system_prompt=prompts.NEW_OR_COMPLETED_GAME_PROMPT,
+            system_prompt=prompts.NEW_GAME_PROMPT,
         )
         logger.info("Game added!")
         return user_game
@@ -691,7 +691,7 @@ async def complete_game(
             message,
             silent,
             openai=True,
-            system_prompt=prompts.NEW_OR_COMPLETED_GAME_PROMPT,
+            system_prompt=prompts.COMPLETED_GAME_PROMPT,
         )
         return get_game_by_id(db, user_id, game_id)
 

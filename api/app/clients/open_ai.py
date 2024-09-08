@@ -22,7 +22,7 @@ class OpenAIClient:
         if not hasattr(self, "client"):  # Check if the client is already initialized
             try:
                 if config.OPENAI_API_KEY:
-                    logger.debug("Creating OpenAI client...")
+                    # logger.debug("Creating OpenAI client...")
                     try:
                         self.client = OpenAI(api_key=config.OPENAI_API_KEY)
                     except Exception as e:

@@ -179,7 +179,7 @@ async def get_game_info(game: str):
 
 
 async def get_new_game_info(game) -> schemas.NewGame:
-    logger.debug("Get new game info from rawg and hltb...")
+    # logger.debug("Get new game info from rawg and hltb...")
     game_name = game["name"]
     project_id = game["id"]
     released = ""
@@ -188,7 +188,7 @@ async def get_new_game_info(game) -> schemas.NewGame:
     dev = ""
     avg_time = 0
     game_info = await get_game_info(game_name)
-    logger.debug("Game info: " + str(game_info))
+    # logger.debug("Game info: " + str(game_info))
     rawg_info = game_info["rawg"]
     hltb_info = game_info["hltb"]
     game_name = rawg_info["name"]

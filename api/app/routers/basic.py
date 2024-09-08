@@ -179,7 +179,7 @@ def active_user(user: models.User = Security(auth.get_current_active_user)):
 @version(1)
 async def debugging_purposes(request: Request):
     data = await request.json()
-    logger.debug("Timer updated: " + str(data["user"]))
+    # logger.debug("Timer updated: " + str(data["user"]))
     # logger.info(len(data))
     # logger.info("Received data: " + str(await request.json()))
     return {"message": "Done"}

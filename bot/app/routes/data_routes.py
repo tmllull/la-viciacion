@@ -128,12 +128,16 @@ class DataRoutes:
                 return ConversationHandler.END
             context.user_data[GAME] = rawg_info["name"]
             context.user_data[RELEASE_DATE] = rawg_info["released"]
-            if hltb_info is None:
+            try:
+                if hltb_info is None:
+                    steam_id = 0
+                    context.user_data[DEV] = "-"
+                else:
+                    steam_id = hltb_info["profile_steam"]
+                    context.user_data[DEV] = hltb_info["profile_dev"]
+            except Exception:
                 steam_id = 0
                 context.user_data[DEV] = "-"
-            else:
-                steam_id = hltb_info["profile_steam"]
-                context.user_data[DEV] = hltb_info["profile_dev"]
             if steam_id == 0:
                 context.user_data[STEAM_ID] = ""
             else:

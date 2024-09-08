@@ -45,7 +45,7 @@ class ClockifyApi:
                 exit(e)
 
             if not request.ok:
-                logger.debug(
+                logger.error(
                     "Error({}): {}".format(request.status_code, request.content)
                 )
             return request
@@ -134,7 +134,7 @@ class ClockifyApi:
                 return self.GENERIC_ERROR
 
     def get_time_entries(self, clockify_user_id, start_date=None):
-        logger.debug("Getting time entries...")
+        # logger.debug("Getting time entries...")
         if clockify_user_id is None or not utils.check_hex(clockify_user_id):
             return []
         # start must be in format yyyy-MM-ddThh:mm:ssZ

@@ -113,6 +113,15 @@ def convert_clockify_duration(duration):
     else:
         return 0
 
+def get_week_range_dates(weeks_diff: int = 0):
+    if weeks_diff < 0:
+        raise ValueError("weeks_diff must be greater than or equal to 0")
+    current_date = datetime.datetime.now()
+    first_day_current_week = current_date - datetime.timedelta(days=current_date.weekday())
+    first_day_n_weeks_ago = first_day_current_week - datetime.timedelta(weeks=weeks_diff)
+    last_day_n_weeks_ago = first_day_n_weeks_ago + datetime.timedelta(days=6)
+    return first_day_n_weeks_ago.date(), last_day_n_weeks_ago.date()
+    
 
 def get_last_week_range_dates():
     current_date = datetime.datetime.now()

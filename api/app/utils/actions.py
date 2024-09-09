@@ -226,7 +226,7 @@ async def sync_data(
         # Check weekly resume only on monday at 9:00
         if week_day == 0 and hour == 9 and minute == 0:
             for user in users_db:
-                await weekly_resume(db, user, mode=0)
+                await weekly_resume(db, user, weeks_ago=1, silent=silent)
         end_time = time.time()
         elapsed_time = end_time - start_time
         if elapsed_time > 30 and (not sync_all and not sync_season):
@@ -555,7 +555,7 @@ def delete_older_timers(db: Session, user: models.User = None):
 
 
 async def weekly_resume(
-    db: Session, user: models.User, mode: int = 0, silent: bool = False
+    db: Session, user: models.User, weeks_ago: int = 0, silent: bool = False
 ):
     """_summary_
 
@@ -570,14 +570,36 @@ async def weekly_resume(
     """
     # logger.debug("Check weekly resume for " + user.name + "...")
     resume = {}
-    weekly_hours = time_entries.get_weekly_hours(db, user, mode=mode)
-    weekly_hours = utils.convert_time_to_hours(weekly_hours[0][0])
-    weekly_sessions = time_entries.get_weekly_sessions(db, user, mode=mode)
-    weekly_sessions = str(weekly_sessions[0][0])
-    weekly_games = time_entries.get_weekly_games(db, user, mode=mode)
-    weekly_games = str(weekly_games[0][0])
-    weekly_achievements = achievements.get_weekly_achievements(db, user, mode=mode)
+    # Last week
+    user_weekly_resume = time_entries.get_weekly_resume(db, user, weeks_ago=weeks_ago)
+    weekly_hours = user_weekly_resume[0][0]
+    weekly_sessions = str(user_weekly_resume[0][1])
+    weekly_games = str(user_weekly_resume[0][2])
+    weekly_achievements = achievements.get_weekly_achievements(
+        db, user, weeks_ago=weeks_ago
+    )
     weekly_achievements = str(weekly_achievements[0][0])
+    # Before last week
+    user_last_weekly_resume = time_entries.get_weekly_resume(
+        db, user, weeks_ago=weeks_ago + 1
+    )
+    last_weekly_hours = user_last_weekly_resume[0][0]
+    last_weekly_sessions = str(user_last_weekly_resume[0][1])
+    last_weekly_games = str(user_last_weekly_resume[0][2])
+    last_weekly_achievements = achievements.get_weekly_achievements(
+        db, user, weeks_ago=weeks_ago + 1
+    )
+    last_weekly_achievements = str(last_weekly_achievements[0][0])
+    hours_diff = int(weekly_hours) - int(last_weekly_hours)
+    sessions_diff = int(weekly_sessions) - int(last_weekly_sessions)
+    if sessions_diff > 0:
+        sessions_diff = "+" + str(sessions_diff)
+    games_diff = int(weekly_games) - int(last_weekly_games)
+    if games_diff > 0:
+        games_diff = "+" + str(games_diff)
+    achievements_diff = int(weekly_achievements) - int(last_weekly_achievements)
+    if achievements_diff > 0:
+        achievements_diff = "+" + achievements_diff
     current_ranking = rankings.user_current_ranking(db, user)
     current_ranking = str(current_ranking[0][0])
     msg = (
@@ -586,17 +608,27 @@ async def weekly_resume(
         + current_ranking
         + "\n"
         + "Horas: "
-        + weekly_hours
-        + "\n"
+        + utils.convert_time_to_hours(weekly_hours)
+        + " ("
+        + str(utils.convert_time_to_hours(hours_diff))
+        + ") \n"
         + "Sesiones: "
         + weekly_sessions
-        + "\n"
+        + " ("
+        + str(sessions_diff)
+        + ") \n"
         + "Juegos: "
         + weekly_games
-        + "\n"
+        + " ("
+        + str(games_diff)
+        + ") \n"
         + "Logros: "
         + weekly_achievements
+        + " ("
+        + str(achievements_diff)
+        + ") \n"
     )
+
     # logger.debug(msg)
     if not silent:
         await utils.send_message_to_user(user.telegram_id, msg)

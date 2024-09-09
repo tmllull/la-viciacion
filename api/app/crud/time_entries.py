@@ -559,8 +559,8 @@ def get_older_timers(db: Session, user: models.User = None) -> list[models.TimeE
     return active_time_entries
 
 
-def get_weekly_hours(
-    db: Session, user: models.User, mode: int = 0
+def get_weekly_resume(
+    db: Session, user: models.User, weeks_ago: int = 0
 ) -> list[models.TimeEntry]:
     """_summary_
 
@@ -572,73 +572,25 @@ def get_weekly_hours(
     Returns:
         list[models.TimeEntry]: _description_
     """
-    if mode == 0:
-        first_day, last_day = utils.get_last_week_range_dates()
-    else:
-        first_day, last_day = utils.get_current_week_range_dates()
+    # if mode == 0:
+    #     first_day, last_day = utils.get_last_week_range_dates()
+    #     first_day, last_day = utils.get_week_range_dates(1)
+    # else:
+    #     first_day, last_day = utils.get_current_week_range_dates()
+    first_day, last_day = utils.get_week_range_dates(weeks_ago)
     weekly_hours = (
-        db.query(func.sum(models.TimeEntry.duration))
-        .filter(models.TimeEntry.user_id == user.id)
-        .filter(func.DATE(models.TimeEntry.start) >= first_day)
-        .filter(func.DATE(models.TimeEntry.start) <= last_day)
-        .all()
-    )
-    return weekly_hours
-
-
-def get_weekly_sessions(
-    db: Session, user: models.User, mode: int = 0
-) -> list[models.TimeEntry]:
-    """_summary_
-
-    Args:
-        db (Session): _description_
-        user (models.User): _description_
-        mode (int, optional): 0 = last week. 1 = current week. Defaults to 0.
-
-    Returns:
-        list[models.TimeEntry]: _description_
-    """
-    if mode == 0:
-        first_day, last_day = utils.get_last_week_range_dates()
-    else:
-        first_day, last_day = utils.get_current_week_range_dates()
-    weekly_sessions = (
-        db.query(func.count(models.TimeEntry.id))
+        db.query(
+            func.sum(models.TimeEntry.duration),
+            func.count(models.TimeEntry.id),
+            func.count(func.distinct(models.TimeEntry.project_clockify_id)),
+        )
         .filter(models.TimeEntry.user_id == user.id)
         .filter(func.DATE(models.TimeEntry.start) >= first_day)
         .filter(func.DATE(models.TimeEntry.start) <= last_day)
         .filter(models.TimeEntry.duration > 0)
         .all()
     )
-    return weekly_sessions
-
-
-def get_weekly_games(
-    db: Session, user: models.User, mode: int = 0
-) -> list[models.TimeEntry]:
-    """_summary_
-
-    Args:
-        db (Session): _description_
-        user (models.User): _description_
-        mode (int, optional): 0 = last week. 1 = current week.. Defaults to 0.
-
-    Returns:
-        list[models.TimeEntry]: _description_
-    """
-    if mode == 0:
-        first_day, last_day = utils.get_last_week_range_dates()
-    else:
-        first_day, last_day = utils.get_current_week_range_dates()
-    weekly_games = (
-        db.query(func.count(func.distinct(models.TimeEntry.project_clockify_id)))
-        .filter(models.TimeEntry.user_id == user.id)
-        .filter(func.DATE(models.TimeEntry.start) >= first_day)
-        .filter(func.DATE(models.TimeEntry.start) <= last_day)
-        .all()
-    )
-    return weekly_games
+    return weekly_hours
 
 
 def delete_time_entry(db: Session, time_entry_id: str):

@@ -265,7 +265,7 @@ def convert_blob_to_image(
 
 async def send_message(
     msg,
-    silent,
+    silent: bool,
     image=None,
     openai=False,
     system_prompt=prompts.DEFAULT_SYSTEM_PROMPT,

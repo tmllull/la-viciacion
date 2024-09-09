@@ -212,8 +212,13 @@ async def sync_data(
             games.update_total_played_time(db, game[0], game[1])
 
         # Check rankings
-        await ranking_games_hours(db, silent)
-        await ranking_players_hours(db, silent)
+        # Notifications enabled
+        # await ranking_games_hours(db, silent)
+        # await ranking_players_hours(db, silent)
+
+        # Notifications disabled
+        await ranking_games_hours(db, silent=True)
+        await ranking_players_hours(db, silent=True)
 
         # Others
         await achievements.teamwork(db, silent)

@@ -37,6 +37,7 @@ class Config:
             self.SENTRY_URL = config["SENTRY_URL_API"]
             self.ENVIRONMENT = config["ENVIRONMENT"]
             self.OPENAI_API_KEY = config["OPENAI_API_KEY"]
+            self.SYNC_DAYS = int(config["SYNC_DAYS"])
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -66,5 +67,6 @@ class Config:
             self.SENTRY_URL = os.environ["SENTRY_URL_API"]
             self.ENVIRONMENT = os.environ["ENVIRONMENT"]
             self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+            self.SYNC_DAYS = int(os.environ["SYNC_DAYS"])
 
         self.CURRENT_SEASON = datetime.datetime.now().year

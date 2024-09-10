@@ -233,14 +233,15 @@ async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
     for entry in entries:
-        # if entry["projectId"] is None:
-        #     msg = (
-        #         "Hola, "
-        #         + user.name
-        #         + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
-        #     )
-        #     await utils.send_message_to_user(user.telegram_id, msg)
-        #     continue
+        if entry["projectId"] is None:
+            logger.warning("Time entry without project: " + str(entry["id"]))
+            # msg = (
+            #     "Hola, "
+            #     + user.name
+            #     + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
+            # )
+            # await utils.send_message_to_user(user.telegram_id, msg)
+            continue
         try:
             # Extract data from time entry
             start = entry["timeInterval"]["start"]

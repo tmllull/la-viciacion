@@ -10,10 +10,11 @@ from ..utils import actions as actions
 from ..utils import my_utils as utils
 from ..utils.clockify_api import ClockifyApi
 from ..utils.logger import LogManager
+from ..config import Config
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
-
+config = Config()
 clockify = ClockifyApi()
 
 ####################
@@ -130,7 +131,9 @@ def user_ranking_achievements(db: Session, limit: int = None):
         raise e
 
 
-def user_played_games(db: Session, limit: int = None):
+def user_played_games(
+    db: Session, limit: int = None, season: int = config.CURRENT_SEASON
+):
     try:
         stmt = (
             select(
@@ -138,6 +141,7 @@ def user_played_games(db: Session, limit: int = None):
                 func.count(models.UserGame.game_id).label("played_games"),
                 models.User.name,
             )
+            .filter(models.UserGame.season == season)
             .join(models.User, models.User.id == models.UserGame.user_id)
             .group_by(models.UserGame.user_id, models.User.name)
             .order_by(func.count(models.UserGame.game_id).desc())
@@ -149,7 +153,9 @@ def user_played_games(db: Session, limit: int = None):
         raise e
 
 
-def user_completed_games(db: Session, limit: int = None):
+def user_completed_games(
+    db: Session, limit: int = None, season: int = config.CURRENT_SEASON
+):
     try:
         user_list = users.get_users(db)
         data = []
@@ -161,6 +167,7 @@ def user_completed_games(db: Session, limit: int = None):
                 )
                 .filter(models.UserGame.user_id == user.id)
                 .filter(models.UserGame.completed == 1)
+                .filter(models.UserGame.season == season)
                 .limit(limit)
             )
             completed = db.execute(stmt).fetchone()[0]
@@ -266,15 +273,19 @@ def platform_played_games(db: Session, limit: int = None):
         raise e
 
 
-def user_ratio(db: Session):
+def user_ratio(db: Session, season: int = config.CURRENT_SEASON):
     try:
         user_list = users.get_users(db)
         data = []
         for user in user_list:
             user_data = {}
-            stmt = select(
-                func.count(models.UserGame.game_id),
-            ).filter(models.UserGame.user_id == user.id)
+            stmt = (
+                select(
+                    func.count(models.UserGame.game_id),
+                )
+                .filter(models.UserGame.user_id == user.id)
+                .filter(models.UserGame.season == season)
+            )
             played = db.execute(stmt).fetchone()[0]
             stmt = (
                 select(
@@ -282,6 +293,7 @@ def user_ratio(db: Session):
                 )
                 .filter(models.UserGame.user_id == user.id)
                 .filter(models.UserGame.completed == 1)
+                .filter(models.UserGame.season == season)
             )
             completed = db.execute(stmt).fetchone()[0]
             if played == 0 or completed == 0:

@@ -569,8 +569,14 @@ def get_games(
         return db.execute(stmt).fetchall()
 
 
-def get_game_by_id(db: Session, user_id, game_id) -> models.UserGame:
-    return db.query(models.UserGame).filter_by(user_id=user_id, game_id=game_id).first()
+def get_game_by_id(
+    db: Session, user_id, game_id, season: int = config.CURRENT_SEASON
+) -> models.UserGame:
+    return (
+        db.query(models.UserGame)
+        .filter_by(user_id=user_id, game_id=game_id, season=season)
+        .first()
+    )
 
 
 def update_played_days(

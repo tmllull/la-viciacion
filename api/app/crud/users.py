@@ -868,7 +868,9 @@ def activate_account(db: Session, username: str):
 ######################
 
 
-def top_games(db: Session, username: str, limit: int = 10):
+def top_games(
+    db: Session, username: str, limit: int = 10, season: int = config.CURRENT_SEASON
+):
     try:
         user = get_user_by_username(db, username)
         stmt = (
@@ -880,7 +882,10 @@ def top_games(db: Session, username: str, limit: int = 10):
             )
             .join(models.User, models.User.id == models.UserGame.user_id)
             .join(models.Game, models.Game.id == models.UserGame.game_id)
-            .where(models.UserGame.user_id == user.id)
+            .where(
+                models.UserGame.user_id == user.id,
+                extract("year", models.UserGame.started_date) == season,
+            )
             .group_by(
                 models.UserGame.user_id,
                 models.UserGame.game_id,

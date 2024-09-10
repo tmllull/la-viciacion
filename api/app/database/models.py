@@ -165,8 +165,12 @@ class UserAchievement(Base):
     user_id = Column(Integer)
     achievement_id = Column(Integer)
     date = Column(Date)
+    season = Column(Integer)
     game_id = Column(String(255))
-    __table_args__ = (UniqueConstraint("user_id", "achievement_id", "date"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "achievement_id", "date"),
+        UniqueConstraint("user_id", "achievement_id", "season"),
+    )
 
 
 class UserAchievementHistorical(Base):

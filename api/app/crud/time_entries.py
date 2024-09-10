@@ -30,29 +30,40 @@ clockify_api = ClockifyApi()
 config = Config()
 
 
-def get_users_played_time(db: Session):
-    stmt = select(
-        models.TimeEntry.user_id, func.sum(models.TimeEntry.duration)
-    ).group_by(models.TimeEntry.user_id)
+def get_users_played_time(db: Session, season: int = config.CURRENT_SEASON):
+    stmt = (
+        select(models.TimeEntry.user_id, func.sum(models.TimeEntry.duration))
+        .where(extract("year", models.TimeEntry.start) == season)
+        .group_by(models.TimeEntry.user_id)
+    )
     return db.execute(stmt)
 
 
-def get_user_played_time(db: Session, user_id: str):
+def get_user_played_time(
+    db: Session, user_id: str, season: int = config.CURRENT_SEASON
+):
     stmt = (
         select(
             models.TimeEntry.user_id,
             func.sum(models.TimeEntry.duration),
         )
-        .where(models.TimeEntry.user_id == user_id)
+        .where(
+            models.TimeEntry.user_id == user_id,
+            extract("year", models.TimeEntry.start) == season,
+        )
         .group_by(models.TimeEntry.user_id)
     )
     return db.execute(stmt).first()
 
 
-def get_games_played_time(db: Session):
-    stmt = select(
-        models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)
-    ).group_by(models.TimeEntry.project_clockify_id)
+def get_games_played_time(db: Session, season: int = config.CURRENT_SEASON):
+    stmt = (
+        select(
+            models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)
+        )
+        .where(extract("year", models.TimeEntry.start) == season)
+        .group_by(models.TimeEntry.project_clockify_id)
+    )
     result = db.execute(stmt)
     return result
 
@@ -98,7 +109,7 @@ def get_time_entry_by_date(
 
 
 def get_user_games_played_time(
-    db: Session, user_id: str, game_id: str = None
+    db: Session, user_id: str, game_id: str = None, season: int = config.CURRENT_SEASON
 ) -> list[models.TimeEntry]:
     if game_id is not None:
         return (
@@ -108,6 +119,7 @@ def get_user_games_played_time(
             )
             .filter(
                 models.TimeEntry.user_id == user_id,
+                extract("year", models.TimeEntry.start) == season,
             )
             .filter(models.TimeEntry.project_clockify_id == game_id)
             .group_by(models.TimeEntry.project_clockify_id)
@@ -121,13 +133,16 @@ def get_user_games_played_time(
             )
             .filter(
                 models.TimeEntry.user_id == user_id,
+                extract("year", models.TimeEntry.start) == season,
             )
             .group_by(models.TimeEntry.project_clockify_id)
             .all()
         )
 
 
-def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEntry]:
+def get_time_entries(
+    db: Session, start_date: str = None, season: int = config.CURRENT_SEASON
+) -> list[models.TimeEntry]:
     if start_date:
         # logger.debug(start_date)
         return (
@@ -136,11 +151,18 @@ def get_time_entries(db: Session, start_date: str = None) -> list[models.TimeEnt
             .order_by(models.TimeEntry.user_id)
         )
     else:
-        return db.query(models.TimeEntry).order_by(models.TimeEntry.user_id)
+        return (
+            db.query(models.TimeEntry)
+            .filter(extract("year", models.TimeEntry.start) == season)
+            .order_by(models.TimeEntry.user_id)
+        )
 
 
 def get_time_entries_by_user(
-    db: Session, user_id: int, start_date: str = None
+    db: Session,
+    user_id: int,
+    start_date: str = None,
+    season: int = config.CURRENT_SEASON,
 ) -> list[models.TimeEntry]:
     if start_date:
         # logger.debug(start_date)
@@ -152,7 +174,10 @@ def get_time_entries_by_user(
         # logger.debug("Get ALL time entries for user " + str(user_id))
         time_entries = (
             db.query(models.TimeEntry)
-            .filter(models.TimeEntry.user_id == user_id)
+            .filter(
+                models.TimeEntry.user_id == user_id,
+                extract("year", models.TimeEntry.start) == season,
+            )
             .order_by(models.TimeEntry.project_clockify_id)
             .all()
         )
@@ -160,7 +185,11 @@ def get_time_entries_by_user(
 
 
 def get_played_days(
-    db: Session, user_id: int, start_date: str = None, end_date: str = None
+    db: Session,
+    user_id: int,
+    start_date: str = None,
+    end_date: str = None,
+    season: int = config.CURRENT_SEASON,
 ) -> list[models.TimeEntry]:
     played_days = []
     real_played_days = []
@@ -174,6 +203,7 @@ def get_played_days(
         .filter(models.TimeEntry.user_id == user_id)
         .filter(func.DATE(models.TimeEntry.start) >= start_date)
         .filter(func.DATE(models.TimeEntry.start) <= end_date)
+        .filter(extract("year", models.TimeEntry.start) == season)
         .filter(or_(models.TimeEntry.duration > 0, models.TimeEntry.duration == None))
         .distinct()
         .all()
@@ -183,6 +213,7 @@ def get_played_days(
         .filter(models.TimeEntry.user_id == user_id)
         .filter(func.DATE(models.TimeEntry.end) >= start_date)
         .filter(func.DATE(models.TimeEntry.end) <= end_date)
+        .filter(extract("year", models.TimeEntry.start) == season)
         .filter(or_(models.TimeEntry.duration > 0, models.TimeEntry.duration == None))
         .distinct()
         .all()
@@ -233,72 +264,16 @@ async def sync_clockify_entries_db(
                 end = None
 
             # Check if time entry already exists (to update it if needed) for current season
-            time_entry_year = datetime.datetime.strptime(
-                start, "%Y-%m-%d %H:%M:%S"
-            ).year
-            if time_entry_year == config.CURRENT_SEASON:
-                stmt = select(models.TimeEntry).where(
-                    models.TimeEntry.id == entry["id"]
-                )
-                exists = db.execute(stmt).first()
-                # Create new time entry
-                if not exists:
-                    if end is not None:
-                        new_entry = models.TimeEntry(
-                            id=entry["id"],
-                            user_id=user.id,
-                            user_clockify_id=user.clockify_id,
-                            project_clockify_id=entry["projectId"],
-                            start=start,
-                            end=end,
-                            duration=utils.convert_clockify_duration(duration),
-                        )
-                    else:
-                        new_entry = models.TimeEntry(
-                            id=entry["id"],
-                            user_id=user.id,
-                            user_clockify_id=user.clockify_id,
-                            project_clockify_id=entry["projectId"],
-                            start=start,
-                        )
-                    db.add(new_entry)
-                    db.commit()
-                # Update existing time entry
-                else:
-                    if end is not None:
-                        stmt = (
-                            update(models.TimeEntry)
-                            .where(models.TimeEntry.id == entry["id"])
-                            .values(
-                                project_clockify_id=entry["projectId"],
-                                start=start,
-                                end=end,
-                                duration=utils.convert_clockify_duration(duration),
-                            )
-                        )
-                    else:
-                        stmt = (
-                            update(models.TimeEntry)
-                            .where(models.TimeEntry.id == entry["id"])
-                            .values(
-                                project_clockify_id=entry["projectId"],
-                                start=start,
-                            )
-                        )
-                    db.execute(stmt)
-                    db.commit()
-
-            # Check if historical time entry already exists (to update it if needed)
-            # if duration == 0:
-            #     continue
-            stmt = select(models.TimeEntryHistorical).where(
-                models.TimeEntryHistorical.id == entry["id"]
-            )
+            # time_entry_year = datetime.datetime.strptime(
+            #     start, "%Y-%m-%d %H:%M:%S"
+            # ).year
+            # if time_entry_year == config.CURRENT_SEASON:
+            stmt = select(models.TimeEntry).where(models.TimeEntry.id == entry["id"])
             exists = db.execute(stmt).first()
             # Create new time entry
             if not exists:
                 if end is not None:
-                    new_entry = models.TimeEntryHistorical(
+                    new_entry = models.TimeEntry(
                         id=entry["id"],
                         user_id=user.id,
                         user_clockify_id=user.clockify_id,
@@ -308,7 +283,7 @@ async def sync_clockify_entries_db(
                         duration=utils.convert_clockify_duration(duration),
                     )
                 else:
-                    new_entry = models.TimeEntryHistorical(
+                    new_entry = models.TimeEntry(
                         id=entry["id"],
                         user_id=user.id,
                         user_clockify_id=user.clockify_id,
@@ -319,10 +294,11 @@ async def sync_clockify_entries_db(
                 db.commit()
             # Update existing time entry
             else:
+                # logger.info("Updating time entry: " + str(entry["id"]))
                 if end is not None:
                     stmt = (
-                        update(models.TimeEntryHistorical)
-                        .where(models.TimeEntryHistorical.id == entry["id"])
+                        update(models.TimeEntry)
+                        .where(models.TimeEntry.id == entry["id"])
                         .values(
                             project_clockify_id=entry["projectId"],
                             start=start,
@@ -332,8 +308,8 @@ async def sync_clockify_entries_db(
                     )
                 else:
                     stmt = (
-                        update(models.TimeEntryHistorical)
-                        .where(models.TimeEntryHistorical.id == entry["id"])
+                        update(models.TimeEntry)
+                        .where(models.TimeEntry.id == entry["id"])
                         .values(
                             project_clockify_id=entry["projectId"],
                             start=start,
@@ -341,6 +317,60 @@ async def sync_clockify_entries_db(
                     )
                 db.execute(stmt)
                 db.commit()
+
+            # Check if historical time entry already exists (to update it if needed)
+            # if duration == 0:
+            #     continue
+            # stmt = select(models.TimeEntryHistorical).where(
+            #     models.TimeEntryHistorical.id == entry["id"]
+            # )
+            # exists = db.execute(stmt).first()
+            # # Create new time entry
+            # if not exists:
+            #     if end is not None:
+            #         new_entry = models.TimeEntryHistorical(
+            #             id=entry["id"],
+            #             user_id=user.id,
+            #             user_clockify_id=user.clockify_id,
+            #             project_clockify_id=entry["projectId"],
+            #             start=start,
+            #             end=end,
+            #             duration=utils.convert_clockify_duration(duration),
+            #         )
+            #     else:
+            #         new_entry = models.TimeEntryHistorical(
+            #             id=entry["id"],
+            #             user_id=user.id,
+            #             user_clockify_id=user.clockify_id,
+            #             project_clockify_id=entry["projectId"],
+            #             start=start,
+            #         )
+            #     db.add(new_entry)
+            #     db.commit()
+            # # Update existing time entry
+            # else:
+            #     if end is not None:
+            #         stmt = (
+            #             update(models.TimeEntryHistorical)
+            #             .where(models.TimeEntryHistorical.id == entry["id"])
+            #             .values(
+            #                 project_clockify_id=entry["projectId"],
+            #                 start=start,
+            #                 end=end,
+            #                 duration=utils.convert_clockify_duration(duration),
+            #             )
+            #         )
+            #     else:
+            #         stmt = (
+            #             update(models.TimeEntryHistorical)
+            #             .where(models.TimeEntryHistorical.id == entry["id"])
+            #             .values(
+            #                 project_clockify_id=entry["projectId"],
+            #                 start=start,
+            #             )
+            #         )
+            #     db.execute(stmt)
+            #     db.commit()
 
             # Check if game on clockify already exists on local DB
             game = games.get_game_by_id(db, entry["projectId"])
@@ -364,60 +394,61 @@ async def sync_clockify_entries_db(
             games.create_game_statistics_historical(db, game_id)
 
             # Check if player already plays the game this season
-            if time_entry_year == config.CURRENT_SEASON:
+            # if time_entry_year == config.CURRENT_SEASON:
+            already_playing = users.get_game_by_id(db, user.id, game_id)
+            if not already_playing:
+                logger.info("User not playing " + game_name)
+                new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
+                await users.add_new_game(
+                    db,
+                    game=new_user_game,
+                    user=user,
+                    start_date=start,
+                    silent=silent,
+                    from_sync=True,
+                )
                 already_playing = users.get_game_by_id(db, user.id, game_id)
-                if not already_playing:
-                    logger.info("User not playing " + game_name)
-                    new_user_game = schemas.NewGameUser(
-                        game_id=game_id, platform=platform
+            if platform is not None and already_playing.platform != platform:
+                stmt = (
+                    update(models.UserGame)
+                    .where(models.UserGame.id == already_playing.id)
+                    .values(
+                        platform=platform,
                     )
-                    await users.add_new_game(
-                        db,
-                        game=new_user_game,
-                        user=user,
-                        start_date=start,
-                        silent=silent,
-                        from_sync=True,
-                    )
-                    already_playing = users.get_game_by_id(db, user.id, game_id)
-                if platform is not None and already_playing.platform != platform:
-                    stmt = (
-                        update(models.UserGame)
-                        .where(models.UserGame.id == already_playing.id)
-                        .values(
-                            platform=platform,
-                        )
-                    )
-                    db.execute(stmt)
-                    db.commit()
-                if completed is not None and already_playing.completed != 1:
-                    logger.info("Completing game " + str(game.id) + "...")
-                    played_time = get_user_games_played_time(db, user.id, game.id)
-                    # The follow list only will have 1 item
-                    for played_game in played_time:
-                        users.update_played_time_game(
-                            db, user.id, played_game[0], played_game[1]
-                        )
-                    await users.complete_game(
-                        db,
-                        user.id,
-                        game.id,
-                        completed_date=start,
-                        silent=silent,
-                        from_sync=True,
-                    )
-                update_game = models.UserGame(platform=platform)
-                users.update_game(db, update_game, already_playing.id)
-
+                )
+                db.execute(stmt)
                 db.commit()
-            # TODO: Add historical info
+            if completed is not None and already_playing.completed != 1:
+                logger.info("Completing game " + str(game.id) + "...")
+                played_time = get_user_games_played_time(db, user.id, game.id)
+                # The follow list only will have 1 item
+                for played_game in played_time:
+                    users.update_played_time_game(
+                        db, user.id, played_game[0], played_game[1]
+                    )
+                await users.complete_game(
+                    db,
+                    user.id,
+                    game.id,
+                    completed_date=start,
+                    silent=silent,
+                    from_sync=True,
+                )
+            update_game = models.UserGame(platform=platform)
+            users.update_game(db, update_game, already_playing.id)
+
+            db.commit()
         except Exception as e:
             db.rollback()
             logger.error("Error adding time entry " + str(entry) + ": " + str(e))
 
 
 def get_time_entry_by_time(
-    db: Session, user_id: int, duration: int, mode: int
+    db: Session,
+    user_id: int,
+    duration: int,
+    mode: int,
+    season: int = config.CURRENT_SEASON,
 ) -> models.TimeEntry:
     """_summary_
 
@@ -436,6 +467,7 @@ def get_time_entry_by_time(
             .filter(
                 models.TimeEntry.user_id == user_id,
                 models.TimeEntry.duration == duration,
+                extract("year", models.TimeEntry.start) == season,
             )
             .first()
         )
@@ -445,6 +477,7 @@ def get_time_entry_by_time(
             .filter(
                 models.TimeEntry.user_id == user_id,
                 models.TimeEntry.duration <= duration,
+                extract("year", models.TimeEntry.start) == season,
             )
             .first()
         )
@@ -454,16 +487,22 @@ def get_time_entry_by_time(
             .filter(
                 models.TimeEntry.user_id == user_id,
                 models.TimeEntry.duration >= duration,
+                extract("year", models.TimeEntry.start) == season,
             )
             .first()
         )
     return time_entry
 
 
-def get_played_time_by_day(db: Session, user_id: int):
+def get_played_time_by_day(
+    db: Session, user_id: int, season: int = config.CURRENT_SEASON
+):
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start), func.sum(models.TimeEntry.duration))
-        .filter(models.TimeEntry.user_id == user_id)
+        .filter(
+            models.TimeEntry.user_id == user_id,
+            extract("year", models.TimeEntry.start) == season,
+        )
         .group_by(func.DATE(models.TimeEntry.start))
         .all()
     )
@@ -471,7 +510,11 @@ def get_played_time_by_day(db: Session, user_id: int):
 
 
 def get_time_entry_between_hours(
-    db: Session, user_id: int, start_hour: int, end_hour: int
+    db: Session,
+    user_id: int,
+    start_hour: int,
+    end_hour: int,
+    season: int = config.CURRENT_SEASON,
 ) -> list[models.TimeEntry]:
     """_summary_
 
@@ -489,6 +532,7 @@ def get_time_entry_between_hours(
         .filter(models.TimeEntry.user_id == user_id)
         .filter(extract("hour", models.TimeEntry.start) >= start_hour)
         .filter(extract("hour", models.TimeEntry.start) < end_hour)
+        .filter(extract("year", models.TimeEntry.start) == season)
         .all()
     )
     return time_entries

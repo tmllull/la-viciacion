@@ -931,7 +931,7 @@ def last_completed_games(db: Session, username: str, limit: int = 10):
         raise e
 
 
-def get_achievements(db: Session, username: str):
+def get_achievements(db: Session, username: str, season: int = config.CURRENT_SEASON):
     try:
         user = get_user_by_username(db, username)
         stmt = (
@@ -947,7 +947,10 @@ def get_achievements(db: Session, username: str):
                 models.Achievement,
                 models.Achievement.id == models.UserAchievement.achievement_id,
             )
-            .where(models.UserAchievement.user_id == user.id)
+            .where(
+                models.UserAchievement.user_id == user.id,
+                models.UserAchievement.season == season,
+            )
             .group_by(
                 models.UserAchievement.user_id,
                 models.UserAchievement.achievement_id,

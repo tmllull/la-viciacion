@@ -101,7 +101,7 @@ class Achievements:
             raise
 
     def check_already_achieved(
-        self, db: Session, user_id: int, key: str, date: str = None
+        self, db: Session, user_id: int, key: str, season: int = config.CURRENT_SEASON
     ) -> bool:
         ach_id = self.get_ach_by_key(db, str(key))
         already_achieved = (
@@ -109,6 +109,7 @@ class Achievements:
             .filter(
                 models.UserAchievement.user_id == user_id,
                 models.UserAchievement.achievement_id == ach_id[0],
+                models.UserAchievement.season == season,
             )
             .first()
         )
@@ -117,7 +118,13 @@ class Achievements:
         return True
 
     def set_user_achievement(
-        self, db: Session, user_id: int, key: str, game_id: str = None, date: str = None
+        self,
+        db: Session,
+        user_id: int,
+        key: str,
+        game_id: str = None,
+        date: str = None,
+        season: int = config.CURRENT_SEASON,
     ):
         if date is None:
             date = datetime.datetime.now()
@@ -125,7 +132,11 @@ class Achievements:
             date = utils.convert_date_from_text(date)
         ach_id = self.get_ach_by_key(db, key)
         user_achievement = models.UserAchievement(
-            user_id=user_id, achievement_id=ach_id[0], date=date, game_id=game_id
+            user_id=user_id,
+            achievement_id=ach_id[0],
+            season=season,
+            date=date,
+            game_id=game_id,
         )
         db.add(user_achievement)
         db.commit()

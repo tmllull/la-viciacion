@@ -233,14 +233,15 @@ async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
     for entry in entries:
-        # if entry["projectId"] is None:
-        #     msg = (
-        #         "Hola, "
-        #         + user.name
-        #         + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
-        #     )
-        #     await utils.send_message_to_user(user.telegram_id, msg)
-        #     continue
+        if entry["projectId"] is None:
+            logger.warning("Time entry without project: " + str(entry["id"]))
+            # msg = (
+            #     "Hola, "
+            #     + user.name
+            #     + ". Tienes un timer activo sin juego. Acuérdate de añadirlo antes de pararlo."
+            # )
+            # await utils.send_message_to_user(user.telegram_id, msg)
+            continue
         try:
             # Extract data from time entry
             start = entry["timeInterval"]["start"]
@@ -263,11 +264,7 @@ async def sync_clockify_entries_db(
             else:
                 end = None
 
-            # Check if time entry already exists (to update it if needed) for current season
-            # time_entry_year = datetime.datetime.strptime(
-            #     start, "%Y-%m-%d %H:%M:%S"
-            # ).year
-            # if time_entry_year == config.CURRENT_SEASON:
+            # Check if time entry already exists (to update it if needed)
             stmt = select(models.TimeEntry).where(models.TimeEntry.id == entry["id"])
             exists = db.execute(stmt).first()
             # Create new time entry
@@ -294,7 +291,6 @@ async def sync_clockify_entries_db(
                 db.commit()
             # Update existing time entry
             else:
-                # logger.info("Updating time entry: " + str(entry["id"]))
                 if end is not None:
                     stmt = (
                         update(models.TimeEntry)
@@ -317,60 +313,6 @@ async def sync_clockify_entries_db(
                     )
                 db.execute(stmt)
                 db.commit()
-
-            # Check if historical time entry already exists (to update it if needed)
-            # if duration == 0:
-            #     continue
-            # stmt = select(models.TimeEntryHistorical).where(
-            #     models.TimeEntryHistorical.id == entry["id"]
-            # )
-            # exists = db.execute(stmt).first()
-            # # Create new time entry
-            # if not exists:
-            #     if end is not None:
-            #         new_entry = models.TimeEntryHistorical(
-            #             id=entry["id"],
-            #             user_id=user.id,
-            #             user_clockify_id=user.clockify_id,
-            #             project_clockify_id=entry["projectId"],
-            #             start=start,
-            #             end=end,
-            #             duration=utils.convert_clockify_duration(duration),
-            #         )
-            #     else:
-            #         new_entry = models.TimeEntryHistorical(
-            #             id=entry["id"],
-            #             user_id=user.id,
-            #             user_clockify_id=user.clockify_id,
-            #             project_clockify_id=entry["projectId"],
-            #             start=start,
-            #         )
-            #     db.add(new_entry)
-            #     db.commit()
-            # # Update existing time entry
-            # else:
-            #     if end is not None:
-            #         stmt = (
-            #             update(models.TimeEntryHistorical)
-            #             .where(models.TimeEntryHistorical.id == entry["id"])
-            #             .values(
-            #                 project_clockify_id=entry["projectId"],
-            #                 start=start,
-            #                 end=end,
-            #                 duration=utils.convert_clockify_duration(duration),
-            #             )
-            #         )
-            #     else:
-            #         stmt = (
-            #             update(models.TimeEntryHistorical)
-            #             .where(models.TimeEntryHistorical.id == entry["id"])
-            #             .values(
-            #                 project_clockify_id=entry["projectId"],
-            #                 start=start,
-            #             )
-            #         )
-            #     db.execute(stmt)
-            #     db.commit()
 
             # Check if game on clockify already exists on local DB
             game = games.get_game_by_id(db, entry["projectId"])

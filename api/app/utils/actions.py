@@ -65,7 +65,7 @@ async def sync_data(
         logger.info("Sync ALL data from " + str(start_date))
         logger.info("Cleaning season and historical tables...")
         db.query(models.TimeEntry).delete()
-        db.query(models.TimeEntryHistorical).delete()
+        # db.query(models.TimeEntryHistorical).delete()
         # db.query(models.UserGame).delete()
         # db.query(models.UserGameHistorical).delete()
         # db.query(models.UserAchievement).delete()
@@ -86,9 +86,9 @@ async def sync_data(
         if current_date.hour == 0 and current_date.minute == 0:
             # logger.debug("Clear current season tables...")
             silent = True
-            db.query(models.TimeEntry).delete()
-            db.query(models.UserGame).delete()
-            db.query(models.UserAchievement).delete()
+            # db.query(models.TimeEntry).delete()
+            # db.query(models.UserGame).delete()
+            # db.query(models.UserAchievement).delete()
             db.query(models.UserStatistics).delete()
             db.query(models.GameStatistics).delete()
             db.commit()

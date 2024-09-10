@@ -120,6 +120,7 @@ class UserGame(Base):
     user_id = Column(Integer)
     game_id = Column(String(255))
     started_date = Column(Date)
+    season = Column(Integer)
     platform = Column(String(255))
     completed = Column(Integer)
     completed_date = Column(Date)
@@ -127,7 +128,10 @@ class UserGame(Base):
     played_time = Column(Integer)
     completion_time = Column(Integer)
 
-    __table_args__ = (UniqueConstraint("user_id", "game_id", "platform"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "game_id", "platform"),
+        UniqueConstraint("user_id", "game_id", "platform", "season"),
+    )
 
 
 class UserGameHistorical(Base):

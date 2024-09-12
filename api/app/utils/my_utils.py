@@ -260,7 +260,7 @@ async def sync_clockify_entries(
         await time_entries.sync_clockify_entries_db(db, user, entries, silent)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        logger.info("Elapsed time for sync time entries: " + str(elapsed_time))
+        logger.debug("Elapsed time for sync time entries: " + str(elapsed_time))
         return total_entries
     except Exception as e:
         logger.error("Error syncing clockify entries: " + str(e))

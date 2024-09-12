@@ -204,7 +204,7 @@ async def sync_data(
             await check_forgotten_timer(db, user)
             calculation_end_time = time.time()
             calculation_elapsed_time = calculation_end_time - calculation_start_time
-            logger.info("Time spent on calculations: " + str(calculation_elapsed_time))
+            logger.debug("Time spent on calculations: " + str(calculation_elapsed_time))
 
         logger.info("#########################")
         logger.info("#### GENERAL CHECKS #####")

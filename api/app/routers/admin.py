@@ -145,7 +145,7 @@ async def sync_data(
             sync_all=sync_all,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Sync completed!"}
 
 

@@ -70,19 +70,15 @@ async def add_timestamp_to_logs(request, call_next):
     response = await call_next(request)
     end_time = datetime.datetime.now()
 
-    # Calcula la duración de la solicitud
     duration = end_time - start_time
 
-    # Obtener los query parameters como un diccionario
     query_params = request.query_params
 
-    # Formatear los query params para mostrarlos en los logs
     if query_params:
         query_str = f"?{query_params}"
     else:
         query_str = ""
 
-    # Registra la hora actual y la duración en los logs
     logger.info(
         f'REQUEST - "{request.method} {request.url.path}{query_str}" - {response.status_code} - {duration}'
     )

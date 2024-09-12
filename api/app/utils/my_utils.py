@@ -3,6 +3,7 @@ import json
 import re
 from io import BytesIO
 from zoneinfo import ZoneInfo
+import time
 
 import requests
 import telegram
@@ -113,15 +114,20 @@ def convert_clockify_duration(duration):
     else:
         return 0
 
+
 def get_week_range_dates(weeks_diff: int = 0):
     if weeks_diff < 0:
         raise ValueError("weeks_diff must be greater than or equal to 0")
     current_date = datetime.datetime.now()
-    first_day_current_week = current_date - datetime.timedelta(days=current_date.weekday())
-    first_day_n_weeks_ago = first_day_current_week - datetime.timedelta(weeks=weeks_diff)
+    first_day_current_week = current_date - datetime.timedelta(
+        days=current_date.weekday()
+    )
+    first_day_n_weeks_ago = first_day_current_week - datetime.timedelta(
+        weeks=weeks_diff
+    )
     last_day_n_weeks_ago = first_day_n_weeks_ago + datetime.timedelta(days=6)
     return first_day_n_weeks_ago.date(), last_day_n_weeks_ago.date()
-    
+
 
 def get_last_week_range_dates():
     current_date = datetime.datetime.now()
@@ -244,6 +250,7 @@ async def sync_clockify_entries(
     db: Session, user: models.User, date: str = None, silent: bool = False
 ):
     try:
+        start_time = time.time()
         total_entries = 0
         entries = clockify_api.get_time_entries(user.clockify_id, date)
         total_entries = len(entries)
@@ -251,6 +258,9 @@ async def sync_clockify_entries(
         if total_entries == 0:
             return 0
         await time_entries.sync_clockify_entries_db(db, user, entries, silent)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info("Elapsed time for sync time entries: " + str(elapsed_time))
         return total_entries
     except Exception as e:
         logger.error("Error syncing clockify entries: " + str(e))

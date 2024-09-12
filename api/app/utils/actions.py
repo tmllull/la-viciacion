@@ -145,6 +145,8 @@ async def sync_data(
                 # logger.debug("No time entries for " + str(user_name))
                 continue
 
+            calculation_start_time = time.time()
+
             # Update some user statistics
             # logger.debug("Updating played days...")
             played_days_season, real_played_days_season = time_entries.get_played_days(
@@ -200,6 +202,9 @@ async def sync_data(
             await achievements.early_riser(db, user, silent)
             await achievements.nocturnal(db, user, silent)
             await check_forgotten_timer(db, user)
+            calculation_end_time = time.time()
+            calculation_elapsed_time = calculation_end_time - calculation_start_time
+            logger.info("Time spent on calculations: " + str(calculation_elapsed_time))
 
         logger.info("#########################")
         logger.info("#### GENERAL CHECKS #####")

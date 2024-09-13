@@ -146,6 +146,7 @@ async def sync_data(
             logger.debug("Queue already in progress...")
             time.sleep(10 * len(queue))
         req_uuid = str(uuid.uuid4())
+        request_sync.add_request_to_queue(db, req_uuid)
         await actions.sync_data(
             db,
             user_clfy_id=user_clfy_id,

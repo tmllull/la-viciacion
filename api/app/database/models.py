@@ -247,3 +247,10 @@ class CoreNotification(Base):
 
     notification = Column(String(255), primary_key=True)
     __table_args__ = (UniqueConstraint("notification"),)
+
+
+class RequestSync(Base):
+    __tablename__ = "request_sync"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    request_id = Column(String(255), primary_key=True)

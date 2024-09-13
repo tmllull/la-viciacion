@@ -27,18 +27,19 @@ def before_send(event, hint):
     return event
 
 
-sentry_sdk.init(
-    dsn=config.SENTRY_URL,
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for tracing.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
-    profiles_sample_rate=1.0,
-    environment=config.ENVIRONMENT,
-    # before_send=before_send,
-)
+if config.SENTRY_URL is not None and config.SENTRY_URL != "":
+    sentry_sdk.init(
+        dsn=config.SENTRY_URL,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for tracing.
+        traces_sample_rate=1.0,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of sampled transactions.
+        # We recommend adjusting this value in production.
+        profiles_sample_rate=1.0,
+        environment=config.ENVIRONMENT,
+        # before_send=before_send,
+    )
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -70,19 +71,15 @@ async def add_timestamp_to_logs(request, call_next):
     response = await call_next(request)
     end_time = datetime.datetime.now()
 
-    # Calcula la duración de la solicitud
     duration = end_time - start_time
 
-    # Obtener los query parameters como un diccionario
     query_params = request.query_params
 
-    # Formatear los query params para mostrarlos en los logs
     if query_params:
         query_str = f"?{query_params}"
     else:
         query_str = ""
 
-    # Registra la hora actual y la duración en los logs
     logger.info(
         f'REQUEST - "{request.method} {request.url.path}{query_str}" - {response.status_code} - {duration}'
     )

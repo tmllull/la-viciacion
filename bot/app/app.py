@@ -45,18 +45,19 @@ def before_send(event, hint):
     return event
 
 
-sentry_sdk.init(
-    dsn=config.SENTRY_URL,
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for tracing.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
-    profiles_sample_rate=1.0,
-    environment=config.ENVIRONMENT,
-    # before_send=before_send,
-)
+if config.SENTRY_URL is not None and config.SENTRY_URL != "":
+    sentry_sdk.init(
+        dsn=config.SENTRY_URL,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for tracing.
+        traces_sample_rate=1.0,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of sampled transactions.
+        # We recommend adjusting this value in production.
+        profiles_sample_rate=1.0,
+        environment=config.ENVIRONMENT,
+        # before_send=before_send,
+    )
 
 FILTER_YES = "^(✅ Sí)$"
 FILTER_NO = "^(❌ No)$"

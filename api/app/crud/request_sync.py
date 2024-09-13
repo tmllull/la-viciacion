@@ -40,7 +40,7 @@ def add_request_to_queue(db: Session, request_id: str):
 
 def delete_request_from_queue(db: Session, request_id: str):
     try:
-        logger.info("Deleting request from queue: " + request_id)
+        logger.debug("Deleting request from queue: " + request_id)
         db.query(models.RequestSync).filter(
             models.RequestSync.request_id == request_id
         ).delete()

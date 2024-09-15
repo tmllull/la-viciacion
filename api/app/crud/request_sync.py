@@ -26,6 +26,19 @@ def get_queue(db: Session):
         raise
 
 
+def get_active_sync(db: Session):
+    try:
+        db.refresh()
+        return db.query(models.RequestSync).first()
+    except SQLAlchemyError as e:
+        logger.error("Error getting request queue: " + str(e))
+        raise
+
+
+def refresh_active_sync(db: Session, process):
+    db.refresh(process)
+
+
 def add_request_to_queue(db: Session, request_id: str):
     try:
         new_request = models.RequestSync(request_id=request_id)

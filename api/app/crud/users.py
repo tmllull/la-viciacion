@@ -687,6 +687,7 @@ async def complete_game(
                 completed=1,
                 completed_date=completed_date,
             )
+            .execution_options(synchronize_session="fetch")
         )
         db.execute(stmt)
         db.commit()

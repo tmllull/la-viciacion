@@ -305,41 +305,72 @@ async def send_message(
                 logger.info("Error generating completion: " + str(e))
         bot = telegram.Bot(config.TELEGRAM_TOKEN)
         async with bot:
-            try:
-                logger.info("Sending message...")
-                if image is None:
-                    await bot.send_message(
-                        text=msg,
-                        chat_id=config.TELEGRAM_GROUP_ID,
-                        parse_mode=telegram.constants.ParseMode.MARKDOWN,
-                    )
-                else:
-                    await bot.send_photo(
-                        chat_id=config.TELEGRAM_GROUP_ID,
-                        photo=image,
-                        caption=msg,
-                        parse_mode=telegram.constants.ParseMode.MARKDOWN,
-                    )
-                logger.info("Message sent successfully!")
-            except Exception as e:
-                logger.error("Error sending telegram message: " + str(e))
+            tries = 0
+            max_tries = 3
+            while tries < max_tries:
+                try:
+                    logger.info("Sending message...")
+                    if image is None:
+                        await bot.send_message(
+                            text=msg,
+                            chat_id=config.TELEGRAM_GROUP_ID,
+                            parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                        )
+                    else:
+                        await bot.send_photo(
+                            chat_id=config.TELEGRAM_GROUP_ID,
+                            photo=image,
+                            caption=msg,
+                            parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                        )
+                    logger.info("Message sent successfully!")
+                except Exception as e:
+                    logger.error("Error sending telegram message: " + str(e))
+                    tries += 1
+                    if tries >= max_tries:
+                        logger.error("Max tries reached. Message not sent.")
+                        raise
     else:
         logger.info("Silent mode. Message not sent.")
 
 
 async def send_message_to_user(user_telegram_id, msg):
     logger.info("Sending message to user...")
-    try:
-        bot = telegram.Bot(config.TELEGRAM_TOKEN)
-        async with bot:
-            await bot.send_message(
-                text=msg,
-                chat_id=user_telegram_id,
-                parse_mode=telegram.constants.ParseMode.MARKDOWN,
-            )
-        logger.info("Message sent successfully!")
-    except Exception as e:
-        logger.info(e)
+    bot = telegram.Bot(config.TELEGRAM_TOKEN)
+    async with bot:
+        tries = 0
+        max_tries = 3
+        while tries < max_tries:
+            try:
+                logger.info("Sending message...")
+                await bot.send_message(
+                    text=msg,
+                    chat_id=user_telegram_id,
+                    parse_mode=telegram.constants.ParseMode.MARKDOWN,
+                )
+            except Exception as e:
+                logger.error("Error sending telegram message: " + str(e))
+                tries += 1
+                if tries >= max_tries:
+                    logger.error("Max tries reached. Message not sent.")
+                    raise
+    logger.info("Message sent successfully!")
+    # try:
+    #     bot = telegram.Bot(config.TELEGRAM_TOKEN)
+    #     async with bot:
+    #         tries = 0
+    #         max_tries = 3
+    #         while tries < max_tries:
+    #             try:
+    #                 logger.info("Sending message...")
+    #                 await bot.send_message(
+    #                     text=msg,
+    #                     chat_id=user_telegram_id,
+    #                     parse_mode=telegram.constants.ParseMode.MARKDOWN,
+    #                 )
+    #     logger.info("Message sent successfully!")
+    # except Exception as e:
+    #     logger.info(e)
 
 
 async def send_message_to_admins(db: Session, msg):

@@ -22,9 +22,6 @@ from ..utils import actions as actions
 from ..utils import messages as msg
 from ..utils.email import Email
 from ..utils.logger import LogManager
-import uuid
-import time
-from ..crud import request_sync
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -140,13 +137,6 @@ async def sync_data(
     try:
         # for admin in config.ADMIN_USERS:
         #     users.create_admin_user(db, admin)
-        queue = request_sync.get_queue(db)
-        logger.debug("Queue length: " + str(len(queue)))
-        if len(queue) > 0:
-            logger.debug("Queue already in progress...")
-            time.sleep(10 * len(queue))
-        req_uuid = str(uuid.uuid4())
-        request_sync.add_request_to_queue(db, req_uuid)
         await actions.sync_data(
             db,
             user_clfy_id=user_clfy_id,
@@ -154,7 +144,6 @@ async def sync_data(
             silent=silent,
             sync_all=sync_all,
         )
-        request_sync.delete_request_from_queue(db, req_uuid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Sync completed!"}

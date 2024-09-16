@@ -117,7 +117,7 @@ class DataRoutes:
             response = utils.make_request("GET", url=url)
             rawg_info = response.json()["rawg"]
             hltb_info = response.json()["hltb"]
-            if rawg_info is None or hltb_info is None:
+            if rawg_info is None:
                 logger.info(
                     "No he encontrado ningún juego o me falta información. Por favor, prueba con otro nombre o añade el juego desde la web."
                 )
@@ -132,9 +132,11 @@ class DataRoutes:
                 if hltb_info is None:
                     steam_id = 0
                     context.user_data[DEV] = "-"
+                    context.user_data[AVG_TIME] = 0
                 else:
                     steam_id = hltb_info["profile_steam"]
                     context.user_data[DEV] = hltb_info["profile_dev"]
+                    context.user_data[AVG_TIME] = hltb_info["comp_main"]
             except Exception:
                 steam_id = 0
                 context.user_data[DEV] = "-"
@@ -155,7 +157,7 @@ class DataRoutes:
             for genre in rawg_info["genres"]:
                 genres += genre["name"] + ","
             context.user_data[GENRES] = genres[:-1]
-            context.user_data[AVG_TIME] = hltb_info["comp_main"]
+            # context.user_data[AVG_TIME] = hltb_info["comp_main"]
             context.user_data[IMAGE_URL] = rawg_info["background_image"]
             context.user_data[SLUG] = rawg_info["slug"]
             url = (

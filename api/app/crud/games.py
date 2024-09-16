@@ -80,14 +80,15 @@ async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
         except Exception as e:
             db.rollback()
             if "Duplicate" not in str(e):
-                logger.info("Error adding new game statistics: " + str(e))
+                logger.error("Error adding new game statistics: " + str(e))
                 raise e
         logger.info("Game added to DB")
         return game_added
     except Exception as e:
+        logger.error("Error adding new game: " + str(e))
         db.rollback()
         if "Duplicate" not in str(e):
-            logger.info("Error adding new game: " + str(e))
+            logger.warning("Error adding new game: " + str(e))
             raise e
 
 

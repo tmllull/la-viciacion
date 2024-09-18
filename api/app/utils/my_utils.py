@@ -337,7 +337,7 @@ async def send_message(
 
 
 async def send_message_to_user(user_telegram_id, msg):
-    logger.info("Sending message to user...")
+    logger.info("Sending message to user " + str(user_telegram_id) + "...")
     bot = telegram.Bot(config.TELEGRAM_TOKEN)
     async with bot:
         retries = 0

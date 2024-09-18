@@ -573,7 +573,7 @@ async def weekly_resume(
     Returns:
         _type_: _description_
     """
-    # logger.debug("Check weekly resume for " + user.name + "...")
+    logger.debug("Check weekly resume for " + user.name + "...")
     resume = {}
     # Last week
     user_weekly_resume = time_entries.get_weekly_resume(db, user, weeks_ago=weeks_ago)
@@ -604,7 +604,7 @@ async def weekly_resume(
         games_diff = "+" + str(games_diff)
     achievements_diff = int(weekly_achievements) - int(last_weekly_achievements)
     if achievements_diff > 0:
-        achievements_diff = "+" + achievements_diff
+        achievements_diff = "+" + str(achievements_diff)
     current_ranking = rankings.user_current_ranking(db, user)
     current_ranking = str(current_ranking[0][0])
     msg = (

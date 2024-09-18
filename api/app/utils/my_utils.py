@@ -309,7 +309,7 @@ async def send_message(
             max_retries = 3
             while retries < max_retries:
                 try:
-                    logger.info("Sending message...")
+                    logger.info("Sending message to group...")
                     if image is None:
                         await bot.send_message(
                             text=msg,
@@ -328,7 +328,7 @@ async def send_message(
                     break
                 except Exception as e:
                     logger.error("Error sending telegram message: " + str(e))
-                    max_retries += 1
+                    retries += 1
                     if retries >= max_retries:
                         logger.error("Max retries reached. Message not sent.")
                         raise
@@ -337,14 +337,14 @@ async def send_message(
 
 
 async def send_message_to_user(user_telegram_id, msg):
-    logger.info("Sending message to user " + str(user_telegram_id) + "...")
+    # logger.info("Sending message to user " + str(user_telegram_id) + "...")
     bot = telegram.Bot(config.TELEGRAM_TOKEN)
     async with bot:
         retries = 0
         max_retries = 3
         while retries < max_retries:
             try:
-                logger.info("Sending message...")
+                logger.info("Sending message to user " + str(user_telegram_id) + "...")
                 await bot.send_message(
                     text=msg,
                     chat_id=user_telegram_id,
@@ -352,11 +352,11 @@ async def send_message_to_user(user_telegram_id, msg):
                 )
                 break
             except Exception as e:
-                logger.error("Error sending telegram message: " + str(e))
-                max_retries += 1
+                logger.error("Error sending telegram message to user: " + str(e))
+                retries += 1
                 if retries >= max_retries:
                     logger.error("Max retries reached. Message not sent.")
-                    raise
+                    # raise
     logger.info("Message sent successfully!")
 
 

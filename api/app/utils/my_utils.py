@@ -328,7 +328,7 @@ async def send_message(
                     break
                 except Exception as e:
                     logger.error("Error sending telegram message: " + str(e))
-                    max_retries += 1
+                    retries += 1
                     if retries >= max_retries:
                         logger.error("Max retries reached. Message not sent.")
                         raise
@@ -353,7 +353,7 @@ async def send_message_to_user(user_telegram_id, msg):
                 break
             except Exception as e:
                 logger.error("Error sending telegram message to user: " + str(e))
-                max_retries += 1
+                retries += 1
                 if retries >= max_retries:
                     logger.error("Max retries reached. Message not sent.")
                     raise

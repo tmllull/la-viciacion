@@ -218,11 +218,11 @@ async def sync_data(
 
         # Check rankings
         # Notifications enabled
-        await ranking_games_hours(db, silent=silent)
+        # await ranking_games_hours(db, silent=silent)
         # await ranking_players_hours(db, silent=silent)
 
         # Notifications disabled
-        # await ranking_games_hours(db, silent=True)
+        await ranking_games_hours(db, silent=True)
         await ranking_players_hours(db, silent=True)
 
         # Others

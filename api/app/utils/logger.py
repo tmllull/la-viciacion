@@ -8,9 +8,9 @@ from dotenv import dotenv_values
 
 try:
     config = dotenv_values(".env")
-    LOG_LEVEL = config["LOG_LEVEL"]
+    LOG_LEVEL = config["API_LOG_LEVEL"]
 except Exception:
-    LOG_LEVEL = os.environ["LOG_LEVEL"]
+    LOG_LEVEL = os.environ["API_LOG_LEVEL"]
 
 if LOG_LEVEL == "DEBUG":
     LOG_LEVEL = logging.DEBUG

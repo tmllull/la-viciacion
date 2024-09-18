@@ -37,11 +37,11 @@ data_routes = DataRoutes()
 
 def before_send(event, hint):
     # modify event here
-    logger.debug("------BEFORE SENTRY------")
-    logger.debug("Event:")
-    logger.debug(event)
-    logger.debug("Hint:")
-    logger.debug(hint)
+    logger.info("------BEFORE SENTRY------")
+    logger.info("Event:")
+    logger.info(event)
+    logger.info("Hint:")
+    logger.info(hint)
     return event
 
 

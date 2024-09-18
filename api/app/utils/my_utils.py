@@ -356,7 +356,7 @@ async def send_message_to_user(user_telegram_id, msg):
                 retries += 1
                 if retries >= max_retries:
                     logger.error("Max retries reached. Message not sent.")
-                    raise
+                    # raise
     logger.info("Message sent successfully!")
 
 

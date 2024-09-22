@@ -19,11 +19,11 @@ config = Config()
 
 def before_send(event, hint):
     # modify event here
-    # logger.debug("------BEFORE SENTRY------")
-    # logger.debug("Event:")
-    # logger.debug(event)
-    # logger.debug("Hint:")
-    # logger.debug(hint)
+    logger.debug("------BEFORE SENTRY------")
+    logger.debug("Event:")
+    logger.debug(event)
+    logger.debug("Hint:")
+    logger.debug(hint)
     return event
 
 
@@ -38,7 +38,7 @@ if config.SENTRY_URL is not None and config.SENTRY_URL != "":
         # We recommend adjusting this value in production.
         profiles_sample_rate=1.0,
         environment=config.ENVIRONMENT,
-        # before_send=before_send,
+        before_send=before_send,
     )
 
 models.Base.metadata.create_all(bind=engine)

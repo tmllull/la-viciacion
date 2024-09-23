@@ -573,73 +573,82 @@ async def weekly_resume(
     Returns:
         _type_: _description_
     """
-    logger.debug("Check weekly resume for " + user.name + "...")
-    resume = {}
-    # Last week
-    user_weekly_resume = time_entries.get_weekly_resume(db, user, weeks_ago=weeks_ago)
-    weekly_hours = user_weekly_resume[0][0]
-    weekly_sessions = str(user_weekly_resume[0][1])
-    weekly_games = str(user_weekly_resume[0][2])
-    weekly_achievements = achievements.get_weekly_achievements(
-        db, user, weeks_ago=weeks_ago
-    )
-    weekly_achievements = str(weekly_achievements[0][0])
-    # Before last week
-    user_last_weekly_resume = time_entries.get_weekly_resume(
-        db, user, weeks_ago=weeks_ago + 1
-    )
-    last_weekly_hours = user_last_weekly_resume[0][0]
-    last_weekly_sessions = str(user_last_weekly_resume[0][1])
-    last_weekly_games = str(user_last_weekly_resume[0][2])
-    last_weekly_achievements = achievements.get_weekly_achievements(
-        db, user, weeks_ago=weeks_ago + 1
-    )
-    last_weekly_achievements = str(last_weekly_achievements[0][0])
-    hours_diff = int(weekly_hours) - int(last_weekly_hours)
-    sessions_diff = int(weekly_sessions) - int(last_weekly_sessions)
-    if sessions_diff > 0:
-        sessions_diff = "+" + str(sessions_diff)
-    games_diff = int(weekly_games) - int(last_weekly_games)
-    if games_diff > 0:
-        games_diff = "+" + str(games_diff)
-    achievements_diff = int(weekly_achievements) - int(last_weekly_achievements)
-    if achievements_diff > 0:
-        achievements_diff = "+" + str(achievements_diff)
-    current_ranking = rankings.user_current_ranking(db, user)
-    current_ranking = str(current_ranking[0][0])
-    msg = (
-        "🤖*Aquí está tu resumen semana*********l🤖\n"
-        + "Ranking actual: "
-        + current_ranking
-        + "\n"
-        + "Horas: "
-        + utils.convert_time_to_hours(weekly_hours)
-        + " ("
-        + str(utils.convert_time_to_hours(hours_diff))
-        + ") \n"
-        + "Sesiones: "
-        + weekly_sessions
-        + " ("
-        + str(sessions_diff)
-        + ") \n"
-        + "Juegos: "
-        + weekly_games
-        + " ("
-        + str(games_diff)
-        + ") \n"
-        + "Logros: "
-        + weekly_achievements
-        + " ("
-        + str(achievements_diff)
-        + ") \n"
-    )
+    try:
+        logger.info("Check weekly resume for " + user.name + "...")
+        resume = {}
+        # Last week
+        user_weekly_resume = time_entries.get_weekly_resume(
+            db, user, weeks_ago=weeks_ago
+        )
+        weekly_hours = user_weekly_resume[0][0]
+        weekly_sessions = str(user_weekly_resume[0][1])
+        weekly_games = str(user_weekly_resume[0][2])
+        weekly_achievements = achievements.get_weekly_achievements(
+            db, user, weeks_ago=weeks_ago
+        )
+        weekly_achievements = str(weekly_achievements[0][0])
+        # Before last week
+        user_last_weekly_resume = time_entries.get_weekly_resume(
+            db, user, weeks_ago=weeks_ago + 1
+        )
+        last_weekly_hours = user_last_weekly_resume[0][0]
+        last_weekly_sessions = str(user_last_weekly_resume[0][1])
+        last_weekly_games = str(user_last_weekly_resume[0][2])
+        last_weekly_achievements = achievements.get_weekly_achievements(
+            db, user, weeks_ago=weeks_ago + 1
+        )
+        last_weekly_achievements = str(last_weekly_achievements[0][0])
+        hours_diff = int(weekly_hours) - int(last_weekly_hours)
+        hours_diff_str = ""
+        if hours_diff >= 0:
+            hours_diff_str = "+"
+        sessions_diff = int(weekly_sessions) - int(last_weekly_sessions)
+        if sessions_diff > 0:
+            sessions_diff = "+" + str(sessions_diff)
+        games_diff = int(weekly_games) - int(last_weekly_games)
+        if games_diff > 0:
+            games_diff = "+" + str(games_diff)
+        achievements_diff = int(weekly_achievements) - int(last_weekly_achievements)
+        if achievements_diff > 0:
+            achievements_diff = "+" + str(achievements_diff)
+        current_ranking = rankings.user_current_ranking(db, user)
+        current_ranking = str(current_ranking[0][0])
+        msg = (
+            "🤖*Aquí está tu resumen semana*********l🤖\n"
+            + "Ranking actual: "
+            + current_ranking
+            + "\n"
+            + "Horas: "
+            + utils.convert_time_to_hours(weekly_hours)
+            + " ("
+            + hours_diff_str
+            + str(utils.convert_time_to_hours(hours_diff))
+            + ") \n"
+            + "Sesiones: "
+            + weekly_sessions
+            + " ("
+            + str(sessions_diff)
+            + ") \n"
+            + "Juegos: "
+            + weekly_games
+            + " ("
+            + str(games_diff)
+            + ") \n"
+            + "Logros: "
+            + weekly_achievements
+            + " ("
+            + str(achievements_diff)
+            + ") \n"
+        )
 
-    # logger.debug(msg)
-    if not silent:
-        await utils.send_message_to_user(user.telegram_id, msg)
-    resume["ranking"] = current_ranking
-    resume["hours"] = weekly_hours
-    resume["sessions"] = weekly_sessions
-    resume["games"] = weekly_games
-    resume["achievements"] = weekly_achievements
-    return resume
+        # logger.debug(msg)
+        if not silent:
+            await utils.send_message_to_user(user.telegram_id, msg)
+        resume["ranking"] = current_ranking
+        resume["hours"] = weekly_hours
+        resume["sessions"] = weekly_sessions
+        resume["games"] = weekly_games
+        resume["achievements"] = weekly_achievements
+        return resume
+    except Exception as e:
+        logger.error("Error sending weekly resume to user " + user.name + ": " + str(e))

@@ -1,5 +1,6 @@
 import datetime
 import sentry_sdk
+from sentry_sdk.types import Event, Hint
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_versioning import VersionedFastAPI
@@ -17,13 +18,12 @@ logger = log_manager.get_logger()
 config = Config()
 
 
-def before_send(event, hint):
+def before_send(event: Event, hint: Hint):
     # modify event here
-    logger.debug("------BEFORE SENTRY------")
-    logger.debug("Event:")
-    logger.debug(event)
-    logger.debug("Hint:")
-    logger.debug(hint)
+    logger.info("------BEFORE SENTRY------")
+    logger.info("Hint:")
+    exc_info_str = str(hint.get("exc_info"))
+    logger.info(exc_info_str)
     return event
 
 

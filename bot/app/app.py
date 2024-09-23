@@ -21,6 +21,7 @@ from utils.config import Config
 from utils.my_utils import MyUtils
 from utils import logger as logger
 import sentry_sdk
+from sentry_sdk.types import Event, Hint
 
 ##########
 ## INIT ##
@@ -35,13 +36,12 @@ admin_routes = AdminRoutes()
 data_routes = DataRoutes()
 
 
-def before_send(event, hint):
+def before_send(event: Event, hint: Hint):
     # modify event here
     logger.info("------BEFORE SENTRY------")
-    logger.info("Event:")
-    logger.info(event)
     logger.info("Hint:")
-    logger.info(hint)
+    exc_info_str = str(hint.get("exc_info"))
+    logger.info(exc_info_str)
     return event
 
 

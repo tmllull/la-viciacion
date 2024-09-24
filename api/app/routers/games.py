@@ -147,3 +147,36 @@ async def update_game(
     if game_db is None:
         raise HTTPException(status_code=404, detail="Game not exists")
     return games.update_game(db=db, game_id=game_id, game=game)
+
+
+@router.get("/recommendations/{user_id}")
+@version(1)
+async def get_recommendations(
+    user_id: int, genres: str = None, limit: int = None, db: Session = Depends(get_db)
+):
+    """_summary_
+
+    Args:
+        name (str): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
+    genres_list = []
+    if genres is not None:
+        genres_list = genres.split(",")
+    recommended_games = games.recommended_games(
+        db, user_id, genres=genres_list, limit=limit
+    )
+    games_list = []
+    for rec_game in recommended_games:
+        game = {}
+        game["game_id"] = rec_game[0]
+        game["user_id"] = rec_game[1]
+        game["game_name"] = rec_game[2]
+        game["genres"] = rec_game[3]
+        game["user_name"] = rec_game[4]
+        games_list.append(game)
+
+    return {"num_games": len(games_list), "games": games_list}

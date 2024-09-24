@@ -140,6 +140,7 @@ class DataRoutes:
             except Exception:
                 steam_id = 0
                 context.user_data[DEV] = "-"
+                context.user_data[AVG_TIME] = 0
             if steam_id == 0:
                 context.user_data[STEAM_ID] = ""
             else:

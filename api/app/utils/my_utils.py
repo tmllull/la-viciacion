@@ -288,6 +288,7 @@ async def send_message(
     image=None,
     openai=False,
     system_prompt=prompts.DEFAULT_SYSTEM_PROMPT,
+    new_game_recommended=None,
 ):
     if not silent:
         logger.info("Preparing message...")
@@ -295,6 +296,13 @@ async def send_message(
             try:
                 # logger.debug("Original message: " + msg)
                 # logger.debug("System prompt: " + system_prompt)
+                if new_game_recommended is not None:
+                    system_prompt += "\n" + prompts.NEW_GAME_RECOMENDATION + "\n"
+                    system_prompt += (
+                        "Juego recomendado: " + str(new_game_recommended["game"]) + "\n"
+                    )
+                    system_prompt += "Jugado por: " + str(new_game_recommended["user"])
+                    # logger.info(system_prompt)
                 completion = oai_client.chat_completion(
                     user_prompt=msg, system_prompt=system_prompt
                 )

@@ -1,7 +1,8 @@
 import datetime
 from typing import Union
+import random
 
-from sqlalchemy import asc, create_engine, delete, desc, func, select, text, update
+from sqlalchemy import asc, create_engine, delete, desc, func, select, text, update, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -34,6 +35,38 @@ def get_game_by_name(db: Session, name: str) -> list[models.Game]:
 
 def get_game_by_id(db: Session, game_id: int) -> models.Game:
     return db.query(models.Game).filter(models.Game.id == game_id).first()
+
+
+def recommended_games(
+    db: Session, user_id: int, genres: list[str] = [], limit: int = None
+):
+    genres_filter = [models.Game.genres.ilike(f"%{genre}%") for genre in genres]
+    unplayed_games = (
+        db.query(
+            models.UserGame.game_id,
+            models.UserGame.user_id,
+            models.Game.name,
+            models.Game.genres,
+            models.User.name,
+        )
+        .join(models.Game, models.UserGame.game_id == models.Game.id)
+        .join(models.User, models.UserGame.user_id == models.User.id)
+        .filter(models.UserGame.user_id != user_id)
+        .filter(or_(*genres_filter))
+        .limit(limit)
+    )
+    recommended_games = []
+    for game in unplayed_games:
+        recommended_games.append(game)
+    random.shuffle(recommended_games)
+    unique_recommended_games = []
+    seen_game_ids = set()
+
+    for game in recommended_games:
+        if game[0] not in seen_game_ids:
+            unique_recommended_games.append(game)
+            seen_game_ids.add(game[0])
+    return unique_recommended_games
 
 
 async def new_game(db: Session, game: schemas.NewGame) -> models.Game:

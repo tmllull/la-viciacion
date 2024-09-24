@@ -21,6 +21,7 @@ from utils.config import Config
 from utils.my_utils import MyUtils
 from utils import logger as logger
 import sentry_sdk
+from sentry_sdk.types import Event, Hint
 
 ##########
 ## INIT ##
@@ -35,13 +36,12 @@ admin_routes = AdminRoutes()
 data_routes = DataRoutes()
 
 
-def before_send(event, hint):
+def before_send(event: Event, hint: Hint):
     # modify event here
-    logger.debug("------BEFORE SENTRY------")
-    logger.debug("Event:")
-    logger.debug(event)
-    logger.debug("Hint:")
-    logger.debug(hint)
+    logger.info("------BEFORE SENTRY------")
+    logger.info("Hint:")
+    exc_info_str = str(hint.get("exc_info"))
+    logger.info(exc_info_str)
     return event
 
 
@@ -56,7 +56,7 @@ if config.SENTRY_URL is not None and config.SENTRY_URL != "":
         # We recommend adjusting this value in production.
         profiles_sample_rate=1.0,
         environment=config.ENVIRONMENT,
-        # before_send=before_send,
+        before_send=before_send,
     )
 
 FILTER_YES = "^(✅ Sí)$"

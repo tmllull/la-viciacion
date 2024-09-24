@@ -76,10 +76,10 @@ RANKING_MENU = [
         InlineKeyboardButton("✨ R. actual", callback_data="user_current_streak"),
         InlineKeyboardButton("⭐ R. máx.", callback_data="user_best_streak"),
     ],
-    [
-        InlineKeyboardButton("💸 Deuda técnica", callback_data="debt"),
-        InlineKeyboardButton("🆕 Últimos jugados", callback_data="games_last_played"),
-    ],
+    # [
+    #     InlineKeyboardButton("💸 Deuda técnica", callback_data="debt"),
+    #     InlineKeyboardButton("🆕 Últimos jugados", callback_data="games_last_played"),
+    # ],
     [
         InlineKeyboardButton("🏟️ Más jugados", callback_data="games_most_played"),
         # InlineKeyboardButton("🖥 Plataforma", callback_data="ranking_platform"),

@@ -8,13 +8,16 @@ import sys
 
 import requests
 import telegram
-import utils.logger as logger
 import utils.messages as msgs
 from telegram import Bot, Update
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.clockify_api import ClockifyApi
 from utils.config import Config
 from typing import Tuple, Dict, Any
+from utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 config = Config()
 clockify = ClockifyApi()

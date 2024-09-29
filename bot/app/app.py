@@ -19,7 +19,10 @@ from telegram.ext import (
 )
 from utils.config import Config
 from utils.my_utils import MyUtils
-from utils import logger as logger
+from utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 import sentry_sdk
 from sentry_sdk.types import Event, Hint
 

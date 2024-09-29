@@ -1,12 +1,15 @@
 import requests
 import telegram
 import utils.keyboard as kb
-import utils.logger as logger
 import utils.messages as msgs
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.config import Config
 from utils.my_utils import MyUtils
+from utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 utils = MyUtils()
 config = Config()

@@ -2,8 +2,12 @@ import datetime
 from datetime import timezone
 
 import requests
-import utils.logger as logger
 from utils.config import Config
+
+from utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 config = Config()
 

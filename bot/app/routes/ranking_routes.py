@@ -2,7 +2,6 @@ import json
 
 import requests
 import utils.keyboard as kb
-import utils.logger as logger
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -13,6 +12,10 @@ from telegram import (
 from telegram.ext import ContextTypes, ConversationHandler
 from utils.config import Config
 from utils.my_utils import MyUtils
+from utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 utils = MyUtils()
 config = Config()

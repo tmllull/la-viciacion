@@ -43,8 +43,9 @@ def before_send(event: Event, hint: Hint):
     # modify event here
     logger.info("------BEFORE SENTRY------")
     logger.info("Hint:")
-    exc_info_str = str(hint.get("exc_info"))
-    logger.info(exc_info_str)
+    logger.info(hint)
+    # exc_info_str = str(hint.get("exc_info"))
+    # logger.info(exc_info_str)
     return event
 
 

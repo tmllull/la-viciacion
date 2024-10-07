@@ -250,7 +250,7 @@ def main() -> None:
     # app.add_handler(CommandHandler("activate", basic_routes.activate_account))
     app.add_handler(CommandHandler("help", utils.help))
     # app.add_handler(MessageHandler(None, other_routes.random_response))
-
+    app.add_handler(MessageHandler(None, utils.read_message))
     app.run_polling()
 
 

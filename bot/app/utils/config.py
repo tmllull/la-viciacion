@@ -23,6 +23,7 @@ class Config:
             self.ACCESS_TOKEN_EXPIRE_MINUTES = config["ACCESS_TOKEN_EXPIRE_MINUTES"]
             self.SENTRY_URL = config["SENTRY_URL_BOT"]
             self.ENVIRONMENT = config["ENVIRONMENT"]
+            self.OPENAI_API_KEY = config["OPENAI_API_KEY"]
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -38,3 +39,4 @@ class Config:
             self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
             self.SENTRY_URL = os.environ["SENTRY_URL_BOT"]
             self.ENVIRONMENT = os.environ["ENVIRONMENT"]
+            self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]

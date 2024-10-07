@@ -598,16 +598,28 @@ async def weekly_resume(
             db, user, weeks_ago=weeks_ago + 1
         )
         last_weekly_achievements = str(last_weekly_achievements[0][0])
+        logger.info("Weekly resume hours:")
+        logger.info("This week: " + str(weekly_hours))
+        logger.info("Last week: " + str(last_weekly_hours))
         hours_diff = int(weekly_hours) - int(last_weekly_hours)
         hours_diff_str = ""
         if hours_diff >= 0:
             hours_diff_str = "+"
+        logger.info("Weekly resume sessions:")
+        logger.info("This week: " + str(weekly_sessions))
+        logger.info("Last week: " + str(last_weekly_sessions))
         sessions_diff = int(weekly_sessions) - int(last_weekly_sessions)
         if sessions_diff > 0:
             sessions_diff = "+" + str(sessions_diff)
+        logger.info("Weekly resume games:")
+        logger.info("This week: " + str(weekly_games))
+        logger.info("Last week: " + str(last_weekly_games))
         games_diff = int(weekly_games) - int(last_weekly_games)
         if games_diff > 0:
             games_diff = "+" + str(games_diff)
+        logger.info("Weekly resume achievements:")
+        logger.info("This week: " + str(weekly_achievements))
+        logger.info("Last week: " + str(last_weekly_achievements))
         achievements_diff = int(weekly_achievements) - int(last_weekly_achievements)
         if achievements_diff > 0:
             achievements_diff = "+" + str(achievements_diff)

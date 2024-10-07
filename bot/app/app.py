@@ -20,7 +20,9 @@ from telegram.ext import (
 from utils.config import Config
 from utils.my_utils import MyUtils
 from utils.logger import LogManager
+from utils.read_messages import ReadMessages
 
+read_messages = ReadMessages()
 log_manager = LogManager()
 logger = log_manager.get_logger()
 import sentry_sdk
@@ -250,7 +252,7 @@ def main() -> None:
     # app.add_handler(CommandHandler("activate", basic_routes.activate_account))
     app.add_handler(CommandHandler("help", utils.help))
     # app.add_handler(MessageHandler(None, other_routes.random_response))
-    app.add_handler(MessageHandler(None, utils.read_message))
+    app.add_handler(MessageHandler(None, read_messages.read_message))
     app.run_polling()
 
 

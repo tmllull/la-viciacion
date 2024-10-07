@@ -43,8 +43,9 @@ def before_send(event: Event, hint: Hint):
     # modify event here
     logger.info("------BEFORE SENTRY------")
     logger.info("Hint:")
-    exc_info_str = str(hint.get("exc_info"))
-    logger.info(exc_info_str)
+    logger.info(hint)
+    # exc_info_str = str(hint.get("exc_info"))
+    # logger.info(exc_info_str)
     return event
 
 
@@ -249,7 +250,7 @@ def main() -> None:
     # app.add_handler(CommandHandler("activate", basic_routes.activate_account))
     app.add_handler(CommandHandler("help", utils.help))
     # app.add_handler(MessageHandler(None, other_routes.random_response))
-
+    app.add_handler(MessageHandler(None, utils.read_message))
     app.run_polling()
 
 

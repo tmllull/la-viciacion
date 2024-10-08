@@ -36,7 +36,7 @@ class OpenAIClient:
         self,
         user_prompt: str,
         system_prompt: str,
-        model: str = "gpt-4o-mini",
+        model: str = config.OPENAI_MODEL,
         temperature: float = 1,
         max_tokens: int = None,
         response_format: object = None,

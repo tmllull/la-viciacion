@@ -601,6 +601,10 @@ async def weekly_resume(
         logger.info("Weekly resume hours:")
         logger.info("This week: " + str(weekly_hours))
         logger.info("Last week: " + str(last_weekly_hours))
+        if weekly_hours is None:
+            weekly_hours = 0
+        if last_weekly_hours is None:
+            last_weekly_hours = 0
         hours_diff = int(weekly_hours) - int(last_weekly_hours)
         hours_diff_str = ""
         if hours_diff >= 0:

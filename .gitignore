@@ -315,6 +315,9 @@ pyrightconfig.json
 **/*.backup.*
 **/*.back.*
 
+/app/package.json
+/app/package-lock.json
+
 node_modules
 
 *.sublime*

@@ -462,10 +462,10 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
                 .where(
                     models.UserGame.id == entry_id,
                     or_(
-                        models.UserGame.platform == game.platform,
+                        models.UserGame.platform == game.platform_id,
                     ),
                 )
-                .values(platform=game.platform)
+                .values(platform=game.platform_id)
             )
             db.execute(stmt)
             db.commit()
@@ -546,7 +546,12 @@ def get_games(
         stmt = (
             select(
                 models.UserGame.__table__,
+                models.UserGame.platform.label("platform_id"),
+                models.Game.name.label("game_name"),
+                models.PlatformTag.name.label("platform_name"),
             )
+            .join(models.Game, models.UserGame.game_id == models.Game.id)
+            .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .where(
                 models.UserGame.user_id == user_id,
                 models.UserGame.completed == completed,
@@ -560,7 +565,12 @@ def get_games(
         stmt = (
             select(
                 models.UserGame.__table__,
+                models.UserGame.platform.label("platform_id"),
+                models.Game.name.label("game_name"),
+                models.PlatformTag.name.label("platform_name"),
             )
+            .join(models.Game, models.UserGame.game_id == models.Game.id)
+            .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .where(
                 models.UserGame.user_id == user_id,
                 extract("year", models.UserGame.started_date) == season,

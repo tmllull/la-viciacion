@@ -174,10 +174,7 @@ class DataRoutes:
             played_games = response.json()
             context.user_data[TOTAL_PLAYED_GAMES] = len(played_games)
             for played_game in played_games:
-                url = config.API_URL + "/games/" + str(played_game["game_id"])
-                game_info = utils.make_request("GET", url).json()
-                game_name = game_info["name"]
-                if game_name == context.user_data[GAME]:
+                if played_game["game_name"] == context.user_data[GAME]:
                     await update.message.reply_text(
                         "Ya tienes añadido "
                         + str(context.user_data[GAME])

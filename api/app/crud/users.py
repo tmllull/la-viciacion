@@ -453,7 +453,7 @@ async def add_new_game(
         raise
 
 
-def update_game(db: Session, game: schemas.UserGame, entry_id):
+def update_game(db: Session, game: models.UserGame, entry_id):
     current_year = datetime.datetime.now().year
     if current_year == config.CURRENT_SEASON:
         try:
@@ -462,10 +462,10 @@ def update_game(db: Session, game: schemas.UserGame, entry_id):
                 .where(
                     models.UserGame.id == entry_id,
                     or_(
-                        models.UserGame.platform == game.platform_id,
+                        models.UserGame.platform == game.platform,
                     ),
                 )
-                .values(platform=game.platform_id)
+                .values(platform=game.platform)
             )
             db.execute(stmt)
             db.commit()

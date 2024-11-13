@@ -152,8 +152,8 @@ async def sync_data(
             played_days_season, real_played_days_season = time_entries.get_played_days(
                 db, user.id
             )
-            # logger.info("Played days: " + str(len(played_days_season)))
-            # logger.info("Real played days: " + str(len(real_played_days_season)))
+            logger.info("Played days: " + str(len(played_days_season)))
+            logger.info("Real played days: " + str(len(real_played_days_season)))
             users.update_played_days(db, user.id, len(played_days_season))
             # Check played days achievement
             await achievements.user_played_total_days(

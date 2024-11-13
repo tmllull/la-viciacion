@@ -141,8 +141,10 @@ class UserGame(UsersGamesBase):
     id: int | None = None
     user_id: int | None = None
     game_id: str | None = None
+    game_name: str | None = None
     started_date: datetime.date | None = None
-    platform: str | None = None
+    platform_id: str | None = None
+    platform_name: str | None = None
     completed: int | None = None
     completed_date: datetime.date | None = None
     score: float | None = None

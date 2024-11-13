@@ -60,6 +60,7 @@ if config.SENTRY_URL is not None and config.SENTRY_URL != "":
         # Set profiles_sample_rate to 1.0 to profile 100%
         # of sampled transactions.
         # We recommend adjusting this value in production.
+        ignore_errors=[telegram.error.NetworkError],
         profiles_sample_rate=1.0,
         environment=config.ENVIRONMENT,
         before_send=before_send,

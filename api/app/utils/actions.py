@@ -141,9 +141,9 @@ async def sync_data(
                 db, user, start_date, silent
             )
 
-            if total_entries < 1:
-                # logger.debug("No time entries for " + str(user_name))
-                continue
+            # if total_entries < 1:
+            #     # logger.debug("No time entries for " + str(user_name))
+            #     continue
 
             calculation_start_time = time.time()
 

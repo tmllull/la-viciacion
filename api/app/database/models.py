@@ -51,7 +51,9 @@ class UserStatistics(Base):
     best_streak = Column(Integer)
     best_streak_date = Column(Date)
     played_days = Column(Integer)
-    unplayed_streak = Column(Integer)
+    best_unplayed_streak = Column(Integer)
+    current_unplayed_streak = Column(Integer)
+    best_unplayed_streak_date = Column(Date)
     played_games = Column(Integer)
     completed_games = Column(Integer)
 
@@ -68,7 +70,9 @@ class UserStatisticsHistorical(Base):
     best_streak = Column(Integer)
     best_streak_date = Column(Date)
     played_days = Column(Integer)
-    unplayed_streak = Column(Integer)
+    best_unplayed_streak = Column(Integer)
+    current_unplayed_streak = Column(Integer)
+    best_unplayed_streak_date = Column(Date)
     played_games = Column(Integer)
     completed_games = Column(Integer)
 

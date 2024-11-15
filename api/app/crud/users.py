@@ -202,7 +202,7 @@ def create_user_statistics_historical(db: Session, user_id: id):
     except SQLAlchemyError as e:
         db.rollback()
         if "Duplicate" not in str(e):
-            logger.error("Error creating user statistics: " + str(e))
+            logger.error("Error creating user statistics historical: " + str(e))
             raise e
 
 
@@ -805,7 +805,11 @@ def get_streaks(db: Session, username: str):
         raise e
 
 
-def update_streaks(db: Session, user_id, current_streak, best_streak, best_streak_date):
+def update_streaks(db: Session, user_id, current_streak, 
+                   best_streak, best_streak_date, 
+                   best_unplayed_streak, 
+                   best_unplayed_streak_date, 
+                   current_unplayed_streak):
     try:
         stmt = (
             update(models.UserStatistics)
@@ -814,6 +818,10 @@ def update_streaks(db: Session, user_id, current_streak, best_streak, best_strea
                 current_streak=current_streak,
                 best_streak=best_streak,
                 best_streak_date=best_streak_date,
+                best_unplayed_streak=best_unplayed_streak, 
+                best_unplayed_streak_date=best_unplayed_streak_date, 
+                current_unplayed_streak=current_unplayed_streak
+                
             )
         )
         db.execute(stmt)

@@ -48,7 +48,9 @@ class UserStatistics(BaseModel):
     best_streak: int | None = 0
     best_streak_date: datetime.date | None = None
     played_days: int | None = 0
-    unplayed_streak: int | None = None
+    best_unplayed_streak: int | None = None
+    current_unplayed_streak: int | None = None
+    best_unplayed_streak_date: datetime.date | None = None
 
 
 class UserUpdate(BaseModel):

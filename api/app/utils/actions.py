@@ -152,21 +152,31 @@ async def sync_data(
             played_days_season, real_played_days_season = time_entries.get_played_days(
                 db, user.id
             )
-            logger.info("Played days: " + str(len(played_days_season)))
-            logger.info("Real played days: " + str(len(real_played_days_season)))
+            # logger.info("Played days: " + str(len(played_days_season)))
+            # logger.info("Real played days: " + str(len(real_played_days_season)))
             users.update_played_days(db, user.id, len(played_days_season))
             # Check played days achievement
             await achievements.user_played_total_days(
                 db, user, played_days_season, silent=silent
             )
             # logger.debug("Checking streaks for " + user.name)
-            best_streak_date, best_streak, current_streak = streak_days(
+            (best_streak_date, best_streak, 
+             current_streak, best_unplayed_streak_date, 
+             best_unplayed_streak, current_unplayed_streak) = streak_days(
                 db, user, played_days_season
             )
+            # logger.info("Max gap: " + str(best_unplayed_streak))
+            # logger.info("Max gap date: " + str(best_unplayed_streak_date))
+            # logger.info("Current gap: " + str(current_unplayed_streak))
+            # return
             await check_streaks(db, user, current_streak, best_streak, silent=silent)
             # TODO: Check streaks achievement
             users.update_streaks(
-                db, user.id, current_streak, best_streak, best_streak_date
+                db, user.id, current_streak, 
+                best_streak, best_streak_date, 
+                best_unplayed_streak, 
+                best_unplayed_streak_date, 
+                current_unplayed_streak
             )
 
             # logger.debug("Updating played time games and check achievements...")
@@ -250,7 +260,6 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     """
     TODO:
     """
-
     max_streak = 0
     start_streak_date = None
     end_max_streak_date = None
@@ -299,8 +308,32 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     # Check is there is more than 1 day without play
     if (today - played_dates[-1]).days > 1:
         current_streak = 0
+    
+    # Unplayed days
+    max_gap = 0
+    end_max_gap_date = None
+    current_gap = 0
 
-    return end_max_streak_date, max_streak, current_streak
+    for i in range(1, len(played_dates)):
+        gap = (played_dates[i] - played_dates[i - 1]).days - 1
+        if gap > 0:
+            # Update current gap
+            current_gap = gap
+            # Update max gap
+            if gap >= max_gap:
+                max_gap = gap
+                end_max_gap_date = played_dates[i]
+
+    # Check unplayed days for today
+    last_gap = (today - played_dates[-1]).days - 1
+    if last_gap > 0:
+        current_gap = last_gap
+        # If last gap is longer than max gap, update max gap
+        if last_gap > max_gap:
+            max_gap = last_gap
+            end_max_gap_date = today
+
+    return end_max_streak_date, max_streak, current_streak, end_max_gap_date, max_gap, current_gap
 
 
 async def check_streaks(

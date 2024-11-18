@@ -136,9 +136,9 @@ def get_user_statistics(
     for ranking_type in rankings_list:
         content = {}
         if ranking_type == UserStatisticsTypes.played_games:
-            data = users.last_played_games(db, username)
+            data = users.played_games(db, username)
         elif ranking_type == UserStatisticsTypes.completed_games:
-            data = users.last_completed_games(db, username)
+            data = users.completed_games(db, username)
         elif ranking_type == UserStatisticsTypes.top_games:
             data = users.top_games(db, username)
         elif ranking_type == UserStatisticsTypes.achievements:

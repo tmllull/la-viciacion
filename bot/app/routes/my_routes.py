@@ -42,7 +42,8 @@ class MyRoutes:
             config.API_URL + "/statistics/users/" + username + "?ranking=played_games",
         ).json()
         ranking = utils.load_json_response(ranking[0])
-        msg = "Estos son tus últimos juegos:\n"
+        num_games = len(ranking["data"])
+        msg = f"Has jugado a {num_games} juegos. Estos son los 10 últimos:\n"
         for i, elem in enumerate(ranking["data"]):
             msg = (
                 msg
@@ -54,6 +55,8 @@ class MyRoutes:
                 + ")"
                 + "\n"
             )
+            if i == 9:
+                break
         await utils.response_conversation(update, context, msg)
 
     async def my_top_games(
@@ -79,7 +82,8 @@ class MyRoutes:
                 + str(played_time)
                 + "\n"
             )
-
+            if i == 9:
+                break
         await utils.response_conversation(update, context, msg)
 
     async def my_completed_games(

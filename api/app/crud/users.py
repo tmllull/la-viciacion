@@ -935,7 +935,7 @@ def top_games(
         raise e
 
 
-def last_played_games(db: Session, username: str, limit: int = 10):
+def played_games(db: Session, username: str, limit: int = None):
     try:
         user = get_user_by_username(db, username)
         stmt = (
@@ -979,7 +979,7 @@ def last_played_games(db: Session, username: str, limit: int = 10):
         raise e
 
 
-def last_completed_games(db: Session, username: str, limit: int = 10):
+def completed_games(db: Session, username: str, limit: int = None):
     try:
         user = get_user_by_username(db, username)
         stmt = (

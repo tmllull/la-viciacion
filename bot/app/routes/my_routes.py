@@ -49,7 +49,7 @@ class MyRoutes:
                 msg
                 + str(i + 1)
                 + ". "
-                + str(elem["name"])
+                + str(elem["game_name"])
                 + " ("
                 + str(utils.convert_time_to_hours(elem["played_time"]))
                 + ")"
@@ -72,12 +72,12 @@ class MyRoutes:
         ranking = utils.load_json_response(ranking[0])
         msg = "Este es tu top de juegos:\n"
         for i, elem in enumerate(ranking["data"]):
-            played_time = utils.convert_time_to_hours(elem["total_played_time"])
+            played_time = utils.convert_time_to_hours(elem["played_time"])
             msg = (
                 msg
                 + str(i + 1)
                 + ". "
-                + str(elem["name"])
+                + str(elem["game_name"])
                 + " - "
                 + str(played_time)
                 + "\n"
@@ -102,7 +102,7 @@ class MyRoutes:
         ranking = utils.load_json_response(ranking[0])
         msg = "Estos son tus últimos juegos completados:\n"
         for i, elem in enumerate(ranking["data"]):
-            msg = msg + str(i + 1) + ". " + str(elem["name"]) + "\n"
+            msg = msg + str(i + 1) + ". " + str(elem["game_name"]) + "\n"
 
         await utils.response_conversation(update, context, msg)
 

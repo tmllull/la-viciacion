@@ -552,15 +552,23 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .join(
                 models.TimeEntry,
-                models.TimeEntry.project_clockify_id == models.UserGame.game_id,
+                models.TimeEntry.project_clockify_id == models.Game.id,
             )
             .where(
                 models.UserGame.user_id == user_id,
                 models.UserGame.completed == completed,
                 extract("year", models.UserGame.started_date) == season,
+                models.UserGame.user_id == user_id, models.TimeEntry.user_id == user_id
+            )
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+                models.TimeEntry.start,
             )
             .order_by(desc(models.TimeEntry.start))
             .limit(limit)
@@ -587,14 +595,22 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .join(
                 models.TimeEntry,
-                models.TimeEntry.project_clockify_id == models.UserGame.game_id,
+                models.TimeEntry.project_clockify_id == models.Game.id,
             )
             .where(
                 models.UserGame.user_id == user_id,
                 extract("year", models.UserGame.started_date) == season,
+                models.UserGame.user_id == user_id, models.TimeEntry.user_id == user_id
+            )
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+                models.TimeEntry.start,
             )
             .order_by(desc(models.TimeEntry.start))
             .limit(limit)

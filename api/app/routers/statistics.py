@@ -151,6 +151,7 @@ def get_user_statistics(
         else:
             data = {"message": ranking_type + " is not a valid ranking"}
         content["type"] = ranking_type
+        content["len_data"] = len(data)
         content["data"] = data
         response.append(content)
     return response

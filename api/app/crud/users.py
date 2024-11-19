@@ -562,6 +562,13 @@ def get_games(
                 models.UserGame.completed == completed,
                 extract("year", models.UserGame.started_date) == season,
             )
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+                models.TimeEntry.start,
+            )
             .order_by(desc(models.TimeEntry.start))
             .limit(limit)
         )
@@ -595,6 +602,13 @@ def get_games(
             .where(
                 models.UserGame.user_id == user_id,
                 extract("year", models.UserGame.started_date) == season,
+            )
+            .group_by(
+                models.UserGame.user_id,
+                models.UserGame.game_id,
+                models.Game.name,
+                models.UserGame.played_time,
+                models.TimeEntry.start,
             )
             .order_by(desc(models.TimeEntry.start))
             .limit(limit)

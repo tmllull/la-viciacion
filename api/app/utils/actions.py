@@ -178,7 +178,6 @@ async def sync_data(
                 best_unplayed_streak_date, 
                 current_unplayed_streak
             )
-
             # logger.debug("Updating played time games and check achievements...")
             played_time_games = time_entries.get_user_games_played_time(db, user.id)
             for game in played_time_games:
@@ -264,74 +263,71 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     start_streak_date = None
     end_max_streak_date = None
     current_streak = 0
-
-    if len(played_dates) == 0:
-        return (
-            datetime.datetime.strptime(
-                str(config.CURRENT_SEASON) + "-01-01", "%Y-%m-%d"
-            ),
-            0,
-            0,
-        )
-    elif len(played_dates) == 1:
-        return (
-            played_dates[0],
-            1,
-            1,
-        )
-    for i in range(1, len(played_dates)):
-        # Check diff between current and last date
-        diff = (played_dates[i] - played_dates[i - 1]).days
-        if diff == 1:
-            if current_streak == 0:
-                start_streak_date = played_dates[i - 1]
+    try:
+        if len(played_dates) == 0:
+            end_max_streak_date = datetime.datetime.strptime(str(config.CURRENT_SEASON) + "-01-01", "%Y-%m-%d")
+        elif len(played_dates) == 1:
+            end_max_streak_date = played_dates[0]
+            max_streak = 1
+            current_streak = 1
+        for i in range(1, len(played_dates)):
+            # Check diff between current and last date
+            diff = (played_dates[i] - played_dates[i - 1]).days
+            if diff == 1:
+                if current_streak == 0:
+                    start_streak_date = played_dates[i - 1]
+                current_streak += 1
+            else:
+                if current_streak >= max_streak:
+                    max_streak = current_streak
+                    end_max_streak_date = played_dates[i - 1]
+                current_streak = 0
+        # Check last date to add this day to the streak. If last d
+        today = datetime.date.today()
+        # Add last elem to streak if its yesterday
+        if (today - played_dates[-1]).days == 1:
             current_streak += 1
-        else:
-            if current_streak >= max_streak:
-                max_streak = current_streak
-                end_max_streak_date = played_dates[i - 1]
+        # Add today to streak if the last elem is today
+        if (today - played_dates[-1]).days == 0:
+            current_streak += 1
+
+        # Check if current streak (with today) is longer than best (without today)
+        if current_streak > max_streak:
+            max_streak = current_streak
+            end_max_streak_date = played_dates[-1]
+
+        # Check is there is more than 1 day without play
+        if (today - played_dates[-1]).days > 1:
             current_streak = 0
-    # Check last date to add this day to the streak. If last d
-    today = datetime.date.today()
-    # Add last elem to streak if its yesterday
-    if (today - played_dates[-1]).days == 1:
-        current_streak += 1
-    # Add today to streak if the last elem is today
-    if (today - played_dates[-1]).days == 0:
-        current_streak += 1
-
-    # Check if current streak (with today) is longer than best (without today)
-    if current_streak > max_streak:
-        max_streak = current_streak
-        end_max_streak_date = played_dates[-1]
-
-    # Check is there is more than 1 day without play
-    if (today - played_dates[-1]).days > 1:
-        current_streak = 0
+    except Exception as e:
+        logger.error("Error calculating streak days: "+str(e))
     
     # Unplayed days
     max_gap = 0
     end_max_gap_date = None
     current_gap = 0
 
-    for i in range(1, len(played_dates)):
-        gap = (played_dates[i] - played_dates[i - 1]).days - 1
-        if gap > 0:
-            # Update current gap
-            current_gap = gap
-            # Update max gap
-            if gap >= max_gap:
-                max_gap = gap
-                end_max_gap_date = played_dates[i]
+    try:
+        for i in range(1, len(played_dates)):
+            gap = (played_dates[i] - played_dates[i - 1]).days - 1
+            if gap > 0:
+                # Update current gap
+                current_gap = gap
+                # Update max gap
+                if gap >= max_gap:
+                    max_gap = gap
+                    end_max_gap_date = played_dates[i]
 
-    # Check unplayed days for today
-    last_gap = (today - played_dates[-1]).days - 1
-    if last_gap > 0:
-        current_gap = last_gap
-        # If last gap is longer than max gap, update max gap
-        if last_gap > max_gap:
-            max_gap = last_gap
-            end_max_gap_date = today
+        # Check unplayed days for today
+        last_gap = (today - played_dates[-1]).days - 1
+        if last_gap > 0:
+            current_gap = last_gap
+            # If last gap is longer than max gap, update max gap
+            if last_gap > max_gap:
+                max_gap = last_gap
+                end_max_gap_date = today
+    except Exception as e:
+        logger.error("Error calculating unplayed days: "+str(e))
 
     return end_max_streak_date, max_streak, current_streak, end_max_gap_date, max_gap, current_gap
 

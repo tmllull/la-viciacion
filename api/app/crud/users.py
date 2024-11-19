@@ -552,10 +552,10 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .join(
                 models.TimeEntry,
-                models.TimeEntry.project_clockify_id == models.UserGame.game_id,
+                models.TimeEntry.project_clockify_id == models.Game.id,
             )
             .where(
                 models.UserGame.user_id == user_id,
@@ -587,10 +587,10 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .join(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .join(
                 models.TimeEntry,
-                models.TimeEntry.project_clockify_id == models.UserGame.game_id,
+                models.TimeEntry.project_clockify_id == models.Game.id,
             )
             .where(
                 models.UserGame.user_id == user_id,

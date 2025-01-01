@@ -76,7 +76,7 @@ def convert_time_to_hours(seconds) -> str:
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     remaining_seconds = seconds % 60
-    return f"{hours}h{minutes}m{remaining_seconds}s"
+    return f"{hours}h{minutes}m"
 
 
 def convert_hours_minutes_to_seconds(time) -> int:

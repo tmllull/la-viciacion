@@ -164,7 +164,7 @@ async def sync_data(
             (best_streak_date, best_streak, 
              current_streak, best_unplayed_streak_date, 
              best_unplayed_streak, current_unplayed_streak) = streak_days(
-                db, user, played_days_season
+                db, user, played_days_season, current_season
             )
             # logger.info("Max gap: " + str(best_unplayed_streak))
             # logger.info("Max gap date: " + str(best_unplayed_streak_date))
@@ -256,7 +256,7 @@ async def sync_data(
         await utils.send_message_to_admins(db, "Error on sync: " + str(e))
 
 
-def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEntry]):
+def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEntry], current_season: int):
     """
     TODO:
     """

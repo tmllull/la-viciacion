@@ -232,6 +232,7 @@ def get_played_days(
 async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
+    current_season = datetime.datetime.now().year
     for entry in entries:
         if entry["projectId"] is None:
             logger.warning("Time entry without project: " + str(entry["id"]))
@@ -269,50 +270,58 @@ async def sync_clockify_entries_db(
             exists = db.execute(stmt).first()
             # Create new time entry
             if not exists:
-                if end is not None:
-                    new_entry = models.TimeEntry(
-                        id=entry["id"],
-                        user_id=user.id,
-                        user_clockify_id=user.clockify_id,
-                        project_clockify_id=entry["projectId"],
-                        start=start,
-                        end=end,
-                        duration=utils.convert_clockify_duration(duration),
-                    )
-                else:
-                    new_entry = models.TimeEntry(
-                        id=entry["id"],
-                        user_id=user.id,
-                        user_clockify_id=user.clockify_id,
-                        project_clockify_id=entry["projectId"],
-                        start=start,
-                    )
-                db.add(new_entry)
-                db.commit()
-            # Update existing time entry
-            else:
-                if end is not None:
-                    stmt = (
-                        update(models.TimeEntry)
-                        .where(models.TimeEntry.id == entry["id"])
-                        .values(
+                try:
+                    if end is not None:
+                        new_entry = models.TimeEntry(
+                            id=entry["id"],
+                            user_id=user.id,
+                            user_clockify_id=user.clockify_id,
                             project_clockify_id=entry["projectId"],
                             start=start,
                             end=end,
                             duration=utils.convert_clockify_duration(duration),
                         )
-                    )
-                else:
-                    stmt = (
-                        update(models.TimeEntry)
-                        .where(models.TimeEntry.id == entry["id"])
-                        .values(
+                    else:
+                        new_entry = models.TimeEntry(
+                            id=entry["id"],
+                            user_id=user.id,
+                            user_clockify_id=user.clockify_id,
                             project_clockify_id=entry["projectId"],
                             start=start,
                         )
-                    )
-                db.execute(stmt)
-                db.commit()
+                    db.add(new_entry)
+                    db.commit()
+                except Exception as e:
+                    db.rollback()
+                    logger.error("Error creating time entry " + str(entry) + ": " + str(e))
+            # Update existing time entry
+            else:
+                try:
+                    if end is not None:
+                        stmt = (
+                            update(models.TimeEntry)
+                            .where(models.TimeEntry.id == entry["id"])
+                            .values(
+                                project_clockify_id=entry["projectId"],
+                                start=start,
+                                end=end,
+                                duration=utils.convert_clockify_duration(duration),
+                            )
+                        )
+                    else:
+                        stmt = (
+                            update(models.TimeEntry)
+                            .where(models.TimeEntry.id == entry["id"])
+                            .values(
+                                project_clockify_id=entry["projectId"],
+                                start=start,
+                            )
+                        )
+                    db.execute(stmt)
+                    db.commit()
+                except Exception as e:
+                    db.rollback()
+                    logger.error("Error updating time entry " + str(entry) + ": " + str(e))
 
             # Check if game on clockify already exists on local DB
             game = games.get_game_by_id(db, entry["projectId"])
@@ -332,52 +341,71 @@ async def sync_clockify_entries_db(
                 game_id = new_game.id
 
             # Add game to GameStatistics (if needed)
-            games.create_game_statistics(db, game_id)
-            games.create_game_statistics_historical(db, game_id)
+            try:
+                games.create_game_statistics(db, game_id)
+                games.create_game_statistics_historical(db, game_id)
+            except Exception as e:
+                logger.error("Error creating game statistics for " + game_name + ": " + str(e))
 
             # Check if player already plays the game this season
             # if time_entry_year == config.CURRENT_SEASON:
-            already_playing = users.get_game_by_id(db, user.id, game_id)
+            already_playing = users.get_game_by_id(db, user.id, game_id, current_season)
             if not already_playing:
-                logger.info("User not playing " + game_name)
-                new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
-                await users.add_new_game(
-                    db,
-                    game=new_user_game,
-                    user=user,
-                    start_date=start,
-                    silent=silent,
-                    from_sync=True,
-                )
-                already_playing = users.get_game_by_id(db, user.id, game_id)
-            if platform is not None and already_playing.platform != platform:
-                stmt = (
-                    update(models.UserGame)
-                    .where(models.UserGame.id == already_playing.id)
-                    .values(
-                        platform=platform,
+                try:
+                    logger.info("User not playing " + game_name)
+                    new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
+                    await users.add_new_game(
+                        db,
+                        game=new_user_game,
+                        user=user,
+                        start_date=start,
+                        silent=silent,
+                        from_sync=True,
                     )
-                )
-                db.execute(stmt)
-                db.commit()
+                    already_playing = users.get_game_by_id(db, user.id, game_id, current_season)
+                except Exception as e:
+                    logger.error("Error adding game " + game_name + ": " + str(e))
+            try:
+                if platform is not None and already_playing.platform != platform:
+                    try:
+                        stmt = (
+                            update(models.UserGame)
+                            .where(models.UserGame.id == already_playing.id)
+                            .values(
+                                platform=platform,
+                            )
+                        )
+                        db.execute(stmt)
+                        db.commit()
+                    except Exception as e:
+                        db.rollback()
+                        logger.error("Error updating platform for " + game_name + ": " + str(e))
+            except Exception as e:
+                logger.error("Error updating platform for " + game_name + ": " + str(e))
             if completed is not None and already_playing.completed != 1:
-                logger.info("Completing game " + str(game.id) + "...")
-                played_time = get_user_games_played_time(db, user.id, game.id)
-                # The follow list only will have 1 item
-                for played_game in played_time:
-                    users.update_played_time_game(
-                        db, user.id, played_game[0], played_game[1]
+                try:
+                    logger.info("Completing game " + str(game.id) + "...")
+                    played_time = get_user_games_played_time(db, user.id, game.id)
+                    # The follow list only will have 1 item
+                    for played_game in played_time:
+                        users.update_played_time_game(
+                            db, user.id, played_game[0], played_game[1]
+                        )
+                    await users.complete_game(
+                        db,
+                        user.id,
+                        game.id,
+                        completed_date=start,
+                        silent=silent,
+                        from_sync=True,
                     )
-                await users.complete_game(
-                    db,
-                    user.id,
-                    game.id,
-                    completed_date=start,
-                    silent=silent,
-                    from_sync=True,
-                )
-            update_game = models.UserGame(platform=platform)
-            users.update_game(db, update_game, already_playing.id)
+                except Exception as e:
+                    logger.error("Error completing game " + game_name + ": " + str(e))
+            try:
+                update_game = models.UserGame(platform=platform)
+                users.update_game(db, update_game, already_playing.id)
+            except Exception as e:
+                logger.error("Error updating game" + game_name + " for user: " + str(e))
 
             db.commit()
         except Exception as e:

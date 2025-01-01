@@ -133,7 +133,6 @@ class UserGame(Base):
     completion_time = Column(Integer)
 
     __table_args__ = (
-        UniqueConstraint("user_id", "game_id", "platform"),
         UniqueConstraint("user_id", "game_id", "platform", "season"),
     )
 

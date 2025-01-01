@@ -28,6 +28,7 @@ config = Config()
 
 class Achievements:
     from ..utils.achievements import AchievementsElems
+    season = datetime.datetime.now().year
 
     def __init__(self, silent: bool = False) -> None:
         self.silent = silent
@@ -101,7 +102,7 @@ class Achievements:
             raise
 
     def check_already_achieved(
-        self, db: Session, user_id: int, key: str, season: int = config.CURRENT_SEASON
+        self, db: Session, user_id: int, key: str, season: int = season
     ) -> bool:
         ach_id = self.get_ach_by_key(db, str(key))
         already_achieved = (
@@ -124,7 +125,7 @@ class Achievements:
         key: str,
         game_id: str = None,
         date: str = None,
-        season: int = config.CURRENT_SEASON,
+        season: int = season,
     ):
         if date is None:
             date = datetime.datetime.now()
@@ -662,8 +663,9 @@ class Achievements:
         db: Session,
         user: models.User,
         silent: bool = False,
+        season: int = season,
     ):
-        current_season = str(config.CURRENT_SEASON)
+        current_season = str(season)
         new_year = current_season + "-01-01"
         time_entry = time_entries.get_time_entry_by_date(db, user.id, new_year, 1)
         ach = AchievementsElems.HAPPY_NEW_YEAR

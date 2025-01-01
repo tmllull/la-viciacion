@@ -629,7 +629,7 @@ def get_games(
 
 
 def get_game_by_id(
-    db: Session, user_id, game_id, season: int = config.CURRENT_SEASON
+    db: Session, user_id, game_id, season
 ) -> models.UserGame:
     return (
         db.query(models.UserGame)
@@ -717,9 +717,9 @@ async def complete_game(
 ):
     current_year = datetime.datetime.now().year
     try:
-        db_game = games.get_game_by_id(db, game_id)
+        db_game = games.get_game_by_id(db, game_id, current_year)
         user = get_user_by_id(db, user_id)
-        user_game = get_game_by_id(db, user_id, db_game.id)
+        user_game = get_game_by_id(db, user_id, db_game.id, current_year)
         game_info = await utils.get_game_info(db_game.name)
         if not from_sync:
             clockify_api.create_empty_time_entry(

@@ -162,7 +162,8 @@ class MyUtils:
             return "0h0m"
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
-        return f"{hours}h{minutes}m"
+        remaining_seconds = seconds % 60
+        return f"{hours}h{minutes}m{remaining_seconds}s"
 
     def convert_hours_minutes_to_seconds(self, time) -> int:
         if time is None:

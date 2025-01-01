@@ -660,7 +660,7 @@ async def weekly_resume(
         current_ranking = rankings.user_current_ranking(db, user)
         current_ranking = str(current_ranking[0][0])
         msg = (
-            "🤖*Aquí está tu resumen semana*********l🤖\n"
+            "🤖*Aquí está tu resumen semanal*********🤖\n"
             + "Ranking actual: "
             + current_ranking
             + "\n"

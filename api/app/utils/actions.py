@@ -38,6 +38,7 @@ async def sync_data(
     sync_all: bool = False,
 ):
     # logger.info("Sync data...")
+    current_season = datetime.datetime.now().year
     current_date = datetime.datetime.now()
     start_time = time.time()
     week_day = current_date.weekday()
@@ -92,7 +93,7 @@ async def sync_data(
             db.query(models.UserStatistics).delete()
             db.query(models.GameStatistics).delete()
             db.commit()
-    logger.info("Current season: " + str(config.CURRENT_SEASON))
+    logger.info("Current season: " + str(current_season))
     logger.info("Silent mode: " + str(silent))
     # logger.info("Sync clockify entries...")
     # delete_older_timers(db)
@@ -265,7 +266,7 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     current_streak = 0
     try:
         if len(played_dates) == 0:
-            end_max_streak_date = datetime.datetime.strptime(str(config.CURRENT_SEASON) + "-01-01", "%Y-%m-%d")
+            end_max_streak_date = datetime.datetime.strptime(str(current_season) + "-01-01", "%Y-%m-%d")
         elif len(played_dates) == 1:
             end_max_streak_date = played_dates[0]
             max_streak = 1

@@ -155,16 +155,16 @@ async def sync_data(
             )
             # logger.info("Played days: " + str(len(played_days_season)))
             # logger.info("Real played days: " + str(len(real_played_days_season)))
-            users.update_played_days(db, user.id, len(played_days_season))
+            users.update_played_days(db, user.id, len(real_played_days_season))
             # Check played days achievement
             await achievements.user_played_total_days(
-                db, user, played_days_season, silent=silent
+                db, user, real_played_days_season, silent=silent
             )
             # logger.debug("Checking streaks for " + user.name)
             (best_streak_date, best_streak, 
              current_streak, best_unplayed_streak_date, 
              best_unplayed_streak, current_unplayed_streak) = streak_days(
-                db, user, played_days_season, current_season
+                db, user, real_played_days_season, current_season
             )
             # logger.info("Max gap: " + str(best_unplayed_streak))
             # logger.info("Max gap date: " + str(best_unplayed_streak_date))

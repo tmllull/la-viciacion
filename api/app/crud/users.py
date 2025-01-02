@@ -423,7 +423,7 @@ async def add_new_game(
         #     if "Duplicate" not in str(e):
         #         logger.info("Error adding new user game historical: " + str(e))
         #         raise e
-        played_games = get_games(db, user.id)
+        played_games = count_played_games(db, user.id)
         if not from_sync:
             clockify_api.create_empty_time_entry(
                 db, user.clockify_key, game_db.id, game.platform
@@ -437,7 +437,7 @@ async def add_new_game(
             + "* acaba de empezar "
             + started_game
             + ", su juego número "
-            + str(len(played_games))
+            + str(played_games)
             + " de este año."
         )
         await utils.send_message(
@@ -533,7 +533,17 @@ def update_played_time_game(
         logger.error("Error updating played time game: " + str(e))
         raise
 
-
+def count_played_games(db: Session, user_id: int, season: int = current_season):
+    try:
+        return (
+            db.query(models.UserGame)
+            .filter_by(user_id=user_id, season=season)
+            .count()
+        )
+    except SQLAlchemyError as e:
+        logger.error("Error counting played games: " + str(e))
+        raise e
+    
 def get_games(
     db: Session,
     user_id,

@@ -17,5 +17,5 @@ rawg==1.2.0
 python_telegram_bot==21.4
 Pillow==10.4.0
 sentry-sdk[fastapi]==2.13.0
-openai==1.43.0
+openai==1.55.3
 # tiktoken==0.7.0

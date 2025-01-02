@@ -267,6 +267,7 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     try:
         if len(played_dates) == 0:
             end_max_streak_date = datetime.datetime.strptime(str(current_season) + "-01-01", "%Y-%m-%d")
+            return end_max_streak_date, 0, 0, end_max_streak_date, 0, 0
         elif len(played_dates) == 1:
             end_max_streak_date = played_dates[0]
             max_streak = 1

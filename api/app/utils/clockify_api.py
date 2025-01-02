@@ -13,6 +13,7 @@ logger = log_manager.get_logger()
 
 config = Config()
 time_format = "%Y-%m-%dT%H:%M:%SZ"
+current_season = datetime.datetime.now().year
 
 
 class ClockifyApi:
@@ -151,6 +152,7 @@ class ClockifyApi:
             page = 0
             entries = []
             has_entries = True
+
             while has_entries:
                 page += 1
                 endpoint = "/workspaces/{}/user/{}/time-entries?page-size=500&page={}&start={}".format(
@@ -169,6 +171,15 @@ class ClockifyApi:
                 return datetime.datetime.fromisoformat(elem["timeInterval"]["start"])
 
             ordered_entries = sorted(entries, key=get_date)
+
+            # Filter entries by season. Only get the current season
+            if start_date is None:
+                filtered_entries = [
+                    entry for entry in ordered_entries 
+                    if get_date(entry).year == current_season
+                ]
+
+                return filtered_entries
             return ordered_entries
         except Exception as e:
             logger.error("Error getting time entries: " + str(e))

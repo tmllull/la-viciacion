@@ -86,7 +86,7 @@ class DataRoutes:
         logger.info("Received game: " + context.user_data[GAME])
         url = config.API_URL + "/utils/platforms"
         platforms = utils.make_request("GET", url).json()
-        logger.info(platforms)
+        # logger.info(platforms)
         keyboard = []
         # logger.info(played_games)
         for platform in platforms:
@@ -231,6 +231,7 @@ class DataRoutes:
                 for platform in platforms:
                     if context.user_data[PLATFORM] == platform["name"]:
                         context.user_data[PLATFORM] = platform["id"]
+                logger.info("Checking if game exists on Clockify...")
                 endpoint = "/workspaces/{}/projects".format(config.CLOCKIFY_WORKSPACE)
                 url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
                 data = {"name": context.user_data[GAME]}
@@ -244,6 +245,15 @@ class DataRoutes:
                     url = "{0}{1}".format(config.CLOCKIFY_BASEURL, endpoint)
                     response = utils.make_clockify_request("GET", url, json=data)
                     clockify_id = response.json()[0]["id"]
+                elif response.status_code == 401:
+                    logger.error(
+                        "Error adding new game to user: " + str(response.json())
+                    )
+                    await update.message.reply_text(
+                        "Error adding new game to user: " + str(response.json()),
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                    return ConversationHandler.END
                 else:
                     logger.info(response)
                     logger.info("New project created on Clockify")

@@ -33,6 +33,7 @@ logger = log_manager.get_logger()
 
 clockify_api = ClockifyApi()
 config = Config()
+current_season = datetime.datetime.now().year
 
 #################
 ##### USERS #####
@@ -374,7 +375,7 @@ async def add_new_game(
     game: schemas.NewGameUser,
     user: models.User,
     start_date: str = None,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
     silent: bool = False,
     from_sync=False,
 ) -> models.UserGame:
@@ -455,7 +456,7 @@ async def add_new_game(
 
 def update_game(db: Session, game: models.UserGame, entry_id):
     current_year = datetime.datetime.now().year
-    if current_year == config.CURRENT_SEASON:
+    if current_year == current_season:
         try:
             stmt = (
                 update(models.UserGame)
@@ -499,9 +500,8 @@ def update_played_time_game(
     user_id: str,
     game_id: str,
     time: int,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ):
-    current_year = datetime.datetime.now().year
     try:
         # logger.info("Updating played time game " + str(game_id))
         # if current_year == config.CURRENT_SEASON:
@@ -539,7 +539,7 @@ def get_games(
     user_id,
     limit=None,
     completed=None,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ) -> list[schemas.UserGame]:
     if completed != None:
         completed = 1 if completed == True else 0
@@ -671,7 +671,7 @@ def update_played_days(
 def update_played_time(db: Session, user_id, played_time):
     current_year = datetime.datetime.now().year
     try:
-        if current_year == config.CURRENT_SEASON:
+        if current_year == current_season:
             stmt = (
                 update(models.UserStatistics)
                 .where(models.UserStatistics.user_id == user_id)
@@ -692,7 +692,7 @@ def update_played_time(db: Session, user_id, played_time):
 
 
 def game_is_completed(
-    db: Session, player, game, season: int = config.CURRENT_SEASON
+    db: Session, player, game, season: int = current_season
 ) -> bool:
     stmt = select(models.UserGame).where(
         models.UserGame.game == game,
@@ -711,7 +711,7 @@ async def complete_game(
     user_id,
     game_id,
     completed_date: str = None,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
     silent: bool = False,
     from_sync=False,
 ):
@@ -816,7 +816,7 @@ async def rate_game(
     user_id,
     game_id,
     score,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ) -> models.UserGame:
     try:
         stmt = (
@@ -951,7 +951,7 @@ def activate_account(db: Session, username: str):
 
 
 def top_games(
-    db: Session, username: str, limit: int = 10, season: int = config.CURRENT_SEASON
+    db: Session, username: str, limit: int = 10, season: int = current_season
 ):
     try:
         user = get_user_by_username(db, username)
@@ -1056,7 +1056,7 @@ def top_games(
 #         raise e
 
 
-def get_achievements(db: Session, username: str, season: int = config.CURRENT_SEASON):
+def get_achievements(db: Session, username: str, season: int = current_season):
     try:
         user = get_user_by_username(db, username)
         stmt = (

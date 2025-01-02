@@ -16,6 +16,7 @@ log_manager = LogManager()
 logger = log_manager.get_logger()
 config = Config()
 clockify = ClockifyApi()
+current_season = datetime.datetime.now().year
 
 ####################
 ##### RANKINGS #####
@@ -132,7 +133,7 @@ def user_ranking_achievements(db: Session, limit: int = None):
 
 
 def user_played_games(
-    db: Session, limit: int = None, season: int = config.CURRENT_SEASON
+    db: Session, limit: int = None, season: int = current_season
 ):
     try:
         stmt = (
@@ -154,7 +155,7 @@ def user_played_games(
 
 
 def user_completed_games(
-    db: Session, limit: int = None, season: int = config.CURRENT_SEASON
+    db: Session, limit: int = None, season: int = current_season
 ):
     try:
         user_list = users.get_users(db)
@@ -273,7 +274,7 @@ def platform_played_games(db: Session, limit: int = None):
         raise e
 
 
-def user_ratio(db: Session, season: int = config.CURRENT_SEASON):
+def user_ratio(db: Session, season: int = current_season):
     try:
         user_list = users.get_users(db)
         data = []

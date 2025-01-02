@@ -28,9 +28,10 @@ logger = log_manager.get_logger()
 
 clockify_api = ClockifyApi()
 config = Config()
+current_season = datetime.datetime.now().year
 
 
-def get_users_played_time(db: Session, season: int = config.CURRENT_SEASON):
+def get_users_played_time(db: Session, season: int = current_season):
     stmt = (
         select(models.TimeEntry.user_id, func.sum(models.TimeEntry.duration))
         .where(extract("year", models.TimeEntry.start) == season)
@@ -40,7 +41,7 @@ def get_users_played_time(db: Session, season: int = config.CURRENT_SEASON):
 
 
 def get_user_played_time(
-    db: Session, user_id: str, season: int = config.CURRENT_SEASON
+    db: Session, user_id: str, season: int = current_season
 ):
     stmt = (
         select(
@@ -56,7 +57,7 @@ def get_user_played_time(
     return db.execute(stmt).first()
 
 
-def get_games_played_time(db: Session, season: int = config.CURRENT_SEASON):
+def get_games_played_time(db: Session, season: int = current_season):
     stmt = (
         select(
             models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)
@@ -109,7 +110,7 @@ def get_time_entry_by_date(
 
 
 def get_user_games_played_time(
-    db: Session, user_id: str, game_id: str = None, season: int = config.CURRENT_SEASON
+    db: Session, user_id: str, game_id: str = None, season: int = current_season
 ) -> list[models.TimeEntry]:
     if game_id is not None:
         return (
@@ -141,7 +142,7 @@ def get_user_games_played_time(
 
 
 def get_time_entries(
-    db: Session, start_date: str = None, season: int = config.CURRENT_SEASON
+    db: Session, start_date: str = None, season: int = current_season
 ) -> list[models.TimeEntry]:
     if start_date:
         # logger.debug(start_date)
@@ -162,7 +163,7 @@ def get_time_entries_by_user(
     db: Session,
     user_id: int,
     start_date: str = None,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ) -> list[models.TimeEntry]:
     if start_date:
         # logger.debug(start_date)
@@ -189,7 +190,7 @@ def get_played_days(
     user_id: int,
     start_date: str = None,
     end_date: str = None,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ) -> list[models.TimeEntry]:
     played_days = []
     real_played_days = []
@@ -234,7 +235,7 @@ def get_played_days(
 async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
-    current_season = datetime.datetime.now().year
+    # current_season = datetime.datetime.now().year
     for entry in entries:
         if entry["projectId"] is None:
             logger.warning("Time entry without project: " + str(entry["id"]))
@@ -420,7 +421,7 @@ def get_time_entry_by_time(
     user_id: int,
     duration: int,
     mode: int,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ) -> models.TimeEntry:
     """_summary_
 
@@ -467,7 +468,7 @@ def get_time_entry_by_time(
 
 
 def get_played_time_by_day(
-    db: Session, user_id: int, season: int = config.CURRENT_SEASON
+    db: Session, user_id: int, season: int = current_season
 ):
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start), func.sum(models.TimeEntry.duration))
@@ -486,7 +487,7 @@ def get_time_entry_between_hours(
     user_id: int,
     start_hour: int,
     end_hour: int,
-    season: int = config.CURRENT_SEASON,
+    season: int = current_season,
 ) -> list[models.TimeEntry]:
     """_summary_
 

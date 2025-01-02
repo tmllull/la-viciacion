@@ -101,17 +101,19 @@ def change_timezone_clockify(time) -> str:
 
 
 def convert_clockify_duration(duration):
-    match = re.match(r"PT(\d+H)?(\d+M)?", duration)
+    match = re.match(r"PT(\d+H)?(\d+M)?(\d+S)?", duration)
     if match:
         hours_str = match.group(1)
         mins_str = match.group(2)
+        secs_str = match.group(3)
 
         hours = int(hours_str[:-1]) if hours_str else 0
         mins = int(mins_str[:-1]) if mins_str else 0
+        secs = int(secs_str[:-1]) if secs_str else 0
 
-        secs = hours * 3600 + mins * 60
+        total_secs = hours * 3600 + mins * 60 + secs
 
-        return secs
+        return total_secs
     else:
         return 0
 

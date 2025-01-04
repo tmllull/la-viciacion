@@ -380,7 +380,6 @@ async def add_new_game(
     from_sync=False,
 ) -> models.UserGame:
     logger.info("Adding new user game...")
-    current_year = datetime.datetime.now().year
     try:
         if start_date is None:
             started_date = datetime.datetime.now()
@@ -389,7 +388,6 @@ async def add_new_game(
         game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             return None
-        # if current_year == config.CURRENT_SEASON:
         try:
             user_game = models.UserGame(
                 game_id=game_db.id,
@@ -407,22 +405,6 @@ async def add_new_game(
             if "Duplicate" not in str(e):
                 logger.info("Error adding new user game: " + str(e))
                 raise e
-        # try:
-        #     user_game_historical = models.UserGameHistorical(
-        #         game_id=game_db.id,
-        #         user_id=user.id,
-        #         completed=0,
-        #         platform=game.platform,
-        #         started_date=started_date,
-        #     )
-        #     db.add(user_game_historical)
-        #     db.commit()
-        #     db.refresh(user_game_historical)
-        # except SQLAlchemyError as e:
-        #     db.rollback()
-        #     if "Duplicate" not in str(e):
-        #         logger.info("Error adding new user game historical: " + str(e))
-        #         raise e
         played_games = count_played_games(db, user.id)
         if not from_sync:
             clockify_api.create_empty_time_entry(
@@ -475,24 +457,6 @@ def update_game(db: Session, game: models.UserGame, entry_id):
             if "Duplicate" not in str(e):
                 logger.error("Error updating game: " + str(e))
                 raise e
-    # try:
-    #     stmt = (
-    #         update(models.UserGameHistorical)
-    #         .where(
-    #             models.UserGameHistorical.id == entry_id,
-    #             or_(
-    #                 models.UserGameHistorical.platform == game.platform,
-    #             ),
-    #         )
-    #         .values(platform=game.platform)
-    #     )
-    #     db.execute(stmt)
-    #     db.commit()
-    # except SQLAlchemyError as e:
-    #     db.rollback()
-    #     if "Duplicate" not in str(e):
-    #         logger.error("Error updating game historical: " + str(e))
-    #         raise e
 
 
 def update_played_time_game(
@@ -503,8 +467,6 @@ def update_played_time_game(
     season: int = current_season,
 ):
     try:
-        # logger.info("Updating played time game " + str(game_id))
-        # if current_year == config.CURRENT_SEASON:
         stmt = (
             update(models.UserGame)
             .where(
@@ -517,16 +479,6 @@ def update_played_time_game(
         )
         db.execute(stmt)
         db.commit()
-        # stmt = (
-        #     update(models.UserGameHistorical)
-        #     .where(
-        #         models.UserGameHistorical.game_id == game_id,
-        #         models.UserGameHistorical.user_id == user_id,
-        #     )
-        #     .values(played_time=time)
-        # )
-        # db.execute(stmt)
-        # db.commit()
         # TODO: Check games time achievements
     except SQLAlchemyError as e:
         db.rollback()
@@ -583,7 +535,6 @@ def get_games(
             .order_by(desc(models.TimeEntry.start))
             .limit(limit)
         )
-        # return db.execute(stmt).fetchall()
         result = db.execute(stmt).fetchall()
         unique_names = set()
         unique_data = []
@@ -625,7 +576,6 @@ def get_games(
             .order_by(desc(models.TimeEntry.start))
             .limit(limit)
         )
-        # return db.execute(stmt).fetchall()
         result = db.execute(stmt).fetchall()
         unique_names = set()
         unique_data = []
@@ -679,23 +629,23 @@ def update_played_days(
 
 
 def update_played_time(db: Session, user_id, played_time):
-    current_year = datetime.datetime.now().year
+    # current_year = datetime.datetime.now().year
     try:
-        if current_year == current_season:
-            stmt = (
-                update(models.UserStatistics)
-                .where(models.UserStatistics.user_id == user_id)
-                .values(played_time=played_time)
-            )
-            db.execute(stmt)
-            db.commit()
+        # if current_year == current_season:
         stmt = (
-            update(models.UserStatisticsHistorical)
-            .where(models.UserStatisticsHistorical.user_id == user_id)
+            update(models.UserStatistics)
+            .where(models.UserStatistics.user_id == user_id)
             .values(played_time=played_time)
         )
         db.execute(stmt)
         db.commit()
+        # stmt = (
+        #     update(models.UserStatisticsHistorical)
+        #     .where(models.UserStatisticsHistorical.user_id == user_id)
+        #     .values(played_time=played_time)
+        # )
+        # db.execute(stmt)
+        # db.commit()
     except Exception as e:
         logger.error(e)
         raise e
@@ -727,7 +677,7 @@ async def complete_game(
 ):
     current_year = datetime.datetime.now().year
     try:
-        db_game = games.get_game_by_id(db, game_id, current_year)
+        db_game = games.get_game_by_id(db, game_id)
         user = get_user_by_id(db, user_id)
         user_game = get_game_by_id(db, user_id, db_game.id, current_year)
         game_info = await utils.get_game_info(db_game.name)
@@ -744,7 +694,6 @@ async def complete_game(
             completed_date = datetime.datetime.now()
         else:
             completed_date = utils.convert_date_from_text(completed_date)
-        # if current_year == config.CURRENT_SEASON:
         stmt = (
             update(models.UserGame)
             .where(
@@ -760,19 +709,6 @@ async def complete_game(
         )
         db.execute(stmt)
         db.commit()
-        # stmt = (
-        #     update(models.UserGameHistorical)
-        #     .where(
-        #         models.UserGameHistorical.game_id == game_id,
-        #         models.UserGameHistorical.user_id == user_id,
-        #     )
-        #     .values(
-        #         completed=1,
-        #         completed_date=completed_date,
-        #     )
-        # )
-        # db.execute(stmt)
-        # db.commit()
         logger.info("Game completed")
         if game_info["hltb"] is not None:
             avg_time = game_info["hltb"]["comp_main"]
@@ -819,7 +755,6 @@ async def complete_game(
         db.rollback()
         logger.error("Error completing game: " + str(e))
         raise e
-
 
 async def rate_game(
     db: Session,

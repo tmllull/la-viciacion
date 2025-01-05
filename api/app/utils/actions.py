@@ -25,6 +25,8 @@ clockify_api = ClockifyApi()
 config = Config()
 achievements = Achievements()
 
+process_lock = threading.Lock()
+
 
 ########################
 ##### BASIC ROUTES #####

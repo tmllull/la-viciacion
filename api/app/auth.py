@@ -14,6 +14,10 @@ from .config import Config
 from .database.crud import users
 from .database import models
 from .database.database import SessionLocal
+from .utils.logger import LogManager
+
+log_manager = LogManager()
+logger = log_manager.get_logger()
 
 config = Config()
 ALGORITHM = "HS256"
@@ -37,7 +41,7 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
@@ -113,4 +117,38 @@ def get_api_key(
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or missing API Key",
+    )
+
+
+def check_any_auth(
+    api_key_header: str = Security(api_key_header),
+    token: models.User = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    if api_key_header == config.API_KEY:
+        logger.info("Request with API Key")
+        return api_key_header
+    elif token:
+        logger.info("Request with Token")
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        try:
+            payload = jwt.decode(token, config.SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("username")
+            if username is None:
+                raise credentials_exception
+            token_data = TokenData(username=username)
+        except Exception:
+            raise credentials_exception
+        user = users.get_user_by_username(db, username=token_data.username)
+        if user is None:
+            raise credentials_exception
+        return user
+    logger.info("A valid APIKey or Token is required")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="A valid APIKey or Token is required",
     )

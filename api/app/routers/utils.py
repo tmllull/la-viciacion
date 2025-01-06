@@ -63,7 +63,7 @@ def achievements_list(
     """
     Get achievements list
     """
-    ach_list = achievements.get_achievements_list(db)
+    ach_list = achievements.get_achievements_list()
     response = []
     for ach in ach_list:
         response.append(ach.title)
@@ -79,17 +79,15 @@ def get_playing_users(
     """
     Get playing users
     """
-    users_db = users.get_users(db)
+    users_db = users.get_users()
     playing = []
     for user in users_db:
         info = {}
-        active_timer = time_entries.get_active_time_entry_by_user(db, user)
+        active_timer = time_entries.get_active_time_entry_by_user(user)
         if active_timer is not None:
             logger.info(active_timer)
             info["user"] = user.name
-            info["game"] = games.get_game_by_id(
-                db, active_timer.project_clockify_id
-            ).name
+            info["game"] = games.get_game_by_id(active_timer.project_clockify_id).name
             info["time"] = active_timer.start
             playing.append(info)
     return playing
@@ -114,7 +112,7 @@ async def upload_achievement_image(
             status_code=400,
             detail=msg.FILE_TYPE_NOT_ALLOWED,
         )
-    if not achievements.get_ach_by_key(db, achievement):
+    if not achievements.get_ach_by_key(achievement):
         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
     logger.info("File size: " + str(file.size))
@@ -123,7 +121,7 @@ async def upload_achievement_image(
         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
     try:
         data = await file.read()
-        achievements.upload_image(db, achievement, data)
+        achievements.upload_image(achievement, data)
         return "Image uploaded"
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -139,11 +137,11 @@ async def get_achievement_image(
     """
     Get achievement image
     """
-    if not achievements.get_ach_by_key(db, achievement):
+    if not achievements.get_ach_by_key(achievement):
         logger.info(msg.ACHIEVEMENT_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.ACHIEVEMENT_NOT_EXISTS)
     try:
-        data = achievements.get_image(db, achievement)
+        data = achievements.get_image(achievement)
         if data[0] is None:
             return Response(content="Achievement has no image", status_code=400)
         format_type = imghdr.what(None, h=data[0])

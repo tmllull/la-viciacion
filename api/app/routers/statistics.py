@@ -72,29 +72,29 @@ def get_ranking_statistics(
     for ranking_type in rankings_list:
         content = {}
         if ranking_type == RankingStatisticsTypes.user_hours:
-            data = rankings.user_hours_players(db)
+            data = rankings.user_hours_players()
         elif ranking_type == RankingStatisticsTypes.user_days:
-            data = rankings.user_days_played(db)
+            data = rankings.user_days_played()
         elif ranking_type == RankingStatisticsTypes.user_played_games:
-            data = rankings.user_played_games(db)
+            data = rankings.user_played_games()
         elif ranking_type == RankingStatisticsTypes.user_completed_games:
-            data = rankings.user_completed_games(db)
+            data = rankings.user_completed_games()
         elif ranking_type == RankingStatisticsTypes.achievements:
-            data = rankings.user_ranking_achievements(db)
+            data = rankings.user_ranking_achievements()
         elif ranking_type == RankingStatisticsTypes.user_ratio:
-            data = rankings.user_ratio(db)
+            data = rankings.user_ratio()
         elif ranking_type == RankingStatisticsTypes.user_current_streak:
-            data = rankings.user_current_streak(db)
+            data = rankings.user_current_streak()
         elif ranking_type == RankingStatisticsTypes.user_best_streak:
-            data = rankings.user_best_streak(db)
+            data = rankings.user_best_streak()
         elif ranking_type == RankingStatisticsTypes.games_most_played:
-            data = rankings.games_most_played(db)
+            data = rankings.games_most_played()
         elif ranking_type == RankingStatisticsTypes.platform_played:
-            data = rankings.platform_played_games(db)
+            data = rankings.platform_played_games()
         elif ranking_type == RankingStatisticsTypes.debt:
             data = [{"message": "Debt is not implemented yet"}]
         elif ranking_type == RankingStatisticsTypes.games_last_played:
-            data = rankings.games_last_played(db)
+            data = rankings.games_last_played()
         else:
             data = {"message": "More rankings are coming"}
         content["type"] = ranking_type
@@ -136,18 +136,18 @@ def get_user_statistics(
     for ranking_type in rankings_list:
         content = {}
         if ranking_type == UserStatisticsTypes.played_games:
-            user = users.get_user_by_username(db, username)
-            data = users.get_games(db, user.id)
-            # data = users.played_games(db=db, username=username)
+            user = users.get_user_by_username(username)
+            data = users.get_games(user.id)
+            # data = users.played_games(username=username)
         elif ranking_type == UserStatisticsTypes.completed_games:
-            user = users.get_user_by_username(db, username)
-            data = users.get_games(db=db, user_id=user.id, completed=True)
+            user = users.get_user_by_username(username)
+            data = users.get_games(user_id=user.id, completed=True)
         elif ranking_type == UserStatisticsTypes.top_games:
-            data = users.top_games(db, username)
+            data = users.top_games(username)
         elif ranking_type == UserStatisticsTypes.achievements:
-            data = users.get_achievements(db, username)
+            data = users.get_achievements(username)
         elif ranking_type == UserStatisticsTypes.streak:
-            data = users.get_streaks(db, username)[0]
+            data = users.get_streaks(username)[0]
         else:
             data = {"message": ranking_type + " is not a valid ranking"}
         content["type"] = ranking_type

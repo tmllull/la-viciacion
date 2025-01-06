@@ -63,7 +63,7 @@ def get_users(db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    users_db = users.get_users(db)
+    users_db = users.get_users()
     return users_db
 
 
@@ -82,7 +82,7 @@ def get_user(username: str, db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    user_db = users.get_user_by_username(db, username)
+    user_db = users.get_user_by_username(username)
     if user_db is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     return user_db
@@ -103,7 +103,7 @@ async def get_weekly_resume(username: str, db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    user_db = users.get_user_by_username(db, username)
+    user_db = users.get_user_by_username(username)
     if user_db is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     resume = await actions.weekly_resume(db, user_db, mode=1, silent=True)
@@ -116,10 +116,10 @@ async def get_weekly_resume(username: str, db: Session = Depends(get_db)):
 #     """
 #     Add user
 #     """
-#     db_user = users.get_user_by_username(db, user.username)
+#     db_user = users.get_user_by_username(user.username)
 #     if db_user:
 #         raise HTTPException(status_code=400, detail="User already registered")
-#     return users.create_user(db=db, user=user)
+#     return users.create_user(user=user)
 
 
 @router.put("/", response_model=schemas.User)
@@ -134,10 +134,10 @@ def update_user(
     """
     if active_user.username != user.username:
         raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
-    db_user = users.get_user_by_username(db, user.username)
+    db_user = users.get_user_by_username(user.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-    return users.update_user(db=db, user=user)
+    return users.update_user(user=user)
 
 
 @router.post("/{username}/new_game", response_model=schemas.UserGame)
@@ -148,17 +148,17 @@ async def add_game_to_user(
     """
     Add new game to user list
     """
-    user = users.get_user_by_username(db, username)
+    user = users.get_user_by_username(username)
     if user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-    already_playing = users.get_game_by_id(db, user.id, game.game_id, current_season)
+    already_playing = users.get_game_by_id(user.id, game.game_id, current_season)
     if already_playing:
         raise HTTPException(status_code=409, detail=msg.USER_ALREADY_PLAYING)
     try:
-        game_db = games.get_game_by_id(db, game.game_id)
+        game_db = games.get_game_by_id(game.game_id)
         if game_db is None:
             raise HTTPException(status_code=404, detail=msg.GAME_NOT_FOUND)
-        return await users.add_new_game(db=db, game=game, user=user)
+        return await users.add_new_game(game=game, user=user)
     except Exception as e:
         logger.info(e)
         raise HTTPException(
@@ -177,10 +177,10 @@ def get_games(
     completed: bool = None,
     db: Session = Depends(get_db),
 ):
-    user = users.get_user_by_username(db, username=username)
+    user = users.get_user_by_username(username=username)
     if user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-    played_games = users.get_games(db, user.id, limit, completed)
+    played_games = users.get_games(user.id, limit, completed)
     return played_games
 
 
@@ -190,19 +190,19 @@ async def complete_game(username: str, game_id: str, db: Session = Depends(get_d
     """
     Complete game by username
     """
-    user = users.get_user_by_username(db, username)
+    user = users.get_user_by_username(username)
     logger.info("USER:")
     logger.info(user)
     if user is None:
         logger.info("IS NONE")
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-    user_game = users.get_game_by_id(db, user.id, game_id, current_season)
+    user_game = users.get_game_by_id(user.id, game_id, current_season)
     if user_game is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_PLAYING)
     if user_game.completed == 1:
         raise HTTPException(status_code=409, detail=msg.GAME_ALREADY_COMPLETED)
     try:
-        return await users.complete_game(db, user.id, game_id)
+        return await users.complete_game(user.id, game_id)
     except Exception as e:
         logger.info(e)
         raise HTTPException(
@@ -218,12 +218,12 @@ async def rate_game(
     """
     Rate game
     """
-    user = users.get_user_by_username(db, username)
-    user_game = users.get_game_by_id(db, user.id, game_id, current_season)
+    user = users.get_user_by_username(username)
+    user_game = users.get_game_by_id(user.id, game_id, current_season)
     if user_game is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_PLAYING)
     try:
-        return await users.rate_game(db, user.id, game_id, score)
+        return await users.rate_game(user.id, game_id, score)
     except Exception as e:
         logger.info(e)
         raise HTTPException(status_code=500, detail="Error rating game_user: " + str(e))
@@ -244,7 +244,7 @@ async def upload_avatar(
             status_code=400,
             detail=msg.FILE_TYPE_NOT_ALLOWED,
         )
-    if not users.get_user_by_username(db, username):
+    if not users.get_user_by_username(username):
         logger.info(msg.USER_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     logger.info("File size: " + str(file.size))
@@ -253,7 +253,7 @@ async def upload_avatar(
         raise HTTPException(status_code=400, detail=msg.FILE_TOO_BIG)
     try:
         data = await file.read()
-        users.upload_avatar(db, username, data)
+        users.upload_avatar(username, data)
         return "Avatar uploaded"
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -265,11 +265,11 @@ async def get_avatar(
     username: str,
     db: Session = Depends(get_db),
 ):
-    if not users.get_user_by_username(db, username):
+    if not users.get_user_by_username(username):
         logger.info(msg.USER_NOT_EXISTS)
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     try:
-        data = users.get_avatar(db, username)
+        data = users.get_avatar(username)
         return Response(content=data[0], media_type="image/*")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

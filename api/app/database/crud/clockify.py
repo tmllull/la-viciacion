@@ -9,6 +9,9 @@ from ...utils import actions as actions
 from ...utils import my_utils as utils
 from ...utils.clockify_api import ClockifyApi
 from ...utils.logger import LogManager
+from ..database import SessionLocal
+
+db = SessionLocal()
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -17,7 +20,7 @@ clockify = ClockifyApi()
 config = Config()
 
 
-def sync_clockify_tags(db: Session):
+def sync_clockify_tags():
     tags = clockify.get_tags()
     for tag in tags:
         try:
@@ -34,7 +37,7 @@ def sync_clockify_tags(db: Session):
             db.rollback()
 
 
-def get_platform_by_tag_id(db: Session, tag_id):
+def get_platform_by_tag_id(tag_id):
     return (
         db.query(models.PlatformTag.name)
         .filter(models.PlatformTag.id == tag_id)
@@ -42,6 +45,6 @@ def get_platform_by_tag_id(db: Session, tag_id):
     )
 
 
-def check_completed_tag_by_id(db: Session, tag_id):
+def check_completed_tag_by_id(tag_id):
     # logger.info("Check completed tag: " + str(tag_id))
     return db.query(models.OtherTag.name).filter(models.OtherTag.id == tag_id).first()

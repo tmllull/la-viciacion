@@ -47,9 +47,9 @@ def get_games(name: str = None, limit: int = None, db: Session = Depends(get_db)
     """
     logger.info("Getting games...")
     if name is None:
-        games_db = games.get_games(db, limit)
+        games_db = games.get_games(limit)
     else:
-        games_db = games.get_game_by_name(db, name)
+        games_db = games.get_game_by_name(name)
     return games_db
 
 
@@ -68,7 +68,7 @@ async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    game_db = games.get_game_by_id(db, game_id)
+    game_db = games.get_game_by_id(game_id)
     if game_db is None:
         raise HTTPException(status_code=404, detail="Game not exists")
 
@@ -81,7 +81,7 @@ async def get_game_by_id(game_id: str, db: Session = Depends(get_db)):
 #     """
 #     Get game from DB by name
 #     """
-#     game_db = games.get_game_by_name(db, name)
+#     game_db = games.get_game_by_name(name)
 #     if game_db is None:
 #         raise HTTPException(status_code=404, detail="Game not exists")
 #     return game_db
@@ -118,11 +118,11 @@ async def create_game(game: schemas.NewGame, db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    games_db = games.get_game_by_name(db, game.name)
+    games_db = games.get_game_by_name(game.name)
     for game_db in games_db:
         if game_db.name == game.name:
             raise HTTPException(status_code=400, detail="Game already in DB")
-    return await games.new_game(db=db, game=game)
+    return await games.new_game(game=game)
 
 
 @router.put("/{game_id}", response_model=schemas.Game, status_code=200)
@@ -143,10 +143,10 @@ async def update_game(
     Returns:
         _type_: _description_
     """
-    game_db = games.get_game_by_id(db, game_id)
+    game_db = games.get_game_by_id(game_id)
     if game_db is None:
         raise HTTPException(status_code=404, detail="Game not exists")
-    return games.update_game(db=db, game_id=game_id, game=game)
+    return games.update_game(game_id=game_id, game=game)
 
 
 @router.get("/recommendations/{user_id}")
@@ -167,7 +167,7 @@ async def get_recommendations(
     if genres is not None:
         genres_list = genres.split(",")
     recommended_games = games.recommended_games(
-        db, user_id, genres=genres_list, limit=limit
+        user_id, genres=genres_list, limit=limit
     )
     games_list = []
     for rec_game in recommended_games:

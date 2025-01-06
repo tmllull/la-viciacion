@@ -56,7 +56,7 @@ def get_password_hash(password: str):
 
 
 def authenticate_user(db, username: str, password: str):
-    user = users.get_user_by_username(db, username)
+    user = users.get_user_by_username(username)
     if not user:
         return False
     if not verify_password(password, user.password):
@@ -91,7 +91,7 @@ async def get_current_user(
         token_data = TokenData(username=username)
     except Exception:
         raise credentials_exception
-    user = users.get_user_by_username(db, username=token_data.username)
+    user = users.get_user_by_username(username=token_data.username)
     if user is None:
         raise credentials_exception
     return user

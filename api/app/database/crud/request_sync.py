@@ -10,6 +10,9 @@ from ...utils import my_utils as utils
 from ...utils.clockify_api import ClockifyApi
 from ...utils.logger import LogManager
 from sqlalchemy.exc import SQLAlchemyError
+from ..database import SessionLocal
+
+db = SessionLocal()
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -18,7 +21,7 @@ clockify = ClockifyApi()
 config = Config()
 
 
-def get_queue(db: Session):
+def get_queue():
     try:
         return db.query(models.RequestSync).all()
     except SQLAlchemyError as e:
@@ -26,7 +29,7 @@ def get_queue(db: Session):
         raise
 
 
-def get_active_sync(db: Session):
+def get_active_sync():
     try:
         db.refresh()
         return db.query(models.RequestSync).first()
@@ -35,11 +38,11 @@ def get_active_sync(db: Session):
         raise
 
 
-def refresh_active_sync(db: Session, process):
+def refresh_active_sync(process):
     db.refresh(process)
 
 
-def add_request_to_queue(db: Session, request_id: str):
+def add_request_to_queue(request_id: str):
     try:
         new_request = models.RequestSync(request_id=request_id)
         db.add(new_request)
@@ -51,7 +54,7 @@ def add_request_to_queue(db: Session, request_id: str):
     return True
 
 
-def delete_request_from_queue(db: Session, request_id: str):
+def delete_request_from_queue(request_id: str):
     try:
         logger.debug("Deleting request from queue: " + request_id)
         db.query(models.RequestSync).filter(

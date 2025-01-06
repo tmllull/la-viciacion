@@ -391,7 +391,7 @@ async def add_new_game(
                 completed=0,
                 platform=game.platform,
                 started_date=started_date,
-                season=season,
+                season=started_date.year,
             )
             db.add(user_game)
             db.commit()
@@ -449,6 +449,7 @@ def update_game(db: Session, game: models.UserGame, entry_id):
             db.execute(stmt)
             db.commit()
         except SQLAlchemyError as e:
+            logger.error("Error updating game: " + str(e))
             db.rollback()
             if "Duplicate" not in str(e):
                 logger.error("Error updating game: " + str(e))
@@ -499,6 +500,7 @@ def get_games(
     completed=None,
     season: int = current_season,
 ) -> list[schemas.UserGame]:
+    logger.info("Getting user games...")
     if completed != None:
         completed = 1 if completed == True else 0
         stmt = (
@@ -668,16 +670,20 @@ async def complete_game(
     db: Session,
     user_id,
     game_id,
-    completed_date: str = None,
+    date: str = None,
     season: int = current_season,
     silent: bool = False,
     from_sync=False,
 ):
-    current_year = datetime.datetime.now().year
+    # current_year = datetime.datetime.now().year
+    if date is None:
+        completed_date = datetime.datetime.now()
+    else:
+        completed_date = utils.convert_date_from_text(date)
     try:
         db_game = games.get_game_by_id(db, game_id)
         user = get_user_by_id(db, user_id)
-        user_game = get_game_by_id(db, user_id, db_game.id, current_year)
+        user_game = get_game_by_id(db, user_id, db_game.id, completed_date.year)
         game_info = await utils.get_game_info(db_game.name)
         if not from_sync:
             clockify_api.create_empty_time_entry(
@@ -687,11 +693,7 @@ async def complete_game(
                 user_game.platform,
                 completed=True,
             )
-            return get_game_by_id(db, user_id, game_id)
-        if completed_date is None:
-            completed_date = datetime.datetime.now()
-        else:
-            completed_date = utils.convert_date_from_text(completed_date)
+            return get_game_by_id(db, user_id, game_id, completed_date.year)
         stmt = (
             update(models.UserGame)
             .where(
@@ -747,7 +749,7 @@ async def complete_game(
             system_prompt=prompts.COMPLETED_GAME_PROMPT,
             new_game_recommended=new_game_info,
         )
-        return get_game_by_id(db, user_id, game_id)
+        return get_game_by_id(db, user_id, game_id, completed_date.year)
 
     except Exception as e:
         db.rollback()
@@ -776,7 +778,7 @@ async def rate_game(
         )
         db.execute(stmt)
         db.commit()
-        return get_game_by_id(db, user_id, game_id)
+        return get_game_by_id(db, user_id, game_id, season)
 
     except Exception as e:
         db.rollback()

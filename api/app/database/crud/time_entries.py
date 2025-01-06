@@ -228,7 +228,7 @@ def get_played_days(
 async def sync_clockify_entries_db(
     db: Session, user: models.User, entries, silent: bool
 ):
-    # current_season = datetime.datetime.now().year
+    current_season = datetime.datetime.now().year
     for entry in entries:
         if entry["projectId"] is None:
             logger.warning("Time entry without project: " + str(entry["id"]))
@@ -256,6 +256,7 @@ async def sync_clockify_entries_db(
                         platform = tag
 
             start = utils.change_timezone_clockify(start)
+            started_date = utils.convert_date_from_text(start)
             if end is not None and end != "":
                 end = utils.change_timezone_clockify(end)
             else:
@@ -350,7 +351,11 @@ async def sync_clockify_entries_db(
                 )
 
             # Check if player already plays the game this season
-            already_playing = users.get_game_by_id(db, user.id, game_id, current_season)
+            # logger.info("User id: " + str(user.id))
+            # logger.info("Game ID: " + str(game_id))
+            # logger.info("Current season: " + str(current_season))
+            already_playing = users.get_game_by_id(db, user.id, game_id, started_date.year)
+            # logger.info(already_playing)
             if not already_playing:
                 try:
                     logger.info("User not playing " + game_name)
@@ -366,8 +371,10 @@ async def sync_clockify_entries_db(
                         from_sync=True,
                     )
                     already_playing = users.get_game_by_id(
-                        db, user.id, game_id, current_season
+                        db, user.id, game_id, started_date.year
                     )
+                    logger.info("Already playing--------------------")
+                    logger.info(already_playing)
                 except Exception as e:
                     logger.error("Error adding game " + game_name + ": " + str(e))
             try:
@@ -402,7 +409,7 @@ async def sync_clockify_entries_db(
                         db,
                         user.id,
                         game.id,
-                        completed_date=start,
+                        date=start,
                         silent=silent,
                         from_sync=True,
                     )
@@ -412,7 +419,7 @@ async def sync_clockify_entries_db(
                 update_game = models.UserGame(platform=platform)
                 users.update_game(db, update_game, already_playing.id)
             except Exception as e:
-                logger.error("Error updating game" + game_name + " for user: " + str(e))
+                logger.error("Error updating game " + game_name + " for user: " + str(e))
 
             db.commit()
         except Exception as e:

@@ -2,7 +2,6 @@ import datetime
 import json
 from typing import Tuple, Union
 import random
-from ..database import SessionLocal
 
 import bcrypt
 from sqlalchemy import (
@@ -21,13 +20,13 @@ from sqlalchemy.orm import Session
 
 # from sqlalchemy.util import immutabledict
 
-from ...config import Config
-from .. import models, schemas
-from ...utils import my_utils as utils
-from ...utils.clockify_api import ClockifyApi
+from ..config import Config
+from ..database import models, schemas
+from ..utils import my_utils as utils
+from ..utils.clockify_api import ClockifyApi
 from . import games
-from ...utils import ai_prompts as prompts
-from ...utils.logger import LogManager
+from ..utils import ai_prompts as prompts
+from ..utils.logger import LogManager
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -35,14 +34,13 @@ logger = log_manager.get_logger()
 clockify_api = ClockifyApi()
 config = Config()
 current_season = datetime.datetime.now().year
-db = SessionLocal()
 
 #################
 ##### USERS #####
 #################
 
 
-def create_admin_user(username: str):
+def create_admin_user(db: Session, username: str):
     try:
         db_user = db.query(models.User).filter(models.User.username == username).first()
         if db_user is None:
@@ -67,7 +65,7 @@ def create_admin_user(username: str):
             raise
 
 
-def get_users() -> list[models.User]:
+def get_users(db: Session) -> list[models.User]:
     """Get all users
 
     Args:
@@ -83,7 +81,7 @@ def get_users() -> list[models.User]:
         raise
 
 
-def is_admin(username: str) -> models.User:
+def is_admin(db: Session, username: str) -> models.User:
     try:
         return (
             db.query(models.User)
@@ -95,7 +93,7 @@ def is_admin(username: str) -> models.User:
         raise
 
 
-def is_active(username: str) -> models.User:
+def is_active(db: Session, username: str) -> models.User:
     try:
         return (
             db.query(models.User)
@@ -107,7 +105,7 @@ def is_active(username: str) -> models.User:
         raise
 
 
-def get_user_by_username(username: str) -> models.User:
+def get_user_by_username(db: Session, username: str) -> models.User:
     try:
         return db.query(models.User).filter(models.User.username == username).first()
     except SQLAlchemyError as e:
@@ -115,7 +113,7 @@ def get_user_by_username(username: str) -> models.User:
         raise
 
 
-def get_user_by_id(id: int) -> models.User:
+def get_user_by_id(db: Session, id: int) -> models.User:
     try:
         return db.query(models.User).filter(models.User.id == id).first()
     except SQLAlchemyError as e:
@@ -123,7 +121,7 @@ def get_user_by_id(id: int) -> models.User:
         raise
 
 
-def get_user_by_clockify_id(id: int) -> models.User:
+def get_user_by_clockify_id(db: Session, id: int) -> models.User:
     try:
         return db.query(models.User).filter(models.User.clockify_id == id).first()
     except SQLAlchemyError as e:
@@ -132,7 +130,7 @@ def get_user_by_clockify_id(id: int) -> models.User:
 
 
 def create_user(
-    user: schemas.UserCreate,
+    db: Session, user: schemas.UserCreate
 ) -> Union[Tuple[bool, models.User], Tuple[bool, int]]:
     # generating the salt
     salt = bcrypt.gensalt()
@@ -177,7 +175,7 @@ def create_user(
         raise
 
 
-def create_user_statistics(user_id: id):
+def create_user_statistics(db: Session, user_id: id):
     try:
         user_statistics = models.UserStatistics(
             user_id=user_id, current_ranking_hours=1000
@@ -193,7 +191,7 @@ def create_user_statistics(user_id: id):
             raise e
 
 
-def create_user_statistics_historical(user_id: id):
+def create_user_statistics_historical(db: Session, user_id: id):
     try:
         user_statistics = models.UserStatisticsHistorical(
             user_id=user_id, current_ranking_hours=1000
@@ -209,7 +207,7 @@ def create_user_statistics_historical(user_id: id):
             raise e
 
 
-def update_user(user: schemas.UserUpdate):
+def update_user(db: Session, user: schemas.UserUpdate):
     try:
         db_user = get_user_by_username(db, user.username)
         name = user.name if user.name is not None else db_user.name
@@ -254,7 +252,7 @@ def update_user(user: schemas.UserUpdate):
         raise
 
 
-def update_user_as_admin(user: schemas.UserUpdateForAdmin):
+def update_user_as_admin(db: Session, user: schemas.UserUpdateForAdmin):
     try:
         db_user = get_user_by_username(db, user.username)
         name = user.name if user.name is not None else db_user.name
@@ -303,7 +301,7 @@ def update_user_as_admin(user: schemas.UserUpdateForAdmin):
         raise
 
 
-def update_user_telegram_id(user: schemas.TelegramUser):
+def update_user_telegram_id(db: Session, user: schemas.TelegramUser):
     try:
         stmt = (
             update(models.User)
@@ -323,7 +321,7 @@ def update_user_telegram_id(user: schemas.TelegramUser):
         raise
 
 
-def update_clockify_id(username: str, user_clockify):
+def update_clockify_id(db: Session, username: str, user_clockify):
     if user_clockify is not None:
         try:
             clockify_id = user_clockify["id"]
@@ -345,7 +343,7 @@ def update_clockify_id(username: str, user_clockify):
         logger.info("User nor found in Clockify")
 
 
-def upload_avatar(username: str, avatar: bytes):
+def upload_avatar(db: Session, username: str, avatar: bytes):
     try:
         stmt = (
             update(models.User)
@@ -360,7 +358,7 @@ def upload_avatar(username: str, avatar: bytes):
         raise
 
 
-def get_avatar(username: str):
+def get_avatar(db: Session, username: str):
     try:
         return (
             db.query(models.User.avatar)
@@ -373,6 +371,7 @@ def get_avatar(username: str):
 
 
 async def add_new_game(
+    db: Session,
     game: schemas.NewGameUser,
     user: models.User,
     start_date: str = None,
@@ -386,7 +385,7 @@ async def add_new_game(
             started_date = datetime.datetime.now()
         else:
             started_date = utils.convert_date_from_text(start_date)
-        game_db = games.get_game_by_id(game.game_id)
+        game_db = games.get_game_by_id(db, game.game_id)
         if game_db is None:
             return None
         try:
@@ -437,7 +436,7 @@ async def add_new_game(
         raise
 
 
-def update_game(game: models.UserGame, entry_id):
+def update_game(db: Session, game: models.UserGame, entry_id):
     current_year = datetime.datetime.now().year
     if current_year == current_season:
         try:
@@ -461,6 +460,7 @@ def update_game(game: models.UserGame, entry_id):
 
 
 def update_played_time_game(
+    db: Session,
     user_id: str,
     game_id: str,
     time: int,
@@ -485,18 +485,19 @@ def update_played_time_game(
         logger.error("Error updating played time game: " + str(e))
         raise
 
-
-def count_played_games(user_id: int, season: int = current_season):
+def count_played_games(db: Session, user_id: int, season: int = current_season):
     try:
         return (
-            db.query(models.UserGame).filter_by(user_id=user_id, season=season).count()
+            db.query(models.UserGame)
+            .filter_by(user_id=user_id, season=season)
+            .count()
         )
     except SQLAlchemyError as e:
         logger.error("Error counting played games: " + str(e))
         raise e
-
-
+    
 def get_games(
+    db: Session,
     user_id,
     limit=None,
     completed=None,
@@ -513,9 +514,7 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .outerjoin(
-                models.PlatformTag, models.UserGame.platform == models.PlatformTag.id
-            )
+            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .join(
                 models.TimeEntry,
                 models.TimeEntry.project_clockify_id == models.Game.id,
@@ -524,8 +523,7 @@ def get_games(
                 models.UserGame.user_id == user_id,
                 models.UserGame.completed == completed,
                 extract("year", models.UserGame.started_date) == season,
-                models.UserGame.user_id == user_id,
-                models.TimeEntry.user_id == user_id,
+                models.UserGame.user_id == user_id, models.TimeEntry.user_id == user_id
             )
             .group_by(
                 models.UserGame.user_id,
@@ -558,9 +556,7 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .outerjoin(
-                models.PlatformTag, models.UserGame.platform == models.PlatformTag.id
-            )
+            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
             .join(
                 models.TimeEntry,
                 models.TimeEntry.project_clockify_id == models.Game.id,
@@ -568,8 +564,7 @@ def get_games(
             .where(
                 models.UserGame.user_id == user_id,
                 extract("year", models.UserGame.started_date) == season,
-                models.UserGame.user_id == user_id,
-                models.TimeEntry.user_id == user_id,
+                models.UserGame.user_id == user_id, models.TimeEntry.user_id == user_id
             )
             .group_by(
                 models.UserGame.user_id,
@@ -593,7 +588,9 @@ def get_games(
         return unique_data
 
 
-def get_game_by_id(user_id, game_id, season) -> models.UserGame:
+def get_game_by_id(
+    db: Session, user_id, game_id, season
+) -> models.UserGame:
     return (
         db.query(models.UserGame)
         .filter_by(user_id=user_id, game_id=game_id, season=season)
@@ -602,7 +599,7 @@ def get_game_by_id(user_id, game_id, season) -> models.UserGame:
 
 
 def update_played_days(
-    user_id: int, season_played_days: int, total_played_days: int = None
+    db: Session, user_id: int, season_played_days: int, total_played_days: int = None
 ):
     try:
         stmt = (
@@ -631,7 +628,7 @@ def update_played_days(
             raise e
 
 
-def update_played_time(user_id, played_time):
+def update_played_time(db: Session, user_id, played_time):
     # current_year = datetime.datetime.now().year
     try:
         # if current_year == current_season:
@@ -654,7 +651,9 @@ def update_played_time(user_id, played_time):
         raise e
 
 
-def game_is_completed(player, game, season: int = current_season) -> bool:
+def game_is_completed(
+    db: Session, player, game, season: int = current_season
+) -> bool:
     stmt = select(models.UserGame).where(
         models.UserGame.game == game,
         models.UserGame.player == player,
@@ -668,6 +667,7 @@ def game_is_completed(player, game, season: int = current_season) -> bool:
 
 
 async def complete_game(
+    db: Session,
     user_id,
     game_id,
     completed_date: str = None,
@@ -677,7 +677,7 @@ async def complete_game(
 ):
     current_year = datetime.datetime.now().year
     try:
-        db_game = games.get_game_by_id(game_id)
+        db_game = games.get_game_by_id(db, game_id)
         user = get_user_by_id(db, user_id)
         user_game = get_game_by_id(db, user_id, db_game.id, current_year)
         game_info = await utils.get_game_info(db_game.name)
@@ -714,8 +714,8 @@ async def complete_game(
             avg_time = game_info["hltb"]["comp_main"]
         else:
             avg_time = 0
-        games.update_avg_time_game(game_id, avg_time)
-        game = games.get_game_by_id(game_id)
+        games.update_avg_time_game(db, game_id, avg_time)
+        game = games.get_game_by_id(db, game_id)
         num_completed_games = (
             db.query(models.UserGame.game_id)
             .filter_by(user_id=user_id, completed=1)
@@ -735,7 +735,9 @@ async def complete_game(
             + "."
         )
         logger.info(message)
-        new_games_recommendation = games.recommended_games(user_id, genres=game.genres)
+        new_games_recommendation = games.recommended_games(
+            db, user_id, genres=game.genres
+        )
         new_game = random.choice(new_games_recommendation)
         new_game_info = {}
         new_game_info["game"] = new_game[2]
@@ -754,8 +756,8 @@ async def complete_game(
         logger.error("Error completing game: " + str(e))
         raise e
 
-
 async def rate_game(
+    db: Session,
     user_id,
     game_id,
     score,
@@ -783,7 +785,7 @@ async def rate_game(
         raise e
 
 
-def get_streaks(username: str):
+def get_streaks(db: Session, username: str):
     try:
         user = get_user_by_username(db, username)
         return db.query(
@@ -796,15 +798,11 @@ def get_streaks(username: str):
         raise e
 
 
-def update_streaks(
-    user_id,
-    current_streak,
-    best_streak,
-    best_streak_date,
-    best_unplayed_streak,
-    best_unplayed_streak_date,
-    current_unplayed_streak,
-):
+def update_streaks(db: Session, user_id, current_streak, 
+                   best_streak, best_streak_date, 
+                   best_unplayed_streak, 
+                   best_unplayed_streak_date, 
+                   current_unplayed_streak):
     try:
         stmt = (
             update(models.UserStatistics)
@@ -813,9 +811,10 @@ def update_streaks(
                 current_streak=current_streak,
                 best_streak=best_streak,
                 best_streak_date=best_streak_date,
-                best_unplayed_streak=best_unplayed_streak,
-                best_unplayed_streak_date=best_unplayed_streak_date,
-                current_unplayed_streak=current_unplayed_streak,
+                best_unplayed_streak=best_unplayed_streak, 
+                best_unplayed_streak_date=best_unplayed_streak_date, 
+                current_unplayed_streak=current_unplayed_streak
+                
             )
         )
         db.execute(stmt)
@@ -826,7 +825,7 @@ def update_streaks(
         raise e
 
 
-def played_time(limit: int = None) -> list[models.UserStatistics]:
+def played_time(db: Session, limit: int = None) -> list[models.UserStatistics]:
     return (
         db.query(models.UserStatistics)
         .order_by(desc(models.UserStatistics.played_time))
@@ -834,7 +833,7 @@ def played_time(limit: int = None) -> list[models.UserStatistics]:
     )
 
 
-def played_days(limit: int = None) -> list[models.UserStatistics]:
+def played_days(db: Session, limit: int = None) -> list[models.UserStatistics]:
     return (
         db.query(models.UserStatistics)
         .order_by(desc(models.UserStatistics.played_days))
@@ -842,7 +841,9 @@ def played_days(limit: int = None) -> list[models.UserStatistics]:
     )
 
 
-def current_ranking_hours(limit: int = None) -> list[models.UserStatistics]:
+def current_ranking_hours(
+    db: Session, limit: int = None
+) -> list[models.UserStatistics]:
     try:
         return (
             db.query(models.UserStatistics)
@@ -853,7 +854,7 @@ def current_ranking_hours(limit: int = None) -> list[models.UserStatistics]:
         logger.error("Error getting current ranking hours: " + str(e))
 
 
-def update_current_ranking_hours(ranking, user_id):
+def update_current_ranking_hours(db: Session, ranking, user_id):
     stmt = (
         update(models.UserStatistics)
         .where(models.UserStatistics.user_id == user_id)
@@ -863,7 +864,7 @@ def update_current_ranking_hours(ranking, user_id):
     db.commit()
 
 
-def activate_account(username: str):
+def activate_account(db: Session, username: str):
     try:
         logger.info("Activating account...")
         db_user = (
@@ -894,7 +895,9 @@ def activate_account(username: str):
 ######################
 
 
-def top_games(username: str, limit: int = 10, season: int = current_season):
+def top_games(
+    db: Session, username: str, limit: int = 10, season: int = current_season
+):
     try:
         user = get_user_by_username(db, username)
         stmt = (
@@ -925,7 +928,7 @@ def top_games(username: str, limit: int = 10, season: int = current_season):
         raise e
 
 
-# def played_games(username: str, limit: int = None):
+# def played_games(db: Session, username: str, limit: int = None):
 #     try:
 #         user = get_user_by_username(db, username)
 #         stmt = (
@@ -969,7 +972,7 @@ def top_games(username: str, limit: int = 10, season: int = current_season):
 #         raise e
 
 
-# def completed_games(username: str, limit: int = None):
+# def completed_games(db: Session, username: str, limit: int = None):
 #     try:
 #         user = get_user_by_username(db, username)
 #         stmt = (
@@ -998,7 +1001,7 @@ def top_games(username: str, limit: int = 10, season: int = current_season):
 #         raise e
 
 
-def get_achievements(username: str, season: int = current_season):
+def get_achievements(db: Session, username: str, season: int = current_season):
     try:
         user = get_user_by_username(db, username)
         stmt = (

@@ -4,16 +4,13 @@ from typing import Union
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
-from . import users
-from .. import models, schemas
-from ...utils import actions as actions
-from ...utils import my_utils as utils
-from ...utils.clockify_api import ClockifyApi
-from ...utils.logger import LogManager
-from ...config import Config
-from ..database import SessionLocal
-
-db = SessionLocal()
+from ..crud import users
+from ..database import models, schemas
+from ..utils import actions as actions
+from ..utils import my_utils as utils
+from ..utils.clockify_api import ClockifyApi
+from ..utils.logger import LogManager
+from ..config import Config
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -26,7 +23,7 @@ current_season = datetime.datetime.now().year
 ####################
 
 
-def user_hours_players(limit: int = None) -> list[models.User]:
+def user_hours_players(db: Session, limit: int = None) -> list[models.User]:
     try:
         stmt = (
             select(
@@ -45,7 +42,7 @@ def user_hours_players(limit: int = None) -> list[models.User]:
         logger.info(e)
 
 
-def user_current_ranking(user: models.User):
+def user_current_ranking(db: Session, user: models.User):
     try:
         stmt = select(
             models.UserStatistics.current_ranking_hours,
@@ -55,7 +52,7 @@ def user_current_ranking(user: models.User):
         logger.info(e)
 
 
-def user_days_played(limit: int = None) -> list[models.User]:
+def user_days_played(db: Session, limit: int = None) -> list[models.User]:
     try:
         stmt = (
             select(
@@ -75,7 +72,7 @@ def user_days_played(limit: int = None) -> list[models.User]:
         raise e
 
 
-def user_best_streak(limit: int = None):
+def user_best_streak(db: Session, limit: int = None):
     try:
         stmt = (
             select(
@@ -96,7 +93,7 @@ def user_best_streak(limit: int = None):
         raise e
 
 
-def user_current_streak(limit: int = None):
+def user_current_streak(db: Session, limit: int = None):
     try:
         stmt = (
             select(
@@ -116,7 +113,7 @@ def user_current_streak(limit: int = None):
         raise e
 
 
-def user_ranking_achievements(limit: int = None):
+def user_ranking_achievements(db: Session, limit: int = None):
     try:
         stmt = (
             select(
@@ -135,7 +132,9 @@ def user_ranking_achievements(limit: int = None):
         raise e
 
 
-def user_played_games(limit: int = None, season: int = current_season):
+def user_played_games(
+    db: Session, limit: int = None, season: int = current_season
+):
     try:
         stmt = (
             select(
@@ -155,9 +154,11 @@ def user_played_games(limit: int = None, season: int = current_season):
         raise e
 
 
-def user_completed_games(limit: int = None, season: int = current_season):
+def user_completed_games(
+    db: Session, limit: int = None, season: int = current_season
+):
     try:
-        user_list = users.get_users()
+        user_list = users.get_users(db)
         data = []
         for user in user_list:
             user_data = {}
@@ -182,7 +183,7 @@ def user_completed_games(limit: int = None, season: int = current_season):
         raise e
 
 
-def games_last_played(limit: int = 10):
+def games_last_played(db: Session, limit: int = 10):
     try:
         stmt = (
             select(
@@ -211,7 +212,7 @@ def games_last_played(limit: int = 10):
         raise e
 
 
-def user_last_played_games(limit: int = None):
+def user_last_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
@@ -231,7 +232,7 @@ def user_last_played_games(limit: int = None):
         raise e
 
 
-def games_most_played(limit: int = 10):
+def games_most_played(db: Session, limit: int = 10):
     try:
         stmt = (
             select(
@@ -251,7 +252,7 @@ def games_most_played(limit: int = 10):
         raise e
 
 
-def platform_played_games(limit: int = None):
+def platform_played_games(db: Session, limit: int = None):
     try:
         stmt = (
             select(
@@ -273,9 +274,9 @@ def platform_played_games(limit: int = None):
         raise e
 
 
-def user_ratio(season: int = current_season):
+def user_ratio(db: Session, season: int = current_season):
     try:
-        user_list = users.get_users()
+        user_list = users.get_users(db)
         data = []
         for user in user_list:
             user_data = {}

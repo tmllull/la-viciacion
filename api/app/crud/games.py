@@ -6,15 +6,12 @@ from sqlalchemy import asc, create_engine, delete, desc, func, select, text, upd
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
-from ...utils import actions
-from ...utils import actions as actions
-from ...utils import my_utils as utils
-from ...utils.clockify_api import ClockifyApi
-from ...utils.logger import LogManager
-from ..database import SessionLocal
-
-db = SessionLocal()
+from ..database import models, schemas
+from ..utils import actions
+from ..utils import actions as actions
+from ..utils import my_utils as utils
+from ..utils.clockify_api import ClockifyApi
+from ..utils.logger import LogManager
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -26,21 +23,23 @@ clockify_api = ClockifyApi()
 #################
 
 
-def get_games(limit: int = None) -> list[models.Game]:
+def get_games(db: Session, limit: int = None) -> list[models.Game]:
     return db.query(models.Game).limit(limit)
 
 
-def get_game_by_name(name: str) -> list[models.Game]:
+def get_game_by_name(db: Session, name: str) -> list[models.Game]:
     logger.info("Searching game by name: " + name)
     search = "%{}%".format(name)
     return db.query(models.Game).filter(models.Game.name.like(search))
 
 
-def get_game_by_id(game_id: int) -> models.Game:
+def get_game_by_id(db: Session, game_id: int) -> models.Game:
     return db.query(models.Game).filter(models.Game.id == game_id).first()
 
 
-def recommended_games(user_id: int, genres: list[str] = [], limit: int = None):
+def recommended_games(
+    db: Session, user_id: int, genres: list[str] = [], limit: int = None
+):
     genres_filter = [models.Game.genres.ilike(f"%{genre}%") for genre in genres]
     unplayed_games = (
         db.query(
@@ -70,7 +69,7 @@ def recommended_games(user_id: int, genres: list[str] = [], limit: int = None):
     return unique_recommended_games
 
 
-async def new_game(game: schemas.NewGame) -> models.Game:
+async def new_game(db: Session, game: schemas.NewGame) -> models.Game:
     logger.info("Adding new game to DB: " + game.name)
     if game.clockify_id is None or not utils.check_hex(game.clockify_id):
         logger.info("No clockify ID. Adding to clockify...")
@@ -126,7 +125,7 @@ async def new_game(game: schemas.NewGame) -> models.Game:
             raise e
 
 
-def create_game_statistics(game_id: int):
+def create_game_statistics(db: Session, game_id: int):
     try:
         game_statistics = models.GameStatistics(
             game_id=game_id, current_ranking=1000000
@@ -142,7 +141,7 @@ def create_game_statistics(game_id: int):
             raise e
 
 
-def create_game_statistics_historical(game_id: int):
+def create_game_statistics_historical(db: Session, game_id: int):
     try:
         game_statistics = models.GameStatisticsHistorical(
             game_id=game_id, current_ranking=1000000
@@ -158,7 +157,7 @@ def create_game_statistics_historical(game_id: int):
             raise e
 
 
-def update_avg_time_game(game_id: str, avg_time: int):
+def update_avg_time_game(db: Session, game_id: str, avg_time: int):
     logger.info("Updating avg time for game...")
     try:
         stmt = (
@@ -175,7 +174,7 @@ def update_avg_time_game(game_id: str, avg_time: int):
         raise e
 
 
-def update_game(game_id: int, game: schemas.UpdateGame):
+def update_game(db: Session, game_id: int, game: schemas.UpdateGame):
     try:
         db_game = get_game_by_id(db, game_id)
         name = game.name if game.name is not None else db_game.name
@@ -211,7 +210,7 @@ def update_game(game_id: int, game: schemas.UpdateGame):
         raise RuntimeError(error_message) from e
 
 
-def update_total_played_time(game_id, total_played):
+def update_total_played_time(db: Session, game_id, total_played):
     try:
         game = get_game_by_id(db, game_id)
         stmt = (
@@ -226,7 +225,7 @@ def update_total_played_time(game_id, total_played):
         raise e
 
 
-def get_most_played_time(limit: int = None) -> list[models.GameStatistics]:
+def get_most_played_time(db: Session, limit: int = None) -> list[models.GameStatistics]:
     if limit is not None:
         return (
             db.query(models.GameStatistics)
@@ -239,7 +238,7 @@ def get_most_played_time(limit: int = None) -> list[models.GameStatistics]:
         )
 
 
-def current_ranking_hours(limit: int = 11) -> list[models.GameStatistics]:
+def current_ranking_hours(db: Session, limit: int = 11) -> list[models.GameStatistics]:
     try:
         return (
             db.query(models.GameStatistics)
@@ -250,7 +249,7 @@ def current_ranking_hours(limit: int = 11) -> list[models.GameStatistics]:
         logger.info(e)
 
 
-def update_current_ranking_hours(i, game_id):
+def update_current_ranking_hours(db: Session, i, game_id):
     try:
         stmt = (
             update(models.GameStatistics)

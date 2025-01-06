@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 
 from .. import auth
 from ..config import Config
-from ..database.crud import users
-from ..database.crud.achievements import Achievements
+from ..crud import users
+from ..crud.achievements import Achievements
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -87,8 +87,8 @@ def init(
     try:
         logger.info("Creating admin users")
         for admin in config.ADMIN_USERS:
-            users.create_admin_user(admin)
-        achievements.populate_achievements()
+            users.create_admin_user(db, admin)
+        achievements.populate_achievements(db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return "Init completed!"
@@ -136,7 +136,7 @@ async def sync_data(
     """
     try:
         # for admin in config.ADMIN_USERS:
-        #     users.create_admin_user(admin)
+        #     users.create_admin_user(db, admin)
         await actions.sync_data(
             db,
             user_clfy_id=user_clfy_id,
@@ -174,10 +174,10 @@ def update_user(
     """
     if not user.is_admin:
         raise HTTPException(status_code=403, detail=msg.USER_NOT_ADMIN)
-    db_user = users.get_user_by_username(user_data.username)
+    db_user = users.get_user_by_username(db, user_data.username)
     if db_user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
-    return users.update_user_as_admin(user=user_data)
+    return users.update_user_as_admin(db=db, user=user_data)
 
 
 @router.get("/activate/{username}")
@@ -200,7 +200,7 @@ def activate_account(
     Returns:
         _type_: _description_
     """
-    if users.activate_account(username):
+    if users.activate_account(db, username):
         return msg.ACCOUNT_ALREADY_ACTIVATED
     else:
         raise HTTPException(status_code=409, detail=msg.ACCOUNT_ALREADY_ACTIVATED)

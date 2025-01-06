@@ -14,7 +14,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..database.crud import games, time_entries, users
+from ..crud import games, time_entries, users
 from ..database import models, schemas
 from .achievements import AchievementsElems
 from .clockify_api import ClockifyApi
@@ -260,7 +260,7 @@ async def sync_clockify_entries(
         logger.info("Sync " + str(total_entries) + " entries for " + str(user.name))
         if total_entries == 0:
             return 0
-        await time_entries.sync_clockify_entries_db(user, entries, silent)
+        await time_entries.sync_clockify_entries_db(db, user, entries, silent)
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.debug("Elapsed time for sync time entries: " + str(elapsed_time))
@@ -373,7 +373,7 @@ async def send_message_to_user(user_telegram_id, msg):
 
 async def send_message_to_admins(db: Session, msg):
     logger.info("Sending message to admins...")
-    users_db = users.get_users()
+    users_db = users.get_users(db)
     try:
         for user in users_db:
             if user.is_admin:
@@ -394,7 +394,7 @@ def get_ach_message(
 ):
     msg = "🏆" + ach.value["title"] + "🏆\n"
     if game_id is not None:
-        game_db = games.get_game_by_id(game_id)
+        game_db = games.get_game_by_id(db, game_id)
         msg = msg + ach.value["message"].format(user, game_db.name)
     else:
         msg = msg + ach.value["message"].format(user)

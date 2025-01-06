@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from .. import auth
 from ..config import Config
-from ..database.crud import users
+from ..crud import users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -91,7 +91,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
                 CustomExceptions.SignUp.INVALID_INVITATION_KEY
             ).to_json(),
         )
-    db_user = users.get_user_by_username(username=user.username)
+    db_user = users.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(
             status_code=400,
@@ -99,7 +99,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
                 CustomExceptions.SignUp.USER_ALREADY_EXISTS
             ).to_json(),
         )
-    validation, new_user = users.create_user(user=user)
+    validation, new_user = users.create_user(db=db, user=user)
     if not validation:
         if new_user == 0:
             raise HTTPException(
@@ -115,7 +115,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
                     CustomExceptions.SignUp.EMAIL_VALIDATION
                 ).to_json(),
             )
-    user_added = users.get_user_by_username(user.username)
+    user_added = users.get_user_by_username(db, user.username)
     return user_added
 
 

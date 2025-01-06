@@ -6,17 +6,14 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from ...config import Config
-from . import time_entries, users, games
-from .. import models, schemas
-from ...utils import actions as actions
-from ...utils import my_utils as utils
-from ...utils.achievements import AchievementsElems
-from ...utils.clockify_api import ClockifyApi
-from ...utils.logger import LogManager
-from ..database import SessionLocal
-
-db = SessionLocal()
+from ..config import Config
+from ..crud import time_entries, users, games
+from ..database import models, schemas
+from ..utils import actions as actions
+from ..utils import my_utils as utils
+from ..utils.achievements import AchievementsElems
+from ..utils.clockify_api import ClockifyApi
+from ..utils.logger import LogManager
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -30,14 +27,13 @@ config = Config()
 
 
 class Achievements:
-    from ...utils.achievements import AchievementsElems
-
+    from ..utils.achievements import AchievementsElems
     season = datetime.datetime.now().year
 
     def __init__(self, silent: bool = False) -> None:
         self.silent = silent
 
-    def populate_achievements(self):
+    def populate_achievements(self, db: Session):
         # logger.debug("Populating achievements")
         for achievement in list(AchievementsElems):
             key = achievement.name
@@ -70,17 +66,17 @@ class Achievements:
                 db.commit()
             # print(achievement, "->", achievement.value)
 
-    def get_achievements_list(self) -> list[models.Achievement]:
+    def get_achievements_list(self, db: Session) -> list[models.Achievement]:
         return db.query(models.Achievement)
 
-    def get_ach_by_key(self, key: str):
+    def get_ach_by_key(self, db: Session, key: str):
         return (
             db.query(models.Achievement.id)
             .filter(models.Achievement.key == key)
             .first()
         )
 
-    def upload_image(self, key: str, image: bytes):
+    def upload_image(self, db: Session, key: str, image: bytes):
         try:
             stmt = (
                 update(models.Achievement)
@@ -94,7 +90,7 @@ class Achievements:
             logger.error("Error adding image: " + str(e))
             raise
 
-    def get_image(self, key: str):
+    def get_image(self, db: Session, key: str):
         try:
             return (
                 db.query(models.Achievement.image)
@@ -106,7 +102,7 @@ class Achievements:
             raise
 
     def check_already_achieved(
-        self, user_id: int, key: str, season: int = season
+        self, db: Session, user_id: int, key: str, season: int = season
     ) -> bool:
         ach_id = self.get_ach_by_key(db, str(key))
         already_achieved = (
@@ -230,7 +226,7 @@ class Achievements:
         silent: bool = False,
     ):
         # logger.debug("Check played time in one day achievements...")
-        played_days = time_entries.get_played_time_by_day(user.id)
+        played_days = time_entries.get_played_time_by_day(db, user.id)
         for played_day in played_days:
             date = str(played_day[0])
             if played_day[1] is None:
@@ -292,12 +288,14 @@ class Achievements:
                     image=self.get_image(db, ach.name)[0],
                 )
 
-    async def user_session_time(self, user: models.User, silent: bool = False):
+    async def user_session_time(
+        self, db: Session, user: models.User, silent: bool = False
+    ):
         # logger.debug("Check session played time achievements...")
         # -5 min
         ach = AchievementsElems.PLAYED_LESS_5_MIN_SESSION
         if not self.check_already_achieved(db, user.id, ach.name):
-            time_entry = time_entries.get_time_entry_by_time(user.id, 5 * 60, 2)
+            time_entry = time_entries.get_time_entry_by_time(db, user.id, 5 * 60, 2)
             if time_entry is not None and time_entry.duration > 0:
                 logger.info("Set achievement less 5 minutes session")
                 self.set_user_achievement(
@@ -322,7 +320,9 @@ class Achievements:
         # +4 hours
         ach = AchievementsElems.PLAYED_4_HOURS_SESSION
         if not self.check_already_achieved(db, user.id, ach.name):
-            time_entry = time_entries.get_time_entry_by_time(user.id, 4 * 60 * 60, 3)
+            time_entry = time_entries.get_time_entry_by_time(
+                db, user.id, 4 * 60 * 60, 3
+            )
             if time_entry is not None:
                 logger.info("Set achievement 4 hours session")
                 self.set_user_achievement(
@@ -347,7 +347,9 @@ class Achievements:
         # +8 hours
         ach = AchievementsElems.PLAYED_8_HOURS_SESSION
         if not self.check_already_achieved(db, user.id, ach.name):
-            time_entry = time_entries.get_time_entry_by_time(user.id, 8 * 60 * 60, 3)
+            time_entry = time_entries.get_time_entry_by_time(
+                db, user.id, 8 * 60 * 60, 3
+            )
             if time_entry is not None:
                 logger.info("Set achievement 8 hours session")
                 self.set_user_achievement(
@@ -370,7 +372,7 @@ class Achievements:
                 )
 
     async def user_played_total_days(
-        self, user: models.User, total_days: list, silent: bool = False
+        self, db: Session, user: models.User, total_days: list, silent: bool = False
     ):
         # logger.debug(
         #    "Check total played days achievements (" + str(len(total_days)) + ")..."
@@ -523,10 +525,10 @@ class Achievements:
             )
 
     async def user_played_total_games(
-        self, user: models.User, date: str = None, silent: bool = False
+        self, db: Session, user: models.User, date: str = None, silent: bool = False
     ):
         # logger.debug("Check total played games achievements...")
-        played_games = users.get_games(user.id)
+        played_games = users.get_games(db, user.id)
         # 10
         # logger.info("Played games for " + user.name + ": " + str(len(played_games)))
         ach = AchievementsElems.PLAYED_10_GAMES
@@ -596,7 +598,7 @@ class Achievements:
         if played_time >= 100 and not self.check_already_achieved(
             db, user.id, ach.name
         ):
-            game = games.get_game_by_id(game_id)
+            game = games.get_game_by_id(db, game_id)
             logger.info(
                 "Set achievement played 100 hours game: "
                 + game.name
@@ -618,7 +620,7 @@ class Achievements:
         # if played_time >= 500 and not self.check_already_achieved(
         #     db, user.id, ach.name
         # ):
-        #     game = games.get_game_by_id(game_id)
+        #     game = games.get_game_by_id(db, game_id)
         #     logger.info(
         #         "Set achievement played 500 hours game: "
         #         + game.name
@@ -639,7 +641,7 @@ class Achievements:
         # if played_time >= 1000 and not self.check_already_achieved(
         #     db, user.id, ach.name
         # ):
-        #     game = games.get_game_by_id(game_id)
+        #     game = games.get_game_by_id(db, game_id)
         #     logger.info(
         #         "Set achievement played 1000 hours game: "
         #         + game.name
@@ -665,7 +667,7 @@ class Achievements:
     ):
         current_season = str(season)
         new_year = current_season + "-01-01"
-        time_entry = time_entries.get_time_entry_by_date(user.id, new_year, 1)
+        time_entry = time_entries.get_time_entry_by_date(db, user.id, new_year, 1)
         ach = AchievementsElems.HAPPY_NEW_YEAR
         if time_entry.count() > 0 and not self.check_already_achieved(
             db, user.id, ach.name
@@ -784,12 +786,12 @@ class Achievements:
                 image=self.get_image(db, ach.name)[0],
             )
 
-    async def teamwork(self, silent: bool):
+    async def teamwork(self, db: Session, silent: bool):
         # logger.debug("Checking teamwork achievement...")
-        user_list = users.get_users()
+        user_list = users.get_users(db)
         playing: List[models.User] = []
         for user in user_list:
-            has_active_time_entry = time_entries.get_active_time_entry_by_user(user)
+            has_active_time_entry = time_entries.get_active_time_entry_by_user(db, user)
             if has_active_time_entry is not None:
                 playing.append(user)
         # logger.debug(
@@ -819,10 +821,10 @@ class Achievements:
             else:
                 logger.info("All users unlocked this achievement")
 
-    async def early_riser(self, user: models.User, silent: bool):
+    async def early_riser(self, db: Session, user: models.User, silent: bool):
         # logger.debug("Checking early riser achievement...")
         entries = time_entries.get_time_entry_between_hours(
-            user.id, start_hour=5, end_hour=6
+            db, user.id, start_hour=5, end_hour=6
         )
         ach = AchievementsElems.EARLY_RISER
         if len(entries) > 0 and not self.check_already_achieved(db, user.id, ach.name):
@@ -840,10 +842,10 @@ class Achievements:
                 image=self.get_image(db, ach.name)[0],
             )
 
-    async def nocturnal(self, user: models.User, silent: bool):
+    async def nocturnal(self, db: Session, user: models.User, silent: bool):
         # logger.debug("Checking nocturnal achievement...")
         entries = time_entries.get_time_entry_between_hours(
-            user.id, start_hour=2, end_hour=5
+            db, user.id, start_hour=2, end_hour=5
         )
         ach = AchievementsElems.NOCTURNAL
         if len(entries) > 0 and not self.check_already_achieved(db, user.id, ach.name):
@@ -861,7 +863,9 @@ class Achievements:
                 image=self.get_image(db, ach.name)[0],
             )
 
-    def get_weekly_achievements(self, user: models.User, weeks_ago: int = 0):
+    def get_weekly_achievements(
+        self, db: Session, user: models.User, weeks_ago: int = 0
+    ):
         """_summary_
 
         Args:

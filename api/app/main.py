@@ -8,7 +8,17 @@ from fastapi_versioning import VersionedFastAPI
 from .config import Config
 from .database import models
 from .database.database import SessionLocal, engine
-from .routers import admin, basic, bot, games, statistics, users, utils, webhooks
+from .routers import (
+    admin,
+    basic,
+    bot,
+    games,
+    statistics,
+    users,
+    utils,
+    webhooks,
+    graphql,
+)
 from .utils.logger import LogManager
 
 log_manager = LogManager()
@@ -43,7 +53,7 @@ if config.SENTRY_URL is not None and config.SENTRY_URL != "":
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LaViciacion API", version="0.1.0")
+app = FastAPI(title="LaViciacion API", version="0.1.0", root_path="/api/v1")
 
 app.include_router(admin.router)
 app.include_router(basic.router)
@@ -53,8 +63,10 @@ app.include_router(statistics.router)
 app.include_router(bot.router)
 app.include_router(utils.router)
 app.include_router(webhooks.router)
+app.include_router(graphql.graphql_app)
 
-app = VersionedFastAPI(app, version_format="{major}", prefix_format="/api/v{major}")
+
+# app = VersionedFastAPI(app, version_format="{major}", prefix_format="/api/v{major}")
 
 app.add_middleware(
     CORSMiddleware,

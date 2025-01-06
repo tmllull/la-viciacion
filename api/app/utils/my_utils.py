@@ -14,7 +14,7 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import games, time_entries, users
+from ..database.crud import games, time_entries, users
 from ..database import models, schemas
 from .achievements import AchievementsElems
 from .clockify_api import ClockifyApi

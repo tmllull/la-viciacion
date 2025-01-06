@@ -9,8 +9,8 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
-from ..crud import clockify, games, rankings, time_entries, users
-from ..crud.achievements import Achievements
+from ..database.crud import clockify, games, rankings, time_entries, users
+from ..database.crud.achievements import Achievements
 from ..database import models, schemas
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
@@ -161,11 +161,14 @@ async def sync_data(
                 db, user, real_played_days_season, silent=silent
             )
             # logger.debug("Checking streaks for " + user.name)
-            (best_streak_date, best_streak, 
-             current_streak, best_unplayed_streak_date, 
-             best_unplayed_streak, current_unplayed_streak) = streak_days(
-                db, user, real_played_days_season, current_season
-            )
+            (
+                best_streak_date,
+                best_streak,
+                current_streak,
+                best_unplayed_streak_date,
+                best_unplayed_streak,
+                current_unplayed_streak,
+            ) = streak_days(db, user, real_played_days_season, current_season)
             # logger.info("Max gap: " + str(best_unplayed_streak))
             # logger.info("Max gap date: " + str(best_unplayed_streak_date))
             # logger.info("Current gap: " + str(current_unplayed_streak))
@@ -173,11 +176,14 @@ async def sync_data(
             await check_streaks(db, user, current_streak, best_streak, silent=silent)
             # TODO: Check streaks achievement
             users.update_streaks(
-                db, user.id, current_streak, 
-                best_streak, best_streak_date, 
-                best_unplayed_streak, 
-                best_unplayed_streak_date, 
-                current_unplayed_streak
+                db,
+                user.id,
+                current_streak,
+                best_streak,
+                best_streak_date,
+                best_unplayed_streak,
+                best_unplayed_streak_date,
+                current_unplayed_streak,
             )
             # logger.debug("Updating played time games and check achievements...")
             played_time_games = time_entries.get_user_games_played_time(db, user.id)
@@ -256,7 +262,12 @@ async def sync_data(
         await utils.send_message_to_admins(db, "Error on sync: " + str(e))
 
 
-def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEntry], current_season: int):
+def streak_days(
+    db: Session,
+    user: models.User,
+    played_dates: list[models.TimeEntry],
+    current_season: int,
+):
     """
     TODO:
     """
@@ -266,7 +277,9 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
     current_streak = 0
     try:
         if len(played_dates) == 0:
-            end_max_streak_date = datetime.datetime.strptime(str(current_season) + "-01-01", "%Y-%m-%d")
+            end_max_streak_date = datetime.datetime.strptime(
+                str(current_season) + "-01-01", "%Y-%m-%d"
+            )
             return end_max_streak_date, 0, 0, end_max_streak_date, 0, 0
         elif len(played_dates) == 1:
             end_max_streak_date = played_dates[0]
@@ -302,8 +315,8 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
         if (today - played_dates[-1]).days > 1:
             current_streak = 0
     except Exception as e:
-        logger.error("Error calculating streak days: "+str(e))
-    
+        logger.error("Error calculating streak days: " + str(e))
+
     # Unplayed days
     max_gap = 0
     end_max_gap_date = None
@@ -329,9 +342,16 @@ def streak_days(db: Session, user: models.User, played_dates: list[models.TimeEn
                 max_gap = last_gap
                 end_max_gap_date = today
     except Exception as e:
-        logger.error("Error calculating unplayed days: "+str(e))
+        logger.error("Error calculating unplayed days: " + str(e))
 
-    return end_max_streak_date, max_streak, current_streak, end_max_gap_date, max_gap, current_gap
+    return (
+        end_max_streak_date,
+        max_streak,
+        current_streak,
+        end_max_gap_date,
+        max_gap,
+        current_gap,
+    )
 
 
 async def check_streaks(

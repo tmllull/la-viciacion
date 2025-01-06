@@ -4,13 +4,13 @@ from typing import Union
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
-from ..crud import users
-from ..database import models, schemas
-from ..utils import actions as actions
-from ..utils import my_utils as utils
-from ..utils.clockify_api import ClockifyApi
-from ..utils.logger import LogManager
-from ..config import Config
+from . import users
+from .. import models, schemas
+from ...utils import actions as actions
+from ...utils import my_utils as utils
+from ...utils.clockify_api import ClockifyApi
+from ...utils.logger import LogManager
+from ...config import Config
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -132,9 +132,7 @@ def user_ranking_achievements(db: Session, limit: int = None):
         raise e
 
 
-def user_played_games(
-    db: Session, limit: int = None, season: int = current_season
-):
+def user_played_games(db: Session, limit: int = None, season: int = current_season):
     try:
         stmt = (
             select(
@@ -154,9 +152,7 @@ def user_played_games(
         raise e
 
 
-def user_completed_games(
-    db: Session, limit: int = None, season: int = current_season
-):
+def user_completed_games(db: Session, limit: int = None, season: int = current_season):
     try:
         user_list = users.get_users(db)
         data = []

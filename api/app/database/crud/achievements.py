@@ -6,14 +6,14 @@ from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from ..config import Config
+from ...config import Config
 from ..crud import time_entries, users, games
-from ..database import models, schemas
-from ..utils import actions as actions
-from ..utils import my_utils as utils
-from ..utils.achievements import AchievementsElems
-from ..utils.clockify_api import ClockifyApi
-from ..utils.logger import LogManager
+from .. import models, schemas
+from ...utils import actions as actions
+from ...utils import my_utils as utils
+from ...utils.achievements import AchievementsElems
+from ...utils.clockify_api import ClockifyApi
+from ...utils.logger import LogManager
 
 log_manager = LogManager()
 logger = log_manager.get_logger()
@@ -27,7 +27,8 @@ config = Config()
 
 
 class Achievements:
-    from ..utils.achievements import AchievementsElems
+    from ...utils.achievements import AchievementsElems
+
     season = datetime.datetime.now().year
 
     def __init__(self, silent: bool = False) -> None:

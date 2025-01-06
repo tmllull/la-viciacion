@@ -6,7 +6,7 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..crud import users as users_crud
+from ..database.crud import users as users_crud
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..routers import admin, games, statistics, users, utils

@@ -79,7 +79,7 @@ def get_playing_users(
     """
     Get playing users
     """
-    users_db = users.get_users()
+    users_db = users.get_users(db)
     playing = []
     for user in users_db:
         info = {}

@@ -2,6 +2,7 @@
 import strawberry
 from typing import List
 from ..crud import users as usersCrud
+from ..database import SessionLocal
 
 
 @strawberry.type
@@ -12,7 +13,7 @@ class UserType:
 
 
 def resolve_users() -> List[UserType]:
-    users = usersCrud.get_users()
+    users = usersCrud.get_users(SessionLocal())
     return [
         UserType(
             **{

@@ -63,7 +63,7 @@ def get_users(db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    users_db = users.get_users()
+    users_db = users.get_users(db)
     return users_db
 
 

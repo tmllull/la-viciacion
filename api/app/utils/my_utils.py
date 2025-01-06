@@ -373,7 +373,7 @@ async def send_message_to_user(user_telegram_id, msg):
 
 async def send_message_to_admins(db: Session, msg):
     logger.info("Sending message to admins...")
-    users_db = users.get_users()
+    users_db = users.get_users(db)
     try:
         for user in users_db:
             if user.is_admin:

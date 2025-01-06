@@ -154,7 +154,7 @@ def user_played_games(db: Session, limit: int = None, season: int = current_seas
 
 def user_completed_games(db: Session, limit: int = None, season: int = current_season):
     try:
-        user_list = users.get_users()
+        user_list = users.get_users(db)
         data = []
         for user in user_list:
             user_data = {}
@@ -272,7 +272,7 @@ def platform_played_games(db: Session, limit: int = None):
 
 def user_ratio(db: Session, season: int = current_season):
     try:
-        user_list = users.get_users()
+        user_list = users.get_users(db)
         data = []
         for user in user_list:
             user_data = {}

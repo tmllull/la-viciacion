@@ -789,7 +789,7 @@ class Achievements:
 
     async def teamwork(self, db: Session, silent: bool):
         # logger.debug("Checking teamwork achievement...")
-        user_list = users.get_users()
+        user_list = users.get_users(db)
         playing: List[models.User] = []
         for user in user_list:
             has_active_time_entry = time_entries.get_active_time_entry_by_user(db, user)

@@ -80,7 +80,7 @@ async def sync_data(
     achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
     achievements.populate_achievements(db)
-    users_db = users.get_users()
+    users_db = users.get_users(db)
     # Clear tables on new year (season)
     if current_date.month == 1 and current_date.day == 1:
         start_date = str(current_date.year) + "-01-01"
@@ -243,7 +243,7 @@ async def sync_data(
 
         # Others
         await achievements.teamwork(db, silent)
-        users_db = users.get_users()
+        users_db = users.get_users(db)
         # Check weekly resume only on monday at 9:00
         if week_day == 0 and hour == 9 and minute == 0:
             for user in users_db:

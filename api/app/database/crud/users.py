@@ -738,17 +738,25 @@ async def complete_game(
         new_games_recommendation = games.recommended_games(
             db, user_id, genres=game.genres
         )
-        new_game = random.choice(new_games_recommendation)
-        new_game_info = {}
-        new_game_info["game"] = new_game[2]
-        new_game_info["user"] = new_game[4]
-        await utils.send_message(
-            message,
-            silent,
-            openai=True,
-            system_prompt=prompts.COMPLETED_GAME_PROMPT,
-            new_game_recommended=new_game_info,
-        )
+        if len(new_games_recommendation) > 0:
+            new_game = random.choice(new_games_recommendation)
+            new_game_info = {}
+            new_game_info["game"] = new_game[2]
+            new_game_info["user"] = new_game[4]
+            await utils.send_message(
+                message,
+                silent,
+                openai=True,
+                system_prompt=prompts.COMPLETED_GAME_PROMPT,
+                new_game_recommended=new_game_info,
+            )
+        else:
+            await utils.send_message(
+                message,
+                silent,
+                openai=True,
+                system_prompt=prompts.COMPLETED_GAME_PROMPT,
+            )
         return get_game_by_id(db, user_id, game_id, completed_date.year)
 
     except Exception as e:

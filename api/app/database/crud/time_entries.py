@@ -373,8 +373,6 @@ async def sync_clockify_entries_db(
                     already_playing = users.get_game_by_id(
                         db, user.id, game_id, started_date.year
                     )
-                    logger.info("Already playing--------------------")
-                    logger.info(already_playing)
                 except Exception as e:
                     logger.error("Error adding game " + game_name + ": " + str(e))
             try:

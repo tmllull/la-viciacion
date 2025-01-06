@@ -2,13 +2,13 @@ import requests
 from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
-from ..config import Config
-from ..crud import users
-from ..database import models
-from ..utils import actions as actions
-from ..utils import my_utils as utils
-from ..utils.clockify_api import ClockifyApi
-from ..utils.logger import LogManager
+from ...config import Config
+from . import users
+from .. import models
+from ...utils import actions as actions
+from ...utils import my_utils as utils
+from ...utils.clockify_api import ClockifyApi
+from ...utils.logger import LogManager
 
 log_manager = LogManager()
 logger = log_manager.get_logger()

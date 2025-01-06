@@ -3,7 +3,7 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..crud import games
+from ..database.crud import games
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions

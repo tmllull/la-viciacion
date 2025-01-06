@@ -5,8 +5,8 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..crud import games, time_entries, users
-from ..crud.achievements import Achievements
+from ..database.crud import games, time_entries, users
+from ..database.crud.achievements import Achievements
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -79,7 +79,7 @@ def get_playing_users(
     """
     Get playing users
     """
-    users_db = users.get_users(db)
+    users_db = users.get_users()
     playing = []
     for user in users_db:
         info = {}

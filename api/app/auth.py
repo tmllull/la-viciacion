@@ -11,7 +11,7 @@ import bcrypt
 from sqlalchemy.orm import Session
 
 from .config import Config
-from .crud import users
+from .database.crud import users
 from .database import models
 from .database.database import SessionLocal
 

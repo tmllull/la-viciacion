@@ -15,7 +15,7 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..crud import games, time_entries, users
+from ..database.crud import games, time_entries, users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
@@ -63,7 +63,7 @@ def get_users(db: Session = Depends(get_db)):
     Returns:
         _type_: _description_
     """
-    users_db = users.get_users(db)
+    users_db = users.get_users()
     return users_db
 
 

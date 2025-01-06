@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from .. import auth
 from ..database.crud import rankings, users
-from ..database import models, schemas
+from ..database import models
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils.logger import LogManager

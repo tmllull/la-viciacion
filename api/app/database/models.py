@@ -1,20 +1,14 @@
 from sqlalchemy import (
-    JSON,
     BigInteger,
-    Boolean,
     Column,
     Date,
     DateTime,
     Float,
-    ForeignKey,
     Integer,
-    Interval,
     LargeBinary,
     String,
     UniqueConstraint,
-    text,
 )
-from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -132,9 +126,7 @@ class UserGame(Base):
     played_time = Column(Integer)
     completion_time = Column(Integer)
 
-    __table_args__ = (
-        UniqueConstraint("user_id", "game_id", "platform", "season"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "game_id", "platform", "season"),)
 
 
 class UserGameHistorical(Base):

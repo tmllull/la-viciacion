@@ -1,17 +1,12 @@
 import datetime
-import json
-import re
 import time
-from typing import Union
 
-import requests
-from sqlalchemy import asc, create_engine, desc, func, select, text, update
 from sqlalchemy.orm import Session
 
 from ..config import Config
 from ..database.crud import clockify, games, rankings, time_entries, users
 from ..database.crud.achievements import Achievements
-from ..database import models, schemas
+from ..database import models
 from . import my_utils as utils
 from .clockify_api import ClockifyApi
 from ..utils import ai_prompts as prompts

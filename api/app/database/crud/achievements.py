@@ -1,14 +1,13 @@
 import datetime
-import json
-from typing import List, Union
+from typing import List
 
-from sqlalchemy import asc, create_engine, desc, func, select, text, update
+from sqlalchemy import func, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ...config import Config
 from ..crud import time_entries, users, games
-from .. import models, schemas
+from .. import models
 from ...utils import actions as actions
 from ...utils import my_utils as utils
 from ...utils.achievements import AchievementsElems

@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, Security, status
-from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
 import jwt
 

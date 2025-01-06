@@ -1,17 +1,10 @@
-from enum import Enum
-from typing import Union
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi_versioning import version
-from sqlalchemy.orm import Session
+from fastapi import Depends
 from strawberry.fastapi import GraphQLRouter
 from ..database.graphql.schemas import schema
 
 from .. import auth
-from ..database.crud import users as users_crud
-from ..database import models, schemas
-from ..database.database import SessionLocal, engine
-from ..routers import admin, games, statistics, users, utils
+from ..database import models
+from ..database.database import engine
 from ..utils import actions as actions
 from ..utils.logger import LogManager
 

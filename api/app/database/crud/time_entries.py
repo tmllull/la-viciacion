@@ -1,15 +1,10 @@
 import datetime
-from typing import Union, Tuple
 
 from sqlalchemy import (
-    asc,
-    create_engine,
-    desc,
     extract,
     func,
     or_,
     select,
-    text,
     update,
 )
 from sqlalchemy.orm import Session
@@ -355,7 +350,6 @@ async def sync_clockify_entries_db(
                 )
 
             # Check if player already plays the game this season
-            # if time_entry_year == config.CURRENT_SEASON:
             already_playing = users.get_game_by_id(db, user.id, game_id, current_season)
             if not already_playing:
                 try:

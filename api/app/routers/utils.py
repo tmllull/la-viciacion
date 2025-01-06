@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from .. import auth
 from ..database.crud import games, time_entries, users
 from ..database.crud.achievements import Achievements
-from ..database import models, schemas
+from ..database import models
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import messages as msg

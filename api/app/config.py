@@ -70,5 +70,3 @@ class Config:
             self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
             self.OPENAI_MODEL = os.environ["OPENAI_MODEL"]
             self.SYNC_DAYS = int(os.environ["SYNC_DAYS"])
-
-        self.CURRENT_SEASON = datetime.datetime.now().year

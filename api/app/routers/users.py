@@ -4,9 +4,7 @@ from enum import Enum
 from fastapi import (
     APIRouter,
     Depends,
-    File,
     HTTPException,
-    Query,
     Response,
     Security,
     UploadFile,
@@ -15,12 +13,11 @@ from fastapi_versioning import version
 from sqlalchemy.orm import Session
 
 from .. import auth
-from ..database.crud import games, time_entries, users
+from ..database.crud import games, users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils import messages as msg
-from ..utils import my_utils as utils
 from ..utils.clockify_api import ClockifyApi
 from ..utils.logger import LogManager
 

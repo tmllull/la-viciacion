@@ -1,10 +1,6 @@
-from enum import Enum
-from typing import Union
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi import APIRouter, Request
 from fastapi_versioning import version
 
-from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
 from ..utils.logger import LogManager
 

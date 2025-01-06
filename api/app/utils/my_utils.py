@@ -10,7 +10,7 @@ import telegram
 from dateutil.parser import isoparse
 from howlongtobeatpy import HowLongToBeat
 from PIL import Image
-from sqlalchemy import asc, create_engine, desc, func, select, text, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import Config

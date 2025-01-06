@@ -1,17 +1,16 @@
 import datetime
 import sentry_sdk
 from sentry_sdk.types import Event, Hint
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_versioning import VersionedFastAPI
 
 from .config import Config
 from .database import models
-from .database.database import SessionLocal, engine
+from .database.database import engine
 from .routers import (
     admin,
     basic,
-    bot,
     games,
     statistics,
     users,

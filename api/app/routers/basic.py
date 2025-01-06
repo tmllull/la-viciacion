@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
@@ -12,7 +12,6 @@ from ..database.crud import users
 from ..database import models, schemas
 from ..database.database import SessionLocal, engine
 from ..utils import actions as actions
-from ..utils import my_utils as utils
 from ..utils.custom_exceptions import CustomExceptions
 from ..utils.logger import LogManager
 

@@ -1,14 +1,4 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-    Header,
-    HTTPException,
-    Query,
-    Response,
-    Security,
-    UploadFile,
-    status,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_versioning import version
 from sqlalchemy.orm import Session
 

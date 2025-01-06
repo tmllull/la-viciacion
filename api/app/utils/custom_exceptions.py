@@ -1,6 +1,5 @@
 from enum import Enum
 
-from ..database import schemas
 from ..utils.logger import LogManager
 
 log_manager = LogManager()

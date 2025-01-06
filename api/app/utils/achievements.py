@@ -1,11 +1,4 @@
-import datetime
 from enum import Enum
-
-from sqlalchemy import update
-from sqlalchemy.orm import Session
-
-from ..database import models
-from . import my_utils as utils
 
 
 class AchievementsElems(Enum):

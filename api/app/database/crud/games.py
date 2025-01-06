@@ -1,8 +1,6 @@
-import datetime
-from typing import Union
 import random
 
-from sqlalchemy import asc, create_engine, delete, desc, func, select, text, update, or_
+from sqlalchemy import asc, desc, update, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 

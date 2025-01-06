@@ -1,6 +1,4 @@
-import base64
 import logging
-import sys
 import os
 from logging.handlers import TimedRotatingFileHandler
 

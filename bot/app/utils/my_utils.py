@@ -102,7 +102,7 @@ class MyUtils:
             response = self.make_request("GET", url)
             if response.status_code == 200:
                 user = {"username": username, "telegram_id": user_id}
-                url = config.API_URL + "/users"
+                url = config.API_URL + "/users/telegram"
                 response = self.make_request("PATCH", url, json=user)
                 logger.info(response.json())
                 return True, response.json()

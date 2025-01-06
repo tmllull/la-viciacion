@@ -49,11 +49,11 @@ def get_db():
 
 @router.get("/")
 @version(1)
-def test_endpoint(user: models.User = Security(auth.get_current_active_user)):
+def test_endpoint(user: models.User = Security(auth.check_api_or_token_auth)):
     """_summary_
 
     Args:
-        user (models.User, optional): _description_. Defaults to Security(auth.get_current_active_user).
+        user (models.User, optional): _description_. Defaults to Security(auth.check_api_or_token_auth).
 
     Raises:
         HTTPException: _description_
@@ -70,13 +70,13 @@ def test_endpoint(user: models.User = Security(auth.get_current_active_user)):
 @version(1)
 def init(
     db: Session = Depends(get_db),
-    api_key: None = Security(auth.get_api_key),
+    api_key: None = Security(auth.check_api_or_token_auth),
 ):
     """_summary_
 
     Args:
         db (Session, optional): _description_. Defaults to Depends(get_db).
-        api_key (None, optional): _description_. Defaults to Security(auth.get_api_key).
+        api_key (None, optional): _description_. Defaults to Security(auth.check_api_or_token_auth).
 
     Raises:
         HTTPException: _description_
@@ -97,7 +97,7 @@ def init(
 @router.get("/sync-data")
 @version(1)
 async def sync_data(
-    api_key: None = Security(auth.get_api_key),
+    api_key: None = Security(auth.check_api_or_token_auth),
     user_clfy_id: str = Query(
         default=None,
         title="User Clockify ID",
@@ -123,7 +123,7 @@ async def sync_data(
     """Sync data from Clockify
 
     Args:
-        api_key (None, optional): API Key. Defaults to Security(auth.get_api_key).
+        api_key (None, optional): API Key. Defaults to Security(auth.check_api_or_token_auth).
         sync_season (bool, optional): Select if sync entire current season. Defaults to Query( default=None, title="Sync all season data", description="Sync all time entries for the current year", ).
         silent (bool, optional): Sync data without send Telegram notifications. Defaults to Query( default=None, title="Run in silent mode", description="Disable Telegram notifications", ).
         sync_all (bool, optional): Sync entire data (from the very beginning). Defaults to Query( default=None, title="Sync all data", description="Sync all time entries for the whole time", ).
@@ -153,16 +153,16 @@ async def sync_data(
 @version(1)
 def update_user(
     user_data: schemas.UserUpdateForAdmin,
-    # api_key: None = Security(auth.get_api_key),
-    user: models.User = Security(auth.get_current_active_user),
+    # api_key: None = Security(auth.check_api_or_token_auth),
+    user: models.User = Security(auth.check_api_or_token_auth),
     db: Session = Depends(get_db),
 ):
     """_summary_
 
     Args:
-        api_key (None, optional): API Key. Defaults to Security(auth.get_api_key).
+        api_key (None, optional): API Key. Defaults to Security(auth.check_api_or_token_auth).
         user_data (schemas.UserUpdateForAdmin): _description_
-        user (models.User, optional): _description_. Defaults to Security(auth.get_current_active_user).
+        user (models.User, optional): _description_. Defaults to Security(auth.check_api_or_token_auth).
         db (Session, optional): _description_. Defaults to Depends(get_db).
 
     Raises:
@@ -185,14 +185,14 @@ def update_user(
 def activate_account(
     username: str,
     db: Session = Depends(get_db),
-    api_key: None = Security(auth.get_api_key),
+    api_key: None = Security(auth.check_api_or_token_auth),
 ):
     """_summary_
 
     Args:
         username (str): _description_
         db (Session, optional): _description_. Defaults to Depends(get_db).
-        api_key (None, optional): _description_. Defaults to Security(auth.get_api_key).
+        api_key (None, optional): _description_. Defaults to Security(auth.check_api_or_token_auth).
 
     Raises:
         HTTPException: _description_
@@ -210,13 +210,13 @@ def activate_account(
 @version(1)
 def send_email(
     info: schemas.Email,
-    api_key: None = Security(auth.get_api_key),
+    api_key: None = Security(auth.check_api_or_token_auth),
 ):
     """_summary_
 
     Args:
         info (schemas.Email): _description_
-        api_key (None, optional): _description_. Defaults to Security(auth.get_api_key).
+        api_key (None, optional): _description_. Defaults to Security(auth.check_api_or_token_auth).
 
     Returns:
         _type_: _description_

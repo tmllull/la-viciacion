@@ -546,6 +546,6 @@ class DataRoutes:
     async def cancel_data(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
-        logger.info("Closing excel menu...")
+        logger.info("Closing data menu...")
         await update.message.reply_text("Taluego!", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END

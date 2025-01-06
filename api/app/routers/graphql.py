@@ -23,7 +23,7 @@ graphql_app = GraphQLRouter(
     schema=schema,
     tags=["GraphQL"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.check_any_auth)],
+    dependencies=[Depends(auth.check_api_or_token_auth)],
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -32,7 +32,7 @@ models.Base.metadata.create_all(bind=engine)
 #     # prefix="/graphql",
 #     tags=["GraphQL"],
 #     responses={404: {"description": "Not found"}},
-#     dependencies=[Depends(auth.get_api_key)],
+#     dependencies=[Depends(auth.check_api_or_token_auth)],
 # )
 
 

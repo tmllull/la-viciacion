@@ -21,7 +21,7 @@ models.Base.metadata.create_all(bind=engine)
 
 achievements = Achievements()
 
-# To add dependency for active user: dependencies=[Depends(auth.get_current_active_user)],
+# To add dependency for active user: dependencies=[Depends(auth.check_api_or_token_auth)],
 router = APIRouter(
     prefix="/utils",
     tags=["Utils"],
@@ -42,7 +42,7 @@ def get_db():
 @version(1)
 def platforms(
     db: Session = Depends(get_db),
-    user: models.User = Security(auth.get_current_active_user),
+    user: models.User = Security(auth.check_api_or_token_auth),
 ):
     """
     Get platforms list
@@ -58,7 +58,7 @@ def platforms(
 @version(1)
 def achievements_list(
     db: Session = Depends(get_db),
-    user: models.User = Security(auth.get_current_active_user),
+    user: models.User = Security(auth.check_api_or_token_auth),
 ):
     """
     Get achievements list
@@ -74,7 +74,7 @@ def achievements_list(
 @version(1)
 def get_playing_users(
     db: Session = Depends(get_db),
-    user_logged: models.User = Security(auth.get_current_active_user),
+    user_logged: models.User = Security(auth.check_api_or_token_auth),
 ):
     """
     Get playing users
@@ -102,7 +102,7 @@ async def upload_achievement_image(
     # file: Annotated[UploadFile, File(description="A file read as UploadFile")],
     file: UploadFile,
     db: Session = Depends(get_db),
-    user: models.User = Security(auth.get_current_active_user),
+    user: models.User = Security(auth.check_api_or_token_auth),
 ):
     """
     Upload achievement image
@@ -134,7 +134,7 @@ async def upload_achievement_image(
 async def get_achievement_image(
     achievement: str,
     db: Session = Depends(get_db),
-    # api_key: None = Security(auth.get_api_key),
+    # api_key: None = Security(auth.check_api_or_token_auth),
 ):
     """
     Get achievement image

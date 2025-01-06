@@ -17,7 +17,7 @@ class Config:
             self.CLOCKIFY_BASEURL = config["CLOCKIFY_BASEURL"]
             self.CLOCKIFY_WORKSPACE = config["CLOCKIFY_WORKSPACE"]
             self.CLOCKIFY_ADMIN_API_KEY = config["CLOCKIFY_ADMIN_API_KEY"]
-            self.API_URL = config["API_URL"] + "/bot"
+            self.API_URL = config["API_URL"]
             self.API_KEY = config["API_KEY"]
             self.SECRET_KEY = config["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = config["ACCESS_TOKEN_EXPIRE_MINUTES"]
@@ -33,7 +33,7 @@ class Config:
             self.CLOCKIFY_BASEURL = os.environ["CLOCKIFY_BASEURL"]
             self.CLOCKIFY_WORKSPACE = os.environ["CLOCKIFY_WORKSPACE"]
             self.CLOCKIFY_ADMIN_API_KEY = os.environ["CLOCKIFY_ADMIN_API_KEY"]
-            self.API_URL = os.environ["API_URL"] + "/bot"
+            self.API_URL = os.environ["API_URL"]
             self.API_KEY = os.environ["API_KEY"]
             self.SECRET_KEY = os.environ["SECRET_KEY"]
             self.ACCESS_TOKEN_EXPIRE_MINUTES = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]

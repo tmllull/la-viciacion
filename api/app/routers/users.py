@@ -35,7 +35,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_current_active_user)],
+    dependencies=[Depends(auth.check_api_or_token_auth)],
 )
 
 
@@ -122,11 +122,11 @@ async def get_weekly_resume(username: str, db: Session = Depends(get_db)):
 #     return users.create_user(db=db, user=user)
 
 
-@router.put("/", response_model=schemas.User)
+@router.patch("/", response_model=schemas.User)
 @version(1)
 def update_user(
     user: schemas.UserUpdate,
-    active_user: models.User = Security(auth.get_current_active_user),
+    active_user: models.User = Security(auth.check_api_or_token_auth),
     db: Session = Depends(get_db),
 ):
     """
@@ -138,6 +138,23 @@ def update_user(
     if db_user is None:
         raise HTTPException(status_code=404, detail=msg.USER_NOT_EXISTS)
     return users.update_user(db=db, user=user)
+
+
+@router.patch("/telegram", response_model=schemas.User)
+@version(1)
+def update_user_from_telegram(
+    user: schemas.TelegramUser, db: Session = Depends(get_db)
+):
+    """_summary_
+
+    Args:
+        user (schemas.TelegramUser): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+
+    Returns:
+        _type_: _description_
+    """
+    return users.update_user_telegram_id(db, user)
 
 
 @router.post("/{username}/new_game", response_model=schemas.UserGame)

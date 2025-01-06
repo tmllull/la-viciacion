@@ -19,7 +19,7 @@ router = APIRouter(
     prefix="/games",
     tags=["Games"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_current_active_user)],
+    dependencies=[Depends(auth.check_api_or_token_auth)],
 )
 
 

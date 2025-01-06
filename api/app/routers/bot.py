@@ -22,7 +22,7 @@ router = APIRouter(
     prefix="/bot",
     tags=["Bot"],
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(auth.get_api_key)],
+    dependencies=[Depends(auth.check_api_or_token_auth)],
 )
 
 

@@ -699,7 +699,7 @@ async def complete_game(
             .where(
                 models.UserGame.game_id == game_id,
                 models.UserGame.user_id == user_id,
-                extract("year", models.UserGame.started_date) == season,
+                extract("year", models.UserGame.started_date) == completed_date.year,
             )
             .values(
                 completed=1,

@@ -687,7 +687,7 @@ async def complete_game(
                 user_game.platform,
                 completed=True,
             )
-            return get_game_by_id(db, user_id, game_id)
+            return get_game_by_id(db, user_id, game_id, current_year)
         if completed_date is None:
             completed_date = datetime.datetime.now()
         else:
@@ -747,7 +747,7 @@ async def complete_game(
             system_prompt=prompts.COMPLETED_GAME_PROMPT,
             new_game_recommended=new_game_info,
         )
-        return get_game_by_id(db, user_id, game_id)
+        return get_game_by_id(db, user_id, game_id, current_year)
 
     except Exception as e:
         db.rollback()
@@ -776,7 +776,7 @@ async def rate_game(
         )
         db.execute(stmt)
         db.commit()
-        return get_game_by_id(db, user_id, game_id)
+        return get_game_by_id(db, user_id, game_id, season)
 
     except Exception as e:
         db.rollback()

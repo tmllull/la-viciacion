@@ -61,17 +61,23 @@ def create_admin_user(db: Session, username: str):
             raise
 
 
-def get_users(db: Session) -> list[models.User]:
-    """Get all users
+def get_users(db: Session, is_active: bool | None = True) -> list[models.User]:
+    """
+    Get users based on their active status.
 
     Args:
         db (Session): DB Session
+        is_active (bool | None): Filter by active status.
+                                 True for active, False for inactive, None for all.
 
     Returns:
-        list[models.User]: List of all users
+        list[models.User]: List of users based on the filter.
     """
     try:
-        return db.query(models.User)
+        query = db.query(models.User)
+        if is_active is not None:  # Apply filter only if is_active is not None
+            query = query.filter(models.User.is_active == is_active)
+        return query.all()
     except SQLAlchemyError as e:
         logger.error("Error getting users: " + str(e))
         raise
@@ -371,7 +377,6 @@ async def add_new_game(
     game: schemas.NewGameUser,
     user: models.User,
     start_date: str = None,
-    season: int = current_season,
     silent: bool = False,
     from_sync=False,
 ) -> models.UserGame:
@@ -391,7 +396,7 @@ async def add_new_game(
                 completed=0,
                 platform=game.platform,
                 started_date=started_date,
-                season=season,
+                season=started_date.year,
             )
             db.add(user_game)
             db.commit()

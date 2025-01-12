@@ -35,6 +35,7 @@ async def sync_data(
     # logger.info("Sync data...")
     current_season = datetime.datetime.now().year
     current_date = datetime.datetime.now()
+    active_users = True
     start_time = time.time()
     week_day = current_date.weekday()
     hour = current_date.hour
@@ -47,6 +48,7 @@ async def sync_data(
     if sync_season:
         start_date = str(current_date.year) + "-01-01"
         silent = True
+        active_users = None
         logger.info("Sync data from " + str(start_date))
         logger.info("Cleaning season tables...")
         db.query(models.TimeEntry).delete()
@@ -58,6 +60,7 @@ async def sync_data(
     if sync_all:
         start_date = config.INITIAL_DATE
         silent = True
+        active_users = None
         logger.info("Sync ALL data from " + str(start_date))
         logger.info("Cleaning season and historical tables...")
         db.query(models.TimeEntry).delete()
@@ -75,7 +78,7 @@ async def sync_data(
     achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
     achievements.populate_achievements(db)
-    users_db = users.get_users(db)
+    users_db = users.get_users(db, is_active=active_users)
     # Clear tables on new year (season)
     if current_date.month == 1 and current_date.day == 1:
         start_date = str(current_date.year) + "-01-01"
@@ -238,7 +241,7 @@ async def sync_data(
 
         # Others
         await achievements.teamwork(db, silent)
-        users_db = users.get_users(db)
+        users_db = users.get_users(db, is_active=active_users)
         # Check weekly resume only on monday at 9:00
         if week_day == 0 and hour == 9 and minute == 0:
             for user in users_db:

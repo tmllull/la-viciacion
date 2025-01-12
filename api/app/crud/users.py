@@ -485,17 +485,17 @@ def update_played_time_game(
         logger.error("Error updating played time game: " + str(e))
         raise
 
+
 def count_played_games(db: Session, user_id: int, season: int = current_season):
     try:
         return (
-            db.query(models.UserGame)
-            .filter_by(user_id=user_id, season=season)
-            .count()
+            db.query(models.UserGame).filter_by(user_id=user_id, season=season).count()
         )
     except SQLAlchemyError as e:
         logger.error("Error counting played games: " + str(e))
         raise e
-    
+
+
 def get_games(
     db: Session,
     user_id,
@@ -514,7 +514,9 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .outerjoin(
+                models.PlatformTag, models.UserGame.platform == models.PlatformTag.id
+            )
             .join(
                 models.TimeEntry,
                 models.TimeEntry.project_clockify_id == models.Game.id,
@@ -523,7 +525,8 @@ def get_games(
                 models.UserGame.user_id == user_id,
                 models.UserGame.completed == completed,
                 extract("year", models.UserGame.started_date) == season,
-                models.UserGame.user_id == user_id, models.TimeEntry.user_id == user_id
+                models.UserGame.user_id == user_id,
+                models.TimeEntry.user_id == user_id,
             )
             .group_by(
                 models.UserGame.user_id,
@@ -556,7 +559,9 @@ def get_games(
                 models.TimeEntry.start.label("last_played_time"),
             )
             .join(models.Game, models.UserGame.game_id == models.Game.id)
-            .outerjoin(models.PlatformTag, models.UserGame.platform == models.PlatformTag.id)
+            .outerjoin(
+                models.PlatformTag, models.UserGame.platform == models.PlatformTag.id
+            )
             .join(
                 models.TimeEntry,
                 models.TimeEntry.project_clockify_id == models.Game.id,
@@ -564,7 +569,8 @@ def get_games(
             .where(
                 models.UserGame.user_id == user_id,
                 extract("year", models.UserGame.started_date) == season,
-                models.UserGame.user_id == user_id, models.TimeEntry.user_id == user_id
+                models.UserGame.user_id == user_id,
+                models.TimeEntry.user_id == user_id,
             )
             .group_by(
                 models.UserGame.user_id,
@@ -588,9 +594,7 @@ def get_games(
         return unique_data
 
 
-def get_game_by_id(
-    db: Session, user_id, game_id, season
-) -> models.UserGame:
+def get_game_by_id(db: Session, user_id, game_id, season) -> models.UserGame:
     return (
         db.query(models.UserGame)
         .filter_by(user_id=user_id, game_id=game_id, season=season)
@@ -651,9 +655,7 @@ def update_played_time(db: Session, user_id, played_time):
         raise e
 
 
-def game_is_completed(
-    db: Session, player, game, season: int = current_season
-) -> bool:
+def game_is_completed(db: Session, player, game, season: int = current_season) -> bool:
     stmt = select(models.UserGame).where(
         models.UserGame.game == game,
         models.UserGame.player == player,
@@ -689,7 +691,7 @@ async def complete_game(
                 user_game.platform,
                 completed=True,
             )
-            return get_game_by_id(db, user_id, game_id)
+            return get_game_by_id(db, user_id, game_id, current_year)
         if completed_date is None:
             completed_date = datetime.datetime.now()
         else:
@@ -749,12 +751,13 @@ async def complete_game(
             system_prompt=prompts.COMPLETED_GAME_PROMPT,
             new_game_recommended=new_game_info,
         )
-        return get_game_by_id(db, user_id, game_id)
+        return get_game_by_id(db, user_id, game_id, current_year)
 
     except Exception as e:
         db.rollback()
         logger.error("Error completing game: " + str(e))
         raise e
+
 
 async def rate_game(
     db: Session,
@@ -777,7 +780,7 @@ async def rate_game(
         )
         db.execute(stmt)
         db.commit()
-        return get_game_by_id(db, user_id, game_id)
+        return get_game_by_id(db, user_id, game_id, season)
 
     except Exception as e:
         db.rollback()
@@ -798,11 +801,16 @@ def get_streaks(db: Session, username: str):
         raise e
 
 
-def update_streaks(db: Session, user_id, current_streak, 
-                   best_streak, best_streak_date, 
-                   best_unplayed_streak, 
-                   best_unplayed_streak_date, 
-                   current_unplayed_streak):
+def update_streaks(
+    db: Session,
+    user_id,
+    current_streak,
+    best_streak,
+    best_streak_date,
+    best_unplayed_streak,
+    best_unplayed_streak_date,
+    current_unplayed_streak,
+):
     try:
         stmt = (
             update(models.UserStatistics)
@@ -811,10 +819,9 @@ def update_streaks(db: Session, user_id, current_streak,
                 current_streak=current_streak,
                 best_streak=best_streak,
                 best_streak_date=best_streak_date,
-                best_unplayed_streak=best_unplayed_streak, 
-                best_unplayed_streak_date=best_unplayed_streak_date, 
-                current_unplayed_streak=current_unplayed_streak
-                
+                best_unplayed_streak=best_unplayed_streak,
+                best_unplayed_streak_date=best_unplayed_streak_date,
+                current_unplayed_streak=current_unplayed_streak,
             )
         )
         db.execute(stmt)

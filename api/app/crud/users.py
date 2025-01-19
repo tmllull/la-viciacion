@@ -65,17 +65,23 @@ def create_admin_user(db: Session, username: str):
             raise
 
 
-def get_users(db: Session) -> list[models.User]:
-    """Get all users
+def get_users(db: Session, is_active: bool | None = True) -> list[models.User]:
+    """
+    Get users based on their active status.
 
     Args:
         db (Session): DB Session
+        is_active (bool | None): Filter by active status.
+                                 True for active, False for inactive, None for all.
 
     Returns:
-        list[models.User]: List of all users
+        list[models.User]: List of users based on the filter.
     """
     try:
-        return db.query(models.User)
+        query = db.query(models.User)
+        if is_active is not None:  # Apply filter only if is_active is not None
+            query = query.filter(models.User.is_active == is_active)
+        return query.all()
     except SQLAlchemyError as e:
         logger.error("Error getting users: " + str(e))
         raise
@@ -832,33 +838,58 @@ def update_streaks(
         raise e
 
 
-def played_time(db: Session, limit: int = None) -> list[models.UserStatistics]:
-    return (
+def played_time(
+    db: Session, limit: int = None, is_active: bool | None = True
+) -> list[models.UserStatistics]:
+    query = (
         db.query(models.UserStatistics)
+        .join(models.User, models.User.id == models.UserStatistics.user_id)
         .order_by(desc(models.UserStatistics.played_time))
-        .limit(limit)
     )
 
+    if is_active is not None:
+        query = query.filter(models.User.is_active == is_active)
 
-def played_days(db: Session, limit: int = None) -> list[models.UserStatistics]:
-    return (
+    if limit is not None:
+        query = query.limit(limit)  # Aplica el límite si está definido
+
+    return query.all()
+
+
+def played_days(
+    db: Session, limit: int = None, is_active: bool | None = True
+) -> list[models.UserStatistics]:
+    query = (
         db.query(models.UserStatistics)
+        .join(models.User, models.User.id == models.UserStatistics.user_id)
         .order_by(desc(models.UserStatistics.played_days))
-        .limit(limit)
     )
+
+    if is_active is not None:
+        query = query.filter(models.User.is_active == is_active)
+
+    if limit is not None:
+        query = query.limit(limit)  # Aplica el límite si está definido
+
+    return query.all()
 
 
 def current_ranking_hours(
-    db: Session, limit: int = None
+    db: Session, limit: int = None, is_active: bool | None = True
 ) -> list[models.UserStatistics]:
-    try:
-        return (
-            db.query(models.UserStatistics)
-            .order_by(asc(models.UserStatistics.current_ranking_hours))
-            .limit(limit)
-        )
-    except Exception as e:
-        logger.error("Error getting current ranking hours: " + str(e))
+    query = (
+        db.query(models.UserStatistics)
+        .join(models.User, models.User.id == models.UserStatistics.user_id)
+        .order_by(asc(models.UserStatistics.current_ranking_hours))
+    )
+
+    if is_active is not None:
+        query = query.filter(models.User.is_active == is_active)
+
+    if limit is not None:
+        query = query.limit(limit)  # Aplica el límite si está definido
+
+    return query.all()
 
 
 def update_current_ranking_hours(db: Session, ranking, user_id):

@@ -1,5 +1,7 @@
 import datetime
 import sentry_sdk
+import logging
+
 from sentry_sdk.types import Event, Hint
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,6 +43,27 @@ if config.SENTRY_URL is not None and config.SENTRY_URL != "":
         before_send=before_send,
     )
 
+
+class EndpointFilter(logging.Filter):
+    """
+    Filter to exclude specific endpoints from logging.
+    """
+
+    def __init__(self, excluded_paths: list):
+        super().__init__()
+        self.excluded_paths = excluded_paths
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not any(path in record.getMessage() for path in self.excluded_paths)
+
+
+# Exclude specific paths from logging configuration
+base_path = "/api/v1"
+excluded_paths = ["/keepalive"]
+full_excluded_paths = [f"{base_path}{path}" for path in excluded_paths]
+uvicorn_logger = logging.getLogger("uvicorn.access")
+uvicorn_logger.addFilter(EndpointFilter(excluded_paths))
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LaViciacion API", version="0.1.0")
@@ -67,21 +90,27 @@ app.add_middleware(
 
 @app.middleware("http")
 async def add_timestamp_to_logs(request, call_next):
-    start_time = datetime.datetime.now()
-    response = await call_next(request)
-    end_time = datetime.datetime.now()
-
-    duration = end_time - start_time
-
-    query_params = request.query_params
-
-    if query_params:
-        query_str = f"?{query_params}"
+    # Exclude logs from specific paths
+    if request.url.path in full_excluded_paths:
+        response = await call_next(request)
+        return response
     else:
-        query_str = ""
 
-    logger.info(
-        f'REQUEST - "{request.method} {request.url.path}{query_str}" - {response.status_code} - {duration}'
-    )
+        start_time = datetime.datetime.now()
+        response = await call_next(request)
+        end_time = datetime.datetime.now()
 
-    return response
+        duration = end_time - start_time
+
+        query_params = request.query_params
+
+        if query_params:
+            query_str = f"?{query_params}"
+        else:
+            query_str = ""
+
+        logger.info(
+            f'REQUEST - "{request.method} {request.url.path}{query_str}" - {response.status_code} - {duration}'
+        )
+
+        return response

@@ -40,6 +40,9 @@ async def sync_data(
     only_time_entries: bool = False,
 ):
     # logger.info("Sync data...")
+    logger.info(only_acive_users)
+    logger.info(only_time_entries)
+    logger.info(silent)
     current_season = datetime.datetime.now().year
     current_date = datetime.datetime.now()
     start_time = time.time()

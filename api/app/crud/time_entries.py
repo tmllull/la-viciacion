@@ -40,9 +40,7 @@ def get_users_played_time(db: Session, season: int = current_season):
     return db.execute(stmt)
 
 
-def get_user_played_time(
-    db: Session, user_id: str, season: int = current_season
-):
+def get_user_played_time(db: Session, user_id: str, season: int = current_season):
     stmt = (
         select(
             models.TimeEntry.user_id,
@@ -57,12 +55,18 @@ def get_user_played_time(
     return db.execute(stmt).first()
 
 
-def get_games_played_time(db: Session, season: int = current_season):
+def get_games_played_time(
+    db: Session, season: int = current_season, is_active: bool = True
+):
     stmt = (
         select(
             models.TimeEntry.project_clockify_id, func.sum(models.TimeEntry.duration)
         )
-        .where(extract("year", models.TimeEntry.start) == season)
+        .join(models.User, models.TimeEntry.user_id == models.User.id)
+        .where(
+            extract("year", models.TimeEntry.start) == season,
+            models.User.is_active == is_active,
+        )
         .group_by(models.TimeEntry.project_clockify_id)
     )
     result = db.execute(stmt)
@@ -296,7 +300,9 @@ async def sync_clockify_entries_db(
                     db.commit()
                 except Exception as e:
                     db.rollback()
-                    logger.error("Error creating time entry " + str(entry) + ": " + str(e))
+                    logger.error(
+                        "Error creating time entry " + str(entry) + ": " + str(e)
+                    )
             # Update existing time entry
             else:
                 try:
@@ -324,7 +330,9 @@ async def sync_clockify_entries_db(
                     db.commit()
                 except Exception as e:
                     db.rollback()
-                    logger.error("Error updating time entry " + str(entry) + ": " + str(e))
+                    logger.error(
+                        "Error updating time entry " + str(entry) + ": " + str(e)
+                    )
 
             # Check if game on clockify already exists on local DB
             game = games.get_game_by_id(db, entry["projectId"])
@@ -348,7 +356,9 @@ async def sync_clockify_entries_db(
                 games.create_game_statistics(db, game_id)
                 games.create_game_statistics_historical(db, game_id)
             except Exception as e:
-                logger.error("Error creating game statistics for " + game_name + ": " + str(e))
+                logger.error(
+                    "Error creating game statistics for " + game_name + ": " + str(e)
+                )
 
             # Check if player already plays the game this season
             # if time_entry_year == config.CURRENT_SEASON:
@@ -356,7 +366,9 @@ async def sync_clockify_entries_db(
             if not already_playing:
                 try:
                     logger.info("User not playing " + game_name)
-                    new_user_game = schemas.NewGameUser(game_id=game_id, platform=platform)
+                    new_user_game = schemas.NewGameUser(
+                        game_id=game_id, platform=platform
+                    )
                     await users.add_new_game(
                         db,
                         game=new_user_game,
@@ -365,7 +377,9 @@ async def sync_clockify_entries_db(
                         silent=silent,
                         from_sync=True,
                     )
-                    already_playing = users.get_game_by_id(db, user.id, game_id, current_season)
+                    already_playing = users.get_game_by_id(
+                        db, user.id, game_id, current_season
+                    )
                 except Exception as e:
                     logger.error("Error adding game " + game_name + ": " + str(e))
             try:
@@ -382,7 +396,9 @@ async def sync_clockify_entries_db(
                         db.commit()
                     except Exception as e:
                         db.rollback()
-                        logger.error("Error updating platform for " + game_name + ": " + str(e))
+                        logger.error(
+                            "Error updating platform for " + game_name + ": " + str(e)
+                        )
             except Exception as e:
                 logger.error("Error updating platform for " + game_name + ": " + str(e))
             if completed is not None and already_playing.completed != 1:
@@ -467,9 +483,7 @@ def get_time_entry_by_time(
     return time_entry
 
 
-def get_played_time_by_day(
-    db: Session, user_id: int, season: int = current_season
-):
+def get_played_time_by_day(db: Session, user_id: int, season: int = current_season):
     played_start_days = (
         db.query(func.DATE(models.TimeEntry.start), func.sum(models.TimeEntry.duration))
         .filter(

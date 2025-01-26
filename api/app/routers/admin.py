@@ -118,6 +118,11 @@ async def sync_data(
         title="Sync all data",
         description="Sync all time entries for the whole time",
     ),
+    only_time_entries: bool = Query(
+        default=None,
+        title="Sync only time entries",
+        description="Sync all time entries for the whole time, but not calculate anything",
+    ),
     db: Session = Depends(get_db),
 ):
     """Sync data from Clockify
@@ -143,6 +148,7 @@ async def sync_data(
             sync_season=sync_season,
             silent=silent,
             sync_all=sync_all,
+            only_time_entries=only_time_entries,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

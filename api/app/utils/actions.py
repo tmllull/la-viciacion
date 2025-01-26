@@ -37,6 +37,7 @@ async def sync_data(
     silent: bool = False,
     sync_all: bool = False,
     only_acive_users: bool = True,
+    only_time_entries: bool = False,
 ):
     # logger.info("Sync data...")
     current_season = datetime.datetime.now().year
@@ -50,38 +51,45 @@ async def sync_data(
         silent = True
     else:
         silent = False
-    if sync_season:
-        start_date = str(current_date.year) + "-01-01"
-        silent = True
-        logger.info("Sync data from " + str(start_date))
-        logger.info("Cleaning season tables...")
-        db.query(models.TimeEntry).delete()
-        # db.query(models.UserGame).delete()
-        # db.query(models.UserAchievement).delete()
-        # db.query(models.UserStatistics).delete()
-        # db.query(models.GameStatistics).delete()
-        db.commit()
-    if sync_all:
+    if not only_time_entries:
+        if sync_season:
+            start_date = str(current_date.year) + "-01-01"
+            silent = True
+            logger.info("Sync data from " + str(start_date))
+            logger.info("Cleaning season tables...")
+            # db.query(models.TimeEntry).delete()
+            db.query(models.UserGame).delete()
+            # db.query(models.UserAchievement).delete()
+            db.query(models.UserStatistics).delete()
+            db.query(models.GameStatistics).delete()
+            db.commit()
+        if sync_all:
+            start_date = config.INITIAL_DATE
+            silent = True
+            logger.info("Sync ALL data from " + str(start_date))
+            # logger.info("Cleaning season and historical tables...")
+            # db.query(models.TimeEntry).delete()
+            # db.query(models.TimeEntryHistorical).delete()
+            db.query(models.UserGame).delete()
+            # db.query(models.UserGameHistorical).delete()
+            # db.query(models.UserAchievement).delete()
+            # db.query(models.UserAchievementHistorical).delete()
+            db.query(models.UserStatistics).delete()
+            # db.query(models.UserStatisticsHistorical).delete()
+            db.query(models.GameStatistics).delete()
+            # db.query(models.GameStatisticsHistorical).delete()
+            db.commit()
+            # logger.info("Sync ALL data from " + start_date + "...")
+    else:
         start_date = config.INITIAL_DATE
+        only_acive_users = False
         silent = True
-        logger.info("Sync ALL data from " + str(start_date))
-        logger.info("Cleaning season and historical tables...")
-        db.query(models.TimeEntry).delete()
-        # db.query(models.TimeEntryHistorical).delete()
-        # db.query(models.UserGame).delete()
-        # db.query(models.UserGameHistorical).delete()
-        # db.query(models.UserAchievement).delete()
-        # db.query(models.UserAchievementHistorical).delete()
-        # db.query(models.UserStatistics).delete()
-        # db.query(models.UserStatisticsHistorical).delete()
-        # db.query(models.GameStatistics).delete()
-        # db.query(models.GameStatisticsHistorical).delete()
-        db.commit()
-        # logger.info("Sync ALL data from " + start_date + "...")
+        logger.info("Sync ALL time entries from " + str(start_date))
+
     achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)
     achievements.populate_achievements(db)
-    users_db = users.get_users(db)
+    users_db = users.get_users(db, only_acive_users)
     # Clear tables on new year (season)
     if current_date.month == 1 and current_date.day == 1:
         start_date = str(current_date.year) + "-01-01"
@@ -140,8 +148,14 @@ async def sync_data(
             # Sync time_entries from Clockify with local DB
             # logger.debug("Sync clockify entries for " + str(user_name) + "...")
             total_entries = await utils.sync_clockify_entries(
-                db, user, start_date, silent
+                db, user, start_date, only_time_entries, silent
             )
+
+            # If only_time_entries is True, skip the rest of the checks and calculations
+            if only_time_entries:
+                # logger.info("Only time entries sync")
+                continue
+            # logger.info("THIS NOT SHOULD BE PRINTED")
 
             # if total_entries < 1:
             #     # logger.debug("No time entries for " + str(user_name))
@@ -223,34 +237,40 @@ async def sync_data(
             calculation_elapsed_time = calculation_end_time - calculation_start_time
             logger.debug("Time spent on calculations: " + str(calculation_elapsed_time))
 
-        logger.info("#########################")
-        logger.info("#### GENERAL CHECKS #####")
-        logger.info("#########################")
+        # If only_time_entries is True, skip the rest of the checks and calculations
+        if not only_time_entries:
+            # logger.info("Only time entries sync")
 
-        # Update some game statistics
-        # logger.debug("Updating played time for games...")
-        played_time_games = time_entries.get_games_played_time(db)
-        for game in played_time_games:
-            games.update_total_played_time(db, game[0], game[1])
+            logger.info("#########################")
+            logger.info("#### GENERAL CHECKS #####")
+            logger.info("#########################")
 
-        # Check rankings
-        # Notifications enabled
-        await ranking_games_hours(db, silent=silent)
-        await ranking_players_hours(db, silent=silent)
+            # Update some game statistics
+            # logger.debug("Updating played time for games...")
+            played_time_games = time_entries.get_games_played_time(db)
+            for game in played_time_games:
+                games.update_total_played_time(db, game[0], game[1])
 
-        # Notifications disabled
-        # await ranking_games_hours(db, silent=True)
-        # await ranking_players_hours(db, silent=True)
+            # Check rankings
+            # Notifications enabled
+            await ranking_games_hours(db, silent=silent)
+            await ranking_players_hours(db, silent=silent)
 
-        # Others
-        await achievements.teamwork(db, silent)
-        users_db = users.get_users(db)
-        # Check weekly resume only on monday at 9:00
-        if week_day == 0 and hour == 9 and minute == 0:
-            for user in users_db:
-                await weekly_resume(db, user, weeks_ago=1, silent=silent)
+            # Notifications disabled
+            # await ranking_games_hours(db, silent=True)
+            # await ranking_players_hours(db, silent=True)
+
+            # Others
+            await achievements.teamwork(db, silent)
+            users_db = users.get_users(db)
+            # Check weekly resume only on monday at 9:00
+            if week_day == 0 and hour == 9 and minute == 0:
+                for user in users_db:
+                    await weekly_resume(db, user, weeks_ago=1, silent=silent)
+
         end_time = time.time()
         elapsed_time = end_time - start_time
+
         if elapsed_time > 30 and (not sync_all and not sync_season):
             msg = (
                 "❗Ejecución lenta❗\n"

@@ -250,7 +250,11 @@ async def get_new_game_info(game) -> schemas.NewGame:
 
 
 async def sync_clockify_entries(
-    db: Session, user: models.User, date: str = None, silent: bool = False
+    db: Session,
+    user: models.User,
+    date: str = None,
+    only_time_entries: bool = False,
+    silent: bool = False,
 ):
     try:
         start_time = time.time()
@@ -260,7 +264,9 @@ async def sync_clockify_entries(
         logger.info("Sync " + str(total_entries) + " entries for " + str(user.name))
         if total_entries == 0:
             return 0
-        await time_entries.sync_clockify_entries_db(db, user, entries, silent)
+        await time_entries.sync_clockify_entries_db(
+            db, user, entries, only_time_entries, silent
+        )
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.debug("Elapsed time for sync time entries: " + str(elapsed_time))

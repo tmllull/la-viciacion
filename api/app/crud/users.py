@@ -65,7 +65,7 @@ def create_admin_user(db: Session, username: str):
             raise
 
 
-def get_users(db: Session, is_active: bool | None = True) -> list[models.User]:
+def get_users(db: Session, is_active: bool = True) -> list[models.User]:
     """
     Get users based on their active status.
 
@@ -79,7 +79,7 @@ def get_users(db: Session, is_active: bool | None = True) -> list[models.User]:
     """
     try:
         query = db.query(models.User)
-        if is_active is not None:  # Apply filter only if is_active is not None
+        if is_active is True:  # Apply filter only if is_active is not None
             query = query.filter(models.User.is_active == is_active)
         return query.all()
     except SQLAlchemyError as e:

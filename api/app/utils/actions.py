@@ -84,7 +84,7 @@ async def sync_data(
         start_date = config.INITIAL_DATE
         only_acive_users = False
         silent = True
-        logger.info("Sync ALL time entries from " + str(start_date))
+        logger.info("Sync ONLY time entries from " + str(start_date))
 
     achievements = Achievements(silent)
     clockify.sync_clockify_tags(db)

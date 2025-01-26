@@ -118,6 +118,11 @@ async def sync_data(
         title="Sync all data",
         description="Sync all time entries for the whole time",
     ),
+    only_acive_users: bool = Query(
+        default=True,
+        title="Sync only active users",
+        description="Sync only entries for active users",
+    ),
     only_time_entries: bool = Query(
         default=False,
         title="Sync only time entries",
@@ -148,6 +153,7 @@ async def sync_data(
             sync_season=sync_season,
             silent=silent,
             sync_all=sync_all,
+            only_acive_users=only_acive_users,
             only_time_entries=only_time_entries,
         )
     except Exception as e:

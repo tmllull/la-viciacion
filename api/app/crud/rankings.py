@@ -57,9 +57,15 @@ def user_current_ranking(db: Session, user: models.User, is_active: bool | None 
         list: Current ranking hours for the user.
     """
     try:
-        stmt = select(
-            models.UserStatistics.current_ranking_hours,
-        ).filter(models.UserStatistics.user_id == user.id)
+        stmt = (
+            select(
+                models.UserStatistics.current_ranking_hours,
+            )
+            .filter(models.UserStatistics.user_id == user.id)
+            .join(
+                models.UserStatistics, models.User.id == models.UserStatistics.user_id
+            )
+        )
 
         # Apply is_active filter if provided
         if is_active is not None:

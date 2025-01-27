@@ -701,13 +701,13 @@ async def weekly_resume(
         achievements_diff = int(weekly_achievements) - int(last_weekly_achievements)
         if achievements_diff > 0:
             achievements_diff = "+" + str(achievements_diff)
-        current_ranking = rankings.user_current_ranking(db, user)
-        current_ranking = str(current_ranking[0][0])
+        # current_ranking = rankings.user_current_ranking(db, user)
+        # current_ranking = str(current_ranking[0][0])
         msg = (
             "🤖*Aquí está tu resumen semanal*********🤖\n"
-            + "Ranking actual: "
-            + current_ranking
-            + "\n"
+            # + "Ranking actual: "
+            # + current_ranking
+            # + "\n"
             + "Horas: "
             + utils.convert_time_to_hours(weekly_hours)
             + " ("

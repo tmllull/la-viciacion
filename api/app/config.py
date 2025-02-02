@@ -39,6 +39,7 @@ class Config:
             self.OPENAI_API_KEY = config["OPENAI_API_KEY"]
             self.OPENAI_MODEL = config["OPENAI_MODEL"]
             self.SYNC_DAYS = int(config["SYNC_DAYS"])
+            self.CLOCKIFY_SIGNATURES = json.loads(config["CLOCKIFY_SIGNATURES"])
 
         except Exception:
             self.TELEGRAM_GROUP_ID = os.environ["TELEGRAM_GROUP_ID"]
@@ -70,5 +71,6 @@ class Config:
             self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
             self.OPENAI_MODEL = os.environ["OPENAI_MODEL"]
             self.SYNC_DAYS = int(os.environ["SYNC_DAYS"])
+            self.CLOCKIFY_SIGNATURES = json.loads(os.environ["CLOCKIFY_SIGNATURES"])
 
         self.CURRENT_SEASON = datetime.datetime.now().year

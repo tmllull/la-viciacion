@@ -46,6 +46,15 @@ def hello_world(request: Request):
     return "API is working!"
 
 
+@router.get("/keepalive")
+@version(1)
+def hello_world(request: Request):
+    """
+    Keepalive endpoint
+    """
+    return "Yup, I'm alive!"
+
+
 @router.post("/login")
 @version(1)
 async def login(

@@ -104,19 +104,29 @@ async def sync_data(
         description="Sync data for the user with this Clockify ID",
     ),
     sync_season: bool = Query(
-        default=None,
+        default=False,
         title="Sync all season data",
         description="Sync all time entries for the current year",
     ),
     silent: bool = Query(
-        default=None,
+        default=False,
         title="Run in silent mode",
         description="Disable Telegram notifications",
     ),
     sync_all: bool = Query(
-        default=None,
+        default=False,
         title="Sync all data",
         description="Sync all time entries for the whole time",
+    ),
+    only_acive_users: bool = Query(
+        default=True,
+        title="Sync only active users",
+        description="Sync only entries for active users",
+    ),
+    only_time_entries: bool = Query(
+        default=False,
+        title="Sync only time entries",
+        description="Sync all time entries for the whole time, but not calculate anything",
     ),
     db: Session = Depends(get_db),
 ):
@@ -143,6 +153,8 @@ async def sync_data(
             sync_season=sync_season,
             silent=silent,
             sync_all=sync_all,
+            only_acive_users=only_acive_users,
+            only_time_entries=only_time_entries,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

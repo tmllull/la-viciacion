@@ -237,7 +237,7 @@ def get_played_days(
 
 
 async def sync_clockify_entries_db(
-    db: Session, user: models.User, entries, silent: bool
+    db: Session, user: models.User, entries, only_time_entries: bool, silent: bool
 ):
     # current_season = datetime.datetime.now().year
     for entry in entries:
@@ -334,6 +334,8 @@ async def sync_clockify_entries_db(
                         "Error updating time entry " + str(entry) + ": " + str(e)
                     )
 
+            if only_time_entries:
+                continue
             # Check if game on clockify already exists on local DB
             game = games.get_game_by_id(db, entry["projectId"])
             if game is not None:
